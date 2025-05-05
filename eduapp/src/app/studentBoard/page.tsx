@@ -21,7 +21,7 @@ export default function TeacherDashboard() {
                     <VscAccount className="w-6 h-6 text-gray-700 text-white cursor-pointer"/>
                 </div>
             </header>
-            <div className="min-h-screen bg-gray-50 p-6">
+            <div className="min-h-screen bg-gray-50 p-6 text-black">
                 <div className="flex flex-col md:flex-row max-w-7xl mx-auto gap-6">
                     {/* Page Content: Sidebar + Main */}
                     <div className="w-full md:w-1/4 bg-white p-6 rounded-xl shadow">
