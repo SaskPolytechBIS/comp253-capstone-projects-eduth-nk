@@ -22,7 +22,7 @@ export default function TeacherDashboard() {
                 </div>
             </header>
 
-            <div className="min-h-screen p-6 bg-gray-50 flex flex-col items-center">
+            <div className="min-h-screen p-6 bg-gray-50 flex flex-col items-center text-black">
                 {/* Page Content: Sidebar + Main */}
                 <div className="w-full max-w-6xl flex flex-col md:flex-row gap-6">
                     {/* Left Panel */}
