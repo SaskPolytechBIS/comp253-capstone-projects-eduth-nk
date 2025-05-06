@@ -4,10 +4,13 @@
 import React, { useState } from "react";
 import { Bell   } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
+import { getStudentName } from "@/app/teacherBoard/api/route";
 
 
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
+
+    //const studentName = getStudentName();
 
     return (
         <div className="flex flex-col min-h-screen ">

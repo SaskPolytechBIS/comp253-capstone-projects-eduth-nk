@@ -1,4 +1,6 @@
 //creates connection to supabase
+import 'dotenv/config'
+
 import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = 'https://teihpfddelngadtkdtaz.supabase.co'
 const supabaseKey = process.env.SUPABASE_KEY
@@ -9,4 +11,11 @@ export async function getStudent() {
         .from('Student')
         .select('StudentID')
     return Student;
+}
+
+    export async function getStudentName() {
+        let { data: Student, error } = await supabase
+            .from('Student')
+            .select('StudentName')
+        return Student;
 }

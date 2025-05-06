@@ -15,7 +15,7 @@ export async function getStudentName() {
     let { data: Student, error } = await supabase
         .from('Student')
         .select('StudentName')
-    return Student;
+    return Student.at(2);
 }
 
 let { data: Student, error } = await supabase
