@@ -4,14 +4,14 @@ const supabaseUrl = 'https://teihpfddelngadtkdtaz.supabase.co'
 const supabaseKey = process.env.SUPABASE_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-async function getStudent() {
+export async function getStudent() {
     let {data: Student, error} = await supabase
         .from('Student')
         .select('StudentID')
     return Student;
 }
 
-async function getStudentName() {
+export async function getStudentName() {
     let { data: Student, error } = await supabase
         .from('Student')
         .select('StudentName')

@@ -4,6 +4,7 @@
 import React, { useState } from "react";
 import { Bell   } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
+import { getStudent } from "@/app/studentBoard/api/route";
 
 
 export default function TeacherDashboard() {

@@ -3,3 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = 'https://teihpfddelngadtkdtaz.supabase.co'
 const supabaseKey = process.env.SUPABASE_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
+
+export async function getStudent() {
+    let {data: Student, error} = await supabase
+        .from('Student')
+        .select('StudentID')
+    return Student;
+}
