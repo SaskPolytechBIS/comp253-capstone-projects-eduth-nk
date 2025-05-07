@@ -10,7 +10,15 @@ import { getStudentName } from "@/app/teacherBoard/api/route";
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
 
-    //const studentName = getStudentName();
+    let studentName;
+
+    getStudentName().then(studentNames => { studentName = studentNames});
+
+    if (studentName == null ) {
+
+    } else {
+
+    }
 
     return (
         <div className="flex flex-col min-h-screen ">

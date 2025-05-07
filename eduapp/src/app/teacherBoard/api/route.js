@@ -3,14 +3,19 @@ import 'dotenv/config'
 
 import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = 'https://teihpfddelngadtkdtaz.supabase.co'
-const supabaseKey = process.env.SUPABASE_KEY
+const supabaseKey = process.env.SUPABASE_KEY_SECRET
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 export async function getStudent() {
     let {data: Student, error} = await supabase
         .from('Student')
         .select('StudentID')
-    return Student;
+
+    if(Student == null) {
+        return error;
+    } else {
+        return Student;
+    }
 }
 
 export async function getStudentName() {
@@ -19,3 +24,9 @@ export async function getStudentName() {
             .select('StudentName')
         return Student;
 }
+
+getStudent().then(value => {
+    console.log(value)});
+
+getStudentName().then(value => {
+    console.log(value)});
