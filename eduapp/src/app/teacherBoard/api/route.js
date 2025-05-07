@@ -13,7 +13,7 @@ export async function getStudent() {
     return Student;
 }
 
-    export async function getStudentName() {
+export async function getStudentName() {
         let { data: Student, error } = await supabase
             .from('Student')
             .select('StudentName')
