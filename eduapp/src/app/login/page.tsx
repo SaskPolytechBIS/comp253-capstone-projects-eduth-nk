@@ -1,7 +1,10 @@
 "use client";
+import "dotenv/config"
 
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-icons/fa
+import { checkTeacherLogin, checkStudentLogin } from "./api/route"
+import {useRouter} from "next/router";
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
@@ -12,7 +15,23 @@ export default function LoginPage() {
         e.preventDefault();
         console.log("Username:", username);
         console.log("Password:", password);
-        // Add Supabase login logic here later
+
+        checkStudentLogin(username, password).then(value => {
+            if (typeof value != "string") {
+                checkTeacherLogin(username, password).then(value1 => {
+                    if (typeof value1 != "string") {
+                        console.log(value1)
+                        //error
+                    } else {
+                        console.log("Teacher login")
+                        useRouter().push('@/src/app/teacherBoard');
+                    }
+                })
+            } else {
+                console.log("Student login");
+                useRouter().push('@/src/app/studentBoard');
+            }
+        })
     };
 
     const togglePasswordVisibility = () => {
@@ -61,8 +80,7 @@ export default function LoginPage() {
                 </div>
                 <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-                >
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
                     Log In
                 </button>
             </form>
