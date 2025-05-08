@@ -1,35 +1,38 @@
 "use client";
 import "dotenv/config"
 
-import { useState } from "react";
+import {FormEvent, useState} from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-icons/fa
 import { checkTeacherLogin, checkStudentLogin } from "./api/route"
 import {useRouter} from "next/router";
+import {PostgrestError} from "@supabase/supabase-js";
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    async function handleSubmit (e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        console.log("Username:", username);
-        console.log("Password:", password);
+        console.log("Username:" + username);
+        console.log("Password:" + password);
 
         checkStudentLogin(username, password).then(value => {
-            if (typeof value != "string") {
+            if (value == null || value instanceof PostgrestError || value.length == 0) {
                 checkTeacherLogin(username, password).then(value1 => {
-                    if (typeof value1 != "string") {
-                        console.log(value1)
+                    if (value1 == null || value1 instanceof PostgrestError || value1.length == 0) {
+                        console.log("Error or null:" + value1)
                         //error
                     } else {
                         console.log("Teacher login")
-                        useRouter().push('@/src/app/teacherBoard');
+                        console.log();
+                        useRouter().push('./teacherBoard');
                     }
                 })
             } else {
                 console.log("Student login");
-                useRouter().push('@/src/app/studentBoard');
+                console.log(value[0]);
+                useRouter().push('./studentBoard');
             }
         })
     };
@@ -52,7 +55,7 @@ export default function LoginPage() {
                         className="w-full px-3 py-2 border-2 border-blue-400 rounded-md text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="your username"
                         value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        onChange={(e) => setUsername(e.target.value.trim())}
                         required
                     />
                 </div>
@@ -63,7 +66,7 @@ export default function LoginPage() {
                         className="w-full px-3 py-2 border-2 border-blue-400 rounded-md pr-10 text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="••••••••"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => setPassword(e.target.value.trim())}
                         required
                     />
                     <button
@@ -81,7 +84,6 @@ export default function LoginPage() {
                 <button
                     type="submit"
                     className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-                    onClick={handleSubmit}
                     >
                     Log In
                 </button>
