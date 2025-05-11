@@ -1,5 +1,4 @@
 "use client";
-import "dotenv/config"
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -7,9 +6,8 @@ import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-i
 import { supabase } from "@/lib/supabase";
 
 
-export default function LoginPage()
+export default function LoginPage() {
     const [email, setEmail] = useState("");
-    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const router = useRouter();
@@ -74,13 +72,13 @@ export default function LoginPage()
             >
                 <h1 className="text-2xl font-bold mb-6 text-center text-black">Login</h1>
                 <div className="mb-4">
-                    <label className="block mb-1 text-sm font-medium text-black">Username</label>
+                    <label className="block mb-1 text-sm font-medium text-black">Email</label>
                     <input
-                        type="username"
+                        type="email"
                         className="w-full px-3 py-2 border-2 border-blue-400 rounded-md text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="your username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value.trim())}
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                     />
                 </div>
@@ -91,7 +89,7 @@ export default function LoginPage()
                         className="w-full px-3 py-2 border-2 border-blue-400 rounded-md pr-10 text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="••••••••"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value.trim())}
+                        onChange={(e) => setPassword(e.target.value)}
                         required
                     />
                     <button
@@ -109,7 +107,7 @@ export default function LoginPage()
                 <button
                     type="submit"
                     className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-                    >
+                >
                     Log In
                 </button>
             </form>
