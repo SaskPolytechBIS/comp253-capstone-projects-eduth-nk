@@ -1,18 +1,63 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-icons/fa
+import { supabase } from "@/lib/supabase";
+
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const router = useRouter();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         console.log("Email:", email);
         console.log("Password:", password);
-        // Add Supabase login logic here later
+
+        const { data: teacher, error: teacherError } = await supabase
+            .from("TeacherLogin")
+            .select("*")
+            .eq("Username", email.trim())
+            .eq("Password", password.trim())
+            .maybeSingle();
+
+        if (teacherError) {
+            console.error("Login error:", teacherError.message);
+            alert("Login error!");
+            return;
+        }
+
+        if (teacher) {
+            console.log("Login successful", teacher);
+            router.push("/teacherBoard");
+        }else {
+
+            const {data: student, error: studentError} = await supabase
+                .from("StudentLogin")
+                .select("*")
+                .eq("Username", email.trim())
+                .eq("Password", password.trim())
+                .maybeSingle();
+
+            if (studentError) {
+                console.error("Student query error:", studentError.message);
+                alert("Login error!");
+                return;
+            }
+
+            if (student) {
+                console.log("Student login successful", student);
+                router.push("/studentBoard");
+                return;
+            } else {
+                //if Username or Password incorrect
+                alert("Username or Password incorrect");
+            }
+        }
+
     };
 
     const togglePasswordVisibility = () => {
