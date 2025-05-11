@@ -5,26 +5,30 @@ import React, { useState } from "react";
 import { Bell   } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
 import { getStudentName } from "@/app/teacherBoard/api/route";
-
+import ClientEditorModal from "@/components/ClientEditorModal";
 
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [assignmentContent, setAssignmentContent] = useState("");
 
-    let studentName;
+    //const studentName = getStudentName();
+    const handleNewAssignmentClick = () => {
+        setIsModalOpen(true);
+    };
 
-    getStudentName().then(studentNames => { studentName = studentNames});
-
-    if (studentName == null ) {
-
-    } else {
-
-    }
+    const handleModalSave = (content: string) => {
+        console.log("Assignment Content:", content);
+        setAssignmentContent(content);
+        setIsModalOpen(false);
+        // TODO: save to DB
+    };
 
     return (
         <div className="flex flex-col min-h-screen ">
             {/* Top Banner */}
             <header className="w-full bg-violet-700 px-6 py-4 flex justify-between items-center ">
-                <button className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
+                <button onClick={handleNewAssignmentClick} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
                     + New Assignment
                 </button>
                 <div className="flex items-center gap-4">
@@ -143,7 +147,16 @@ export default function TeacherDashboard() {
                         </div>
                     </div>
                 </div>
+
             </div>
+            {/* Modal Component */}
+            <ClientEditorModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleModalSave}
+                initialContent={assignmentContent}
+            />
         </div>
+
     );
 }

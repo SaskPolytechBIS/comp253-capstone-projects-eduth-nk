@@ -1,40 +1,64 @@
 "use client";
 import "dotenv/config"
 
-import {FormEvent, useState} from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-icons/fa
-import { checkTeacherLogin, checkStudentLogin } from "./api/route"
-import {useRouter} from "next/router";
-import {PostgrestError} from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
+
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const router = useRouter();
 
-    async function handleSubmit (e: FormEvent<HTMLFormElement>) {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Username:" + username);
-        console.log("Password:" + password);
+        console.log("Email:", email);
+        console.log("Password:", password);
 
-        checkStudentLogin(username, password).then(value => {
-            if (value == null || value instanceof PostgrestError || value.length == 0) {
-                checkTeacherLogin(username, password).then(value1 => {
-                    if (value1 == null || value1 instanceof PostgrestError || value1.length == 0) {
-                        console.log("Error or null:" + value1)
-                        //error
-                    } else {
-                        console.log("Teacher login")
-                        console.log();
-                        useRouter().push('./teacherBoard');
-                    }
-                })
-            } else {
-                console.log("Student login");
-                console.log(value[0]);
-                useRouter().push('./studentBoard');
+        const { data: teacher, error: teacherError } = await supabase
+            .from("TeacherLogin")
+            .select("*")
+            .eq("Username", email.trim())
+            .eq("Password", password.trim())
+            .maybeSingle();
+
+        if (teacherError) {
+            console.error("Login error:", teacherError.message);
+            alert("Login error!");
+            return;
+        }
+
+        if (teacher) {
+            console.log("Login successful", teacher);
+            router.push("/teacherBoard");
+        }else {
+
+            const {data: student, error: studentError} = await supabase
+                .from("StudentLogin")
+                .select("*")
+                .eq("Username", email.trim())
+                .eq("Password", password.trim())
+                .maybeSingle();
+
+            if (studentError) {
+                console.error("Student query error:", studentError.message);
+                alert("Login error!");
+                return;
             }
-        })
+
+            if (student) {
+                console.log("Student login successful", student);
+                router.push("/studentBoard");
+                return;
+            } else {
+                //if Username or Password incorrect
+                alert("Username or Password incorrect");
+            }
+        }
+
     };
 
     const togglePasswordVisibility = () => {
