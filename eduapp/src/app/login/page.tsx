@@ -7,7 +7,8 @@ import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-i
 import { supabase } from "@/lib/supabase";
 
 
-export default function LoginPage() {
+export default function LoginPage()
+    const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
