@@ -6,11 +6,19 @@ import { Bell   } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
 import { getStudentName } from "@/app/teacherBoard/api/route";
 import ClientEditorModal from "@/components/ClientEditorModal";
-
+import { useRouter } from "next/navigation";
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [assignmentContent, setAssignmentContent] = useState("");
+    const [menuOpen, setMenuOpen] = useState(false);
+    const router = useRouter();
+    // Handle logout
+    const handleLogout = () => {
+        localStorage.clear();       // Clear token or session info
+        sessionStorage.clear();     // Optional
+        router.push("/login");         // Redirect to login
+    };
 
     //const studentName = getStudentName();
     const handleNewAssignmentClick = () => {
@@ -33,7 +41,24 @@ export default function TeacherDashboard() {
                 </button>
                 <div className="flex items-center gap-4">
                     <Bell className="w-6 h-6 text-gray-700 text-white cursor-pointer"/>
-                    <VscAccount className="w-6 h-6 text-gray-700 text-white cursor-pointer"/>
+                    {/* Account Icon with dropdown */}
+                    <div >
+                        <VscAccount
+                            className="w-6 h-6 text-white cursor-pointer"
+                            onClick={() => setMenuOpen(!menuOpen)}
+                        />
+
+                        {menuOpen && (
+                            <div className="absolute right-0 mt-2 w-40 bg-white text-black shadow-lg rounded-md z-50">
+                                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                                    Profile
+                                </button>
+                                <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                                    Logout
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
 

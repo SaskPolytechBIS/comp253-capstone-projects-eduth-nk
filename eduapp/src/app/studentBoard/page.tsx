@@ -4,23 +4,52 @@
 import React, { useState } from "react";
 import { Bell   } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
+import { useRouter } from "next/navigation";
 
 
-export default function TeacherDashboard() {
+export default function StudentDashboard() {
     const [userName, setUserName] = useState("sample");
+    const [menuOpen, setMenuOpen] = useState(false);
+    const router = useRouter();
+    // Handle logout
+    const handleLogout = () => {
+        localStorage.clear();       // Clear token or session info
+        sessionStorage.clear();     // Optional
+        router.push("/login");         // Redirect to login
+    };
 
     return (
         <div className="flex flex-col min-h-screen ">
             {/* Top Banner */}
-            <header className="w-full bg-violet-700 px-6 py-4 flex justify-between items-center ">
-                <button className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    + New Assignment
-                </button>
+            <header className="w-full bg-violet-700 px-6 py-4 flex justify-between items-center relative">
                 <div className="flex items-center gap-4">
-                    <Bell className="w-6 h-6 text-gray-700 text-white cursor-pointer"/>
-                    <VscAccount className="w-6 h-6 text-gray-700 text-white cursor-pointer"/>
+                    {/* Left-side content like logo or title */}
+                    <span className="text-white text-lg font-semibold">Student Dashboard</span>
+                </div>
+                <div className="flex items-center gap-4 relative">
+                    <Bell className="w-6 h-6 text-white cursor-pointer"/>
+
+                    {/* Account Icon with dropdown */}
+                    <div >
+                        <VscAccount
+                            className="w-6 h-6 text-white cursor-pointer"
+                            onClick={() => setMenuOpen(!menuOpen)}
+                        />
+
+                        {menuOpen && (
+                            <div className="absolute right-0 mt-2 w-40 bg-white text-black shadow-lg rounded-md z-50">
+                                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                                    Profile
+                                </button>
+                                <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                                    Logout
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
+
             <div className="min-h-screen bg-gray-50 p-6 text-black">
                 <div className="flex flex-col md:flex-row max-w-7xl mx-auto gap-6">
                     {/* Page Content: Sidebar + Main */}
@@ -29,7 +58,8 @@ export default function TeacherDashboard() {
 
                         <div className="mb-4">
                             <label className="block mb-1 font-medium">Class</label>
-                            <select className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select
+                                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option>HilsenDager6/7</option>
                                 <option>Math</option>
                                 <option>IT</option>
@@ -39,7 +69,8 @@ export default function TeacherDashboard() {
 
                         <div className="mb-4">
                             <label className="block mb-1 font-medium">Unit</label>
-                            <select className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select
+                                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option>Area and Perimeter</option>
                                 <option>Unit 1</option>
                                 <option>Unit 2</option>
@@ -75,14 +106,18 @@ export default function TeacherDashboard() {
                                 <tbody>
                                 <tr className="hover:bg-gray-50">
                                     <td className="border px-4 py-3">
-                                        Programming Skills: Enhancing our programming skills by expanding our programming library
-                                        through utilizing Next.js for the front-end + back-end development and deploying Supabase
+                                        Programming Skills: Enhancing our programming skills by expanding our
+                                        programming library
+                                        through utilizing Next.js for the front-end + back-end development and deploying
+                                        Supabase
                                         for the application database.
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs text-blue-700">
                                         <>
-                                            <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                            <span
+                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                            <span
+                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3"></td>
@@ -95,8 +130,10 @@ export default function TeacherDashboard() {
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs text-blue-700">
                                         <>
-                                            <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                            <span
+                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                            <span
+                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3"></td>
@@ -110,8 +147,10 @@ export default function TeacherDashboard() {
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs text-blue-700">
                                         <>
-                                            <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                            <span
+                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                            <span
+                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3"></td>
@@ -125,8 +164,10 @@ export default function TeacherDashboard() {
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs text-blue-700">
                                         <>
-                                            <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                            <span
+                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                            <span
+                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3"></td>
