@@ -4,10 +4,12 @@ import "dotenv/config"
 import {FormEvent, useState} from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-icons/fa
 import { checkTeacherLogin, checkStudentLogin } from "./api/route"
-import {useRouter} from "next/router";
+import {useRouter} from "next/navigation";
 import {PostgrestError} from "@supabase/supabase-js";
+import {cookies} from 'next/headers'
 
-export default function LoginPage() {
+export default async function LoginPage() {
+    const cookieStore = await cookies();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -20,11 +22,13 @@ export default function LoginPage() {
             if (value == null || value instanceof PostgrestError || value.length == 0) {
                 checkTeacherLogin(username, password).then(value1 => {
                     if (value1 == null || value1 instanceof PostgrestError || value1.length == 0) {
-                        console.log("Error or null:" + value1)
-                        //error
+                        alert("Login invalid.");
+                        if (value1 instanceof PostgrestError) {
+                            console.log(value1)
+                        }
                     } else {
                         console.log("Teacher login")
-                        console.log(value1[0]);
+
                         router.push('/teacherBoard');
                     }
                 })
