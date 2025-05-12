@@ -13,6 +13,27 @@ export default function TeacherDashboard() {
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
+
+    //handle pop-up modal for add class and student
+    const [showClassModal, setShowClassModal] = useState(false);
+    const [showStudentModal, setShowStudentModal] = useState(false);
+    const [className, setClassName] = useState("");
+    const [teacherName, setTeacherName] = useState("");
+    const [studentName, setStudentName] = useState("");
+    const [studentUsername, setStudentUsername] = useState("");
+    const handleClassSubmit = () => {
+        console.log("Class:", className, "Teacher:", teacherName);
+        setClassName("");
+        setTeacherName("");
+        setShowClassModal(false);
+    };
+
+    const handleStudentSubmit = () => {
+        console.log("Student:", studentName, "Username:", studentUsername);
+        setStudentName("");
+        setStudentUsername("");
+        setShowStudentModal(false);
+    };
     // Handle logout
     const handleLogout = () => {
         localStorage.clear();       // Clear token or session info
@@ -32,13 +53,28 @@ export default function TeacherDashboard() {
         // TODO: save to DB
     };
 
+    //handle new student and add new class
+    const handleNewClass = () => setShowClassModal(true);
+    const handleNewStudent = () => setShowStudentModal(true);
+
     return (
         <div className="flex flex-col min-h-screen ">
             {/* Top Banner */}
             <header className="w-full bg-violet-700 px-6 py-4 flex justify-between items-center ">
-                <button onClick={handleNewAssignmentClick} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    + New Assignment
-                </button>
+               <div className="flex space-x-4">
+                   <button onClick={handleNewAssignmentClick} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
+                       + New Assignment
+                   </button>
+
+                   <button onClick={handleNewClass} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
+                       Create Class
+                   </button>
+
+                   <button onClick={handleNewStudent} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
+                       Create Student
+                   </button>
+               </div>
+
                 <div className="flex items-center gap-4">
                     <Bell className="w-6 h-6 text-gray-700 text-white cursor-pointer"/>
                     {/* Account Icon with dropdown */}
@@ -67,7 +103,7 @@ export default function TeacherDashboard() {
                 <div className="w-full max-w-6xl flex flex-col md:flex-row gap-6">
                     {/* Left Panel */}
                     <div className="w-full md:w-1/3 bg-white p-4 rounded-xl shadow">
-                        <div className="mb-4">
+                        <div className="mb-4 ">
                             <label className="block text-sm font-medium mb-1">Class</label>
                             <select className="w-full border rounded px-3 py-2">
                                 <option>HilsenDager6/7</option>
@@ -181,6 +217,67 @@ export default function TeacherDashboard() {
                 onSave={handleModalSave}
                 initialContent={assignmentContent}
             />
+
+            {/* Modal for Class */}
+            {showClassModal && (
+                <div className="text-black fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 text-black rounded shadow-lg w-96">
+                        <h2 className="text-xl font-bold mb-4">Create Class</h2>
+                        <input
+                            type="text"
+                            placeholder="Enter class name"
+                            value={className}
+                            onChange={(e) => setClassName(e.target.value)}
+                            className="w-full p-2 border rounded mb-4"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Enter Teacher Name"
+                            value={teacherName}
+                            onChange={(e) => setTeacherName(e.target.value)}
+                            className="w-full p-2 border rounded mb-4"
+                        />
+                        <div className="flex justify-end space-x-2">
+                            <button onClick={() => setShowClassModal(false)} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
+                            <button onClick={handleClassSubmit} className="px-4 py-2 bg-violet-700 text-white rounded">Create</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal for Student */}
+            {showStudentModal && (
+                <div className="text-black fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded shadow-lg w-96">
+                        <h2 className="text-xl font-bold mb-4">Create Student</h2>
+                        <input
+                            type="text"
+                            placeholder="Enter student name"
+                            value={studentName}
+                            onChange={(e) => setStudentName(e.target.value)}
+                            className="w-full p-2 border rounded mb-4"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Create student username"
+                            value={studentUsername}
+                            onChange={(e) => setStudentUsername(e.target.value)}
+                            className="w-full p-2 border rounded mb-4"
+                        />
+                        <select className="w-full border rounded px-3 py-2">
+                            <option>HilsenDager6/7</option>
+                            <option>Math</option>
+                            <option>IT</option>
+                            <option>ACC</option>
+                        </select>
+
+                        <div className="flex justify-end space-x-2">
+                            <button onClick={() => setShowStudentModal(false)} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
+                            <button onClick={handleStudentSubmit} className="px-4 py-2 bg-violet-700 text-white rounded">Create</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
 
     );
