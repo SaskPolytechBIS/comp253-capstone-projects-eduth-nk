@@ -1,4 +1,3 @@
-import "dotenv/config"
 import { supabase } from '@/lib/supabase'
 
 export async function checkTeacherLogin(username, password) {
@@ -16,10 +15,9 @@ export async function checkTeacherLogin(username, password) {
     }
 }
 
-
 export async function checkStudentLogin(username, password) {
 
-    let { data: StudentLogin, error} = await supabase
+    let {data: StudentLogin, error} = await supabase
         .from('StudentLogin')
         .select('StudentID')
         .like('Username', username)
@@ -30,7 +28,6 @@ export async function checkStudentLogin(username, password) {
     } else {
         return StudentLogin
     }
-
 }
 
 

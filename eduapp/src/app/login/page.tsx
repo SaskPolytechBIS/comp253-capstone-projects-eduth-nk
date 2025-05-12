@@ -1,15 +1,14 @@
 "use client";
-import "dotenv/config"
 
 import {FormEvent, useState} from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-icons/fa
-import { checkTeacherLogin, checkStudentLogin } from "./api/route"
-import {useRouter} from "next/navigation";
-import {PostgrestError} from "@supabase/supabase-js";
-import {cookies} from 'next/headers'
+import { checkTeacherLogin, checkStudentLogin} from "./api/route"
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import { PostgrestError } from "@supabase/supabase-js";
 
-export default async function LoginPage() {
-    const cookieStore = await cookies();
+
+export default function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -18,21 +17,22 @@ export default async function LoginPage() {
     async function handleSubmit (e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        checkStudentLogin(username, password).then(value => {
-            if (value == null || value instanceof PostgrestError || value.length == 0) {
-                checkTeacherLogin(username, password).then(value1 => {
-                    if (value1 == null || value1 instanceof PostgrestError || value1.length == 0) {
+        checkStudentLogin(username, password).then(studentId => {
+            if (studentId == null || studentId instanceof PostgrestError || studentId.length == 0) {
+                checkTeacherLogin(username, password).then(teacherId => {
+                    if (teacherId == null || teacherId instanceof PostgrestError || teacherId.length == 0) {
                         alert("Login invalid.");
-                        if (value1 instanceof PostgrestError) {
-                            console.log(value1)
+                        if (teacherId instanceof PostgrestError) {
+                            console.log(teacherId)
                         }
                     } else {
+                        Cookies.set("teacherId", teacherId[0].TeacherID)
                         router.push('/teacherBoard');
+
                     }
                 })
             } else {
-                console.log("Student login");
-                console.log(value[0]);
+                Cookies.set("studentId", studentId[0].StudentID)
                 router.push('/studentBoard');
             }
         })
