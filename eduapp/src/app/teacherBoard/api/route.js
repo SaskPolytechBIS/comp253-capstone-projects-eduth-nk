@@ -1,7 +1,5 @@
 //creates connection to supabase
 import 'dotenv/config'
-
-import { createClient } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 
 export async function getStudent() {
@@ -22,9 +20,3 @@ export async function getStudentName() {
             .select('StudentName')
         return Student;
 }
-
-getStudent().then(value => {
-    console.log(value)});
-
-getStudentName().then(value => {
-    console.log(value)});

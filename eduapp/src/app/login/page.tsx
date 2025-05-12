@@ -27,8 +27,6 @@ export default async function LoginPage() {
                             console.log(value1)
                         }
                     } else {
-                        console.log("Teacher login")
-
                         router.push('/teacherBoard');
                     }
                 })
