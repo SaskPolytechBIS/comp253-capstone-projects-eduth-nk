@@ -7,20 +7,20 @@ import { supabase } from "@/lib/supabase";
 
 
 export default function LoginPage() {
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Email:", email);
+        console.log("Username:", username);
         console.log("Password:", password);
 
         const { data: teacher, error: teacherError } = await supabase
             .from("TeacherLogin")
             .select("*")
-            .eq("Username", email.trim())
+            .eq("Username", username.trim())
             .eq("Password", password.trim())
             .maybeSingle();
 
@@ -38,7 +38,7 @@ export default function LoginPage() {
             const {data: student, error: studentError} = await supabase
                 .from("StudentLogin")
                 .select("*")
-                .eq("Username", email.trim())
+                .eq("Username", username.trim())
                 .eq("Password", password.trim())
                 .maybeSingle();
 
@@ -72,13 +72,13 @@ export default function LoginPage() {
             >
                 <h1 className="text-2xl font-bold mb-6 text-center text-black">Login</h1>
                 <div className="mb-4">
-                    <label className="block mb-1 text-sm font-medium text-black">Email</label>
+                    <label className="block mb-1 text-sm font-medium text-black">Username</label>
                     <input
-                        type="email"
+                        type="username"
                         className="w-full px-3 py-2 border-2 border-blue-400 rounded-md text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         required
                     />
                 </div>
