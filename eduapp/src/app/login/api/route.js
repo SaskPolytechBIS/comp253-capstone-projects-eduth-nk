@@ -1,12 +1,9 @@
 import "dotenv/config"
-import { createClient } from '@supabase/supabase-js'
-import { supabase } from '@lib/supabaseclient.ts'
+import { supabase } from '@/lib/supabase'
 
 export async function checkTeacherLogin(username, password) {
 
-    const supabaseRead = supabase;
-
-    let { data: TeacherLogin, error} = await supabaseRead
+    let { data: TeacherLogin, error} = await supabase
         .from('TeacherLogin')
         .select('TeacherID')
         .like('Username', username)
@@ -22,9 +19,7 @@ export async function checkTeacherLogin(username, password) {
 
 export async function checkStudentLogin(username, password) {
 
-    const supabaseRead = supabase;
-
-    let { data: StudentLogin, error} = await supabaseRead
+    let { data: StudentLogin, error} = await supabase
         .from('StudentLogin')
         .select('StudentID')
         .like('Username', username)
