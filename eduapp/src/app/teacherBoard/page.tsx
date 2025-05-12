@@ -250,6 +250,7 @@ export default function TeacherDashboard() {
                 <div className="text-black fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white p-6 rounded shadow-lg w-96">
                         <h2 className="text-xl font-bold mb-4">Create Student</h2>
+
                         <input
                             type="text"
                             placeholder="Enter student name"
@@ -264,13 +265,14 @@ export default function TeacherDashboard() {
                             onChange={(e) => setStudentUsername(e.target.value)}
                             className="w-full p-2 border rounded mb-4"
                         />
-                        <select className="w-full border rounded px-3 py-2">
+                        <select className="w-full border rounded px-3 py-2 space-x-2 line-height:1.5">
                             <option>HilsenDager6/7</option>
                             <option>Math</option>
                             <option>IT</option>
                             <option>ACC</option>
                         </select>
-
+                        <br/>
+                        <br/>
                         <div className="flex justify-end space-x-2">
                             <button onClick={() => setShowStudentModal(false)} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
                             <button onClick={handleStudentSubmit} className="px-4 py-2 bg-violet-700 text-white rounded">Create</button>
