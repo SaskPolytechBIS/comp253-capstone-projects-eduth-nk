@@ -21,6 +21,7 @@ export default function TeacherDashboard() {
     const [teacherName, setTeacherName] = useState("");
     const [studentName, setStudentName] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
+    const [studentPassword, setStudentPassword] = useState("");
     const handleClassSubmit = () => {
         console.log("Class:", className, "Teacher:", teacherName);
         setClassName("");
@@ -263,6 +264,13 @@ export default function TeacherDashboard() {
                             placeholder="Create student username"
                             value={studentUsername}
                             onChange={(e) => setStudentUsername(e.target.value)}
+                            className="w-full p-2 border rounded mb-4"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Create student password"
+                            value={studentPassword}
+                            onChange={(e) => setStudentPassword(e.target.value)}
                             className="w-full p-2 border rounded mb-4"
                         />
                         <div className="mb-4">
