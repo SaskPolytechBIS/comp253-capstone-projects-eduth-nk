@@ -11,11 +11,10 @@ export default function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const router = useRouter();
 
     async function handleSubmit (e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        console.log("Username:" + username);
-        console.log("Password:" + password);
 
         checkStudentLogin(username, password).then(value => {
             if (value == null || value instanceof PostgrestError || value.length == 0) {
@@ -25,14 +24,14 @@ export default function LoginPage() {
                         //error
                     } else {
                         console.log("Teacher login")
-                        console.log();
-                        useRouter().push('./teacherBoard');
+                        console.log(value1[0]);
+                        router.push('/teacherBoard');
                     }
                 })
             } else {
                 console.log("Student login");
                 console.log(value[0]);
-                useRouter().push('./studentBoard');
+                router.push('/studentBoard');
             }
         })
     };
