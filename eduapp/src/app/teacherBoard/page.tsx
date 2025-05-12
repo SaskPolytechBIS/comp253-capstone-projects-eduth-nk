@@ -230,13 +230,13 @@ export default function TeacherDashboard() {
                             onChange={(e) => setClassName(e.target.value)}
                             className="w-full p-2 border rounded mb-4"
                         />
-                        <input
-                            type="text"
-                            placeholder="Enter Teacher Name"
-                            value={teacherName}
-                            onChange={(e) => setTeacherName(e.target.value)}
-                            className="w-full p-2 border rounded mb-4"
-                        />
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-1">Teacher</label>
+                            <select className="w-full border rounded px-3 py-2">
+                                <option>Taylor</option>
+                                <option>Jordan</option>
+                            </select>
+                        </div>
                         <div className="flex justify-end space-x-2">
                             <button onClick={() => setShowClassModal(false)} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
                             <button onClick={handleClassSubmit} className="px-4 py-2 bg-violet-700 text-white rounded">Create</button>
@@ -265,12 +265,16 @@ export default function TeacherDashboard() {
                             onChange={(e) => setStudentUsername(e.target.value)}
                             className="w-full p-2 border rounded mb-4"
                         />
-                        <select className="w-full border rounded px-3 py-2 space-x-2 line-height:1.5">
-                            <option>HilsenDager6/7</option>
-                            <option>Math</option>
-                            <option>IT</option>
-                            <option>ACC</option>
-                        </select>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-1">Class</label>
+                            <select className="w-full border rounded px-3 py-2 space-x-2 line-height:1.5">
+                                <option>HilsenDager6/7</option>
+                                <option>Math</option>
+                                <option>IT</option>
+                                <option>ACC</option>
+                            </select>
+                        </div>
+
                         <br/>
                         <br/>
                         <div className="flex justify-end space-x-2">
