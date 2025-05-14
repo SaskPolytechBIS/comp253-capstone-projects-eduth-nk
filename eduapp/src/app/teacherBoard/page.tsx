@@ -31,14 +31,7 @@ export default function TeacherDashboard() {
         redirect('/login')
     }
 
-    getTeacherClasses(teacherId).then(classResult => {
-        if (classResult == null || classResult instanceof PostgrestError || classResult.length == 0) {
-            alert("Error with populating classes.");
-        } else {
-            classes = classResult[0];
-            console.log(classes);
-        }
-    });
+
 
     const handleClassSubmit = () => {
         console.log("Class:", className, "Teacher:", teacherName);
@@ -182,11 +175,56 @@ export default function TeacherDashboard() {
                                     of their child through the application at home.
                                 </td>
                                 <td className="border p-3 text-center text-xs text-blue-700">
-                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
                                     <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3"></td>
-                                <td className="border p-3"></td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -196,11 +234,56 @@ export default function TeacherDashboard() {
                                     It will include a database that holds the information for login and the paths to the files for assignments.:
                                 </td>
                                 <td className="border p-3 text-center text-xs text-blue-700">
-                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
                                     <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3"></td>
-                                <td className="border p-3"></td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -210,11 +293,56 @@ export default function TeacherDashboard() {
                                     Questions we can ask ourselves include:
                                 </td>
                                 <td className="border p-3 text-center text-xs text-blue-700">
-                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
                                     <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3"></td>
-                                <td className="border p-3"></td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
                             </tr>
                             </tbody>
                         </table>
