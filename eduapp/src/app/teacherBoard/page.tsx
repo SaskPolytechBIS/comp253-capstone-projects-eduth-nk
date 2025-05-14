@@ -33,11 +33,11 @@ export default function TeacherDashboard() {
         redirect('/login')
     }
 
-    getTeacherClasses(teacherId).then(classResult => {
-        if (classResult == null || classResult instanceof PostgrestError || classResult.length == 0) {
+    getTeacherClasses(Number(teacherId)).then(classResult => {
+        if (classResult == null || classResult instanceof PostgrestError || classResult.length == undefined || classResult.length < 1) {
             alert("Error with populating classes.");
         } else {
-            classes = classResult[0];
+            classes = classResult[0].ClassID;
             console.log(classes);
         }
     });
