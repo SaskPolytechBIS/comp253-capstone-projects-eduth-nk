@@ -6,7 +6,7 @@ import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
 import { getStudentName } from "@/app/teacherBoard/api/route";
 import ClientEditorModal from "@/components/ClientEditorModal";
-import { useRouter } from "next/navigation";
+import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 
 export default function TeacherDashboard() {
@@ -24,6 +24,11 @@ export default function TeacherDashboard() {
     const [studentName, setStudentName] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
+
+    if (Cookies.get('teacherId') == undefined) {
+        redirect('/login')
+    }
+
     const handleClassSubmit = () => {
         console.log("Class:", className, "Teacher:", teacherName);
         setClassName("");
@@ -39,8 +44,6 @@ export default function TeacherDashboard() {
     };
     // Handle logout
     const handleLogout = () => {
-        localStorage.clear();       // Clear token or session info
-        sessionStorage.clear();     // Optional
         Cookies.remove("teacherId");
         router.push("/login");         // Redirect to login
     };
