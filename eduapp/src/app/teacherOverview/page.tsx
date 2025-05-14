@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import { Bell   } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
-import { useNavigate } from "react-";
+//import { useNavigate } from "react-";
 import { getStudentName } from "@/app/teacherBoard/api/route";
 
 
