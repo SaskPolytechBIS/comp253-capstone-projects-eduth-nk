@@ -117,32 +117,48 @@ export default function StudentDashboard() {
                                         Supabase
                                         for the application database.
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs text-blue-700">
+                                    <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                         </>
                                     </td>
-                                    <td className="border px-4 py-3"></td>
-                                    <td className="border px-4 py-3"></td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        </>
+                                    </td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        </>
+                                    </td>
                                 </tr>
                                 <tr className="hover:bg-gray-50">
                                     <td className="border px-4 py-3">
                                         Time Management: This project will challenge our ability to plan effectively
                                         and deliver results under deadlines set by both our team and stakeholders.
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs text-blue-700">
+                                    <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                         </>
                                     </td>
-                                    <td className="border px-4 py-3"></td>
-                                    <td className="border px-4 py-3"></td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        </>
+                                    </td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        </>
+                                    </td>
                                 </tr>
                                 <tr className="hover:bg-gray-50">
                                     <td className="border px-4 py-3">
@@ -150,16 +166,24 @@ export default function StudentDashboard() {
                                         we will need to remain flexible—reassessing priorities, adjusting timelines,
                                         and refining strategies to stay aligned with project goals
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs text-blue-700">
+                                    <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                         </>
                                     </td>
-                                    <td className="border px-4 py-3"></td>
-                                    <td className="border px-4 py-3"></td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        </>
+                                    </td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        </>
+                                    </td>
                                 </tr>
                                 <tr className="hover:bg-gray-50">
                                     <td className="border px-4 py-3">
@@ -167,16 +191,24 @@ export default function StudentDashboard() {
                                         how to delegate responsibility, balance workloads, and to communicate through
                                         conflicts all while maintaining a shared vision..
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs text-blue-700">
+                                    <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                         </>
                                     </td>
-                                    <td className="border px-4 py-3"></td>
-                                    <td className="border px-4 py-3"></td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        </>
+                                    </td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
+                                            <label>Legend: </label>
+                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        </>
+                                    </td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -184,9 +216,6 @@ export default function StudentDashboard() {
 
                         {/* Bottom Buttons */}
                         <div className="flex justify-end gap-2 mt-4">
-                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                                Show Legend
-                            </button>
                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                                 Update Map
                             </button>

@@ -157,6 +157,12 @@ export default function TeacherDashboard() {
 
                     {/* Main Content */}
                     <div className="w-full md:w-2/3 bg-white p-4 rounded-xl shadow overflow-x-auto">
+                        {/* Top Buttons */}
+                        <div className="flex justify-end gap-2 mb-4">
+                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                Show Legend
+                            </button>
+                        </div>
                         <table className="w-full table-auto border-collapse">
                             <thead>
                             <tr className="bg-gray-100">
@@ -174,7 +180,7 @@ export default function TeacherDashboard() {
                                     and students to have a conversation about their assessments and allow the parents to view the progress
                                     of their child through the application at home.
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
+                                <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
                                         <select className="w-full border rounded px-3 py-2">
                                             <option></option>
@@ -189,9 +195,9 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
+                                <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
                                         <select className="w-full border rounded px-3 py-2">
                                             <option></option>
@@ -206,9 +212,9 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
+                                <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
                                         <select className="w-full border rounded px-3 py-2">
                                             <option></option>
@@ -223,7 +229,7 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
                             </tr>
                             <tr className="hover:bg-gray-50">
@@ -233,7 +239,7 @@ export default function TeacherDashboard() {
                                     and be hosted through a web application.
                                     It will include a database that holds the information for login and the paths to the files for assignments.:
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
+                                <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
                                         <select className="w-full border rounded px-3 py-2">
                                             <option></option>
@@ -248,9 +254,9 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
+                                <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
                                         <select className="w-full border rounded px-3 py-2">
                                             <option></option>
@@ -265,9 +271,9 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
+                                <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
                                         <select className="w-full border rounded px-3 py-2">
                                             <option></option>
@@ -282,7 +288,7 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
                             </tr>
                             <tr className="hover:bg-gray-50">
@@ -292,7 +298,7 @@ export default function TeacherDashboard() {
                                     This is the basis of the framework that we have been requested, and any changes should keep this framework the same.
                                     Questions we can ask ourselves include:
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
+                                <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
                                         <select className="w-full border rounded px-3 py-2">
                                             <option></option>
@@ -307,9 +313,9 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
+                                <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
                                         <select className="w-full border rounded px-3 py-2">
                                             <option></option>
@@ -324,9 +330,9 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
+                                <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
                                         <select className="w-full border rounded px-3 py-2">
                                             <option></option>
@@ -341,7 +347,7 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
                             </tr>
                             </tbody>
