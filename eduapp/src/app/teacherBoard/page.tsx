@@ -4,19 +4,30 @@
 import React, { useState } from "react";
 import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
-import { getStudentName } from "@/app/teacherBoard/api/route";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import { useRouter } from "next/navigation";
+import Cookies from 'js-cookie'
+import {AppRouterInstance} from "next/dist/shared/lib/app-router-context.shared-runtime";
+
+function checkCookie() {
+    if (Cookies.get('teacherId') == undefined) {
+        let router = useRouter();
+        router.push('/login');
+    }
+}
+
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
+
+
+
     // Handle logout
     const handleLogout = () => {
-        localStorage.clear();       // Clear token or session info
-        sessionStorage.clear();     // Optional
+        Cookies.remove('teacherId');
         router.push("/login");         // Redirect to login
     };
 

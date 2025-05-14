@@ -5,6 +5,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-i
 import { checkTeacherLogin, checkStudentLogin} from "./api/route"
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import {useEffect} from "react";
 import { PostgrestError } from "@supabase/supabase-js";
 
 
