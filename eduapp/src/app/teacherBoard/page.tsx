@@ -1,7 +1,7 @@
 "use client";
 
-import { supabase } from "@/lib/supabase";
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
@@ -16,7 +16,6 @@ export default function TeacherDashboard() {
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
-    const teacherId = Cookies.get('teacherId')
 
     //handle pop-up modal for add class and student
     const [showClassModal, setShowClassModal] = useState(false);
@@ -28,8 +27,7 @@ export default function TeacherDashboard() {
     const [studentPassword, setStudentPassword] = useState("");
     let classes;
 
-    //redirects to login if no teacher cookie
-    if (teacherId == undefined) {
+    if (Cookies.get('teacherId') == undefined) {
         redirect('/login')
     }
 
@@ -49,32 +47,12 @@ export default function TeacherDashboard() {
         setShowClassModal(false);
     };
 
-
-
-    //handleStudentSubmit method
-    const handleStudentSubmit = async () => {
-        const newStudent = {
-            studentName,
-            username: studentUsername,
-            password: studentPassword,
-            class: "Math"
-        };
-
-        const { error } = await supabase.from("Student").insert([newStudent]);
-        if (error) {
-            console.error("Supabase insert failed:", error.message);
-        } else {
-            console.log("Student saved to Supabase");
-            fetchStudents();
-        }
-
+    const handleStudentSubmit = () => {
+        console.log("Student:", studentName, "Username:", studentUsername);
         setStudentName("");
         setStudentUsername("");
-        setStudentPassword("");
         setShowStudentModal(false);
     };
-
-
     // Handle logout
     const handleLogout = () => {
         Cookies.remove("teacherId");
@@ -146,14 +124,10 @@ export default function TeacherDashboard() {
                         <div className="mb-4 ">
                             <label className="block text-sm font-medium mb-1">Class</label>
                             <select className="w-full border rounded px-3 py-2">
-                                {/*<option>HilsenDager6/7</option>*/}
-                                {/*<option>Math</option>*/}
-                                {/*<option>IT</option>*/}
-                                {/*<option>ACC</option>*/}
-                                {classList.map((cls, index) => (
-                                    <option key={index}>{cls}</option>
-                                ))}
-
+                                <option>HilsenDager6/7</option>
+                                <option>Math</option>
+                                <option>IT</option>
+                                <option>ACC</option>
                             </select>
                         </div>
 
@@ -276,13 +250,9 @@ export default function TeacherDashboard() {
                         />
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Teacher</label>
-                            <select className="w-full border rounded px-3 py-2"
-                                value={teacherName}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTeacherName(e.target.value)}
-                                >
-                                <option value="">Select a teacher</option>
-                                <option value="Taylor">Taylor</option>
-                                <option value="Jordan">Jordan</option>
+                            <select className="w-full border rounded px-3 py-2">
+                                <option>Taylor</option>
+                                <option>Jordan</option>
                             </select>
                         </div>
                         <div className="flex justify-end space-x-2">
