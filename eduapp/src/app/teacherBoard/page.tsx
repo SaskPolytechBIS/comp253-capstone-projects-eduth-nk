@@ -7,6 +7,7 @@ import { VscAccount } from "react-icons/vsc";
 import { getStudentName } from "@/app/teacherBoard/api/route";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import { useRouter } from "next/navigation";
+
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
     const [isModalOpen, setIsModalOpen] = useState(false);
