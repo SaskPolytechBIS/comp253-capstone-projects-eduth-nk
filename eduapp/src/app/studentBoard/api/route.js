@@ -1,0 +1,23 @@
+//creates connection to supabase
+import { createClient } from '@supabase/supabase-js'
+const supabaseUrl = 'https://teihpfddelngadtkdtaz.supabase.co'
+const supabaseKey = process.env.SUPABASE_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+export async function getStudent() {
+    let {data: Student, error} = await supabase
+        .from('Student')
+        .select('StudentID')
+    return Student;
+}
+
+export async function getStudentName() {
+    let { data: Student, error } = await supabase
+        .from('Student')
+        .select('StudentName')
+    return Student.at(2);
+}
+
+let { data: Student, error } = await supabase
+    .from('Student')
+    .select('ClassID')

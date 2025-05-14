@@ -1,18 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import {FormEvent, useState} from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-icons/fa
+import { checkTeacherLogin, checkStudentLogin} from "./api/route"
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import { PostgrestError } from "@supabase/supabase-js";
+
 
 export default function LoginPage() {
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const router = useRouter();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    async function handleSubmit (e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        console.log("Email:", email);
-        console.log("Password:", password);
-        // Add Supabase login logic here later
+
+        checkStudentLogin(username, password).then(studentId => {
+            if (studentId == null || studentId instanceof PostgrestError || studentId.length == 0) {
+                checkTeacherLogin(username, password).then(teacherId => {
+                    if (teacherId == null || teacherId instanceof PostgrestError || teacherId.length == 0) {
+                        alert("Login invalid.");
+                        if (teacherId instanceof PostgrestError) {
+                            console.log(teacherId)
+                        }
+                    } else {
+                        Cookies.set("teacherId", teacherId[0].TeacherID)
+                        router.push('/teacherBoard');
+
+                    }
+                })
+            } else {
+                Cookies.set("studentId", studentId[0].StudentID)
+                router.push('/studentBoard');
+            }
+        })
     };
 
     const togglePasswordVisibility = () => {
@@ -27,13 +50,13 @@ export default function LoginPage() {
             >
                 <h1 className="text-2xl font-bold mb-6 text-center text-black">Login</h1>
                 <div className="mb-4">
-                    <label className="block mb-1 text-sm font-medium text-black">Email</label>
+                    <label className="block mb-1 text-sm font-medium text-black">Username</label>
                     <input
-                        type="email"
+                        type="username"
                         className="w-full px-3 py-2 border-2 border-blue-400 rounded-md text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="your username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value.trim())}
                         required
                     />
                 </div>
@@ -44,7 +67,7 @@ export default function LoginPage() {
                         className="w-full px-3 py-2 border-2 border-blue-400 rounded-md pr-10 text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="••••••••"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => setPassword(e.target.value.trim())}
                         required
                     />
                     <button
@@ -62,7 +85,7 @@ export default function LoginPage() {
                 <button
                     type="submit"
                     className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-                >
+                    >
                     Log In
                 </button>
             </form>
