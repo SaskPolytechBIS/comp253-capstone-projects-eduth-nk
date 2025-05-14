@@ -13,6 +13,20 @@ export async function getTeacherClasses(teacherId) {
     }
 }
 
+export async function getTeacherName(teacherId) {
+    const { data, error } = await supabase
+        .from("TeacherLogin") //table name
+        .select("Username")
+        .eq("TeacherID", teacherId)
+        .single();
+
+    if (error) {
+        console.error("Error fetching user name:", error);
+        return null;
+    }
+
+    return data.name;
+}
 export async function getStudentsFromClass (classId) {
     let { data: Student, error } = await supabase
         .from('Student')
