@@ -7,7 +7,8 @@ import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
-import {} from './api/route'
+import { getStudentsFromClass, getStudentNames, getTeacherClasses } from './api/route';
+import {PostgrestError} from "@supabase/supabase-js";
 
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
@@ -15,6 +16,7 @@ export default function TeacherDashboard() {
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
+    const teacherId = Cookies.get('teacherId')
 
     //handle pop-up modal for add class and student
     const [showClassModal, setShowClassModal] = useState(false);
@@ -24,13 +26,22 @@ export default function TeacherDashboard() {
     const [studentName, setStudentName] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
+    let classes;
 
     //redirects to login if no teacher cookie
-    if (Cookies.get('teacherId') == undefined) {
+    if (teacherId == undefined) {
         redirect('/login')
     }
 
-    const classes =
+    getTeacherClasses(teacherId).then(classResult => {
+        if (classResult == null || classResult instanceof PostgrestError || classResult.length == 0) {
+            alert("Error with populating classes.");
+        } else {
+            classes = classResult[0];
+            console.log(classes);
+        }
+    });
+
     const handleClassSubmit = () => {
         console.log("Class:", className, "Teacher:", teacherName);
         setClassName("");
