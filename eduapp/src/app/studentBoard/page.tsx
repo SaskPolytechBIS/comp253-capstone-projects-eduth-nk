@@ -5,6 +5,7 @@ import ReactDOM from "react-dom/client";
 import { Bell   } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 
 export default function StudentDashboard() {
@@ -15,6 +16,7 @@ export default function StudentDashboard() {
     const handleLogout = () => {
         localStorage.clear();       // Clear token or session info
         sessionStorage.clear();     // Optional
+        Cookies.remove("studentId");
         router.push("/login");         // Redirect to login
     };
 

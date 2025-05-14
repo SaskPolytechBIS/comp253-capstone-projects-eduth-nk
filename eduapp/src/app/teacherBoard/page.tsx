@@ -7,6 +7,8 @@ import { VscAccount } from "react-icons/vsc";
 import { getStudentName } from "@/app/teacherBoard/api/route";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -113,6 +115,7 @@ export default function TeacherDashboard() {
     const handleLogout = () => {
         localStorage.clear();       // Clear token or session info
         sessionStorage.clear();     // Optional
+        Cookies.remove("teacherId");
         router.push("/login");         // Redirect to login
     };
 
@@ -299,7 +302,7 @@ export default function TeacherDashboard() {
 
             {/* Modal for Class */}
             {showClassModal && (
-                <div className="text-black fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
                     <div className="bg-white p-6 text-black rounded shadow-lg w-96">
                         <h2 className="text-xl font-bold mb-4">Create Class</h2>
                         <input
@@ -330,7 +333,7 @@ export default function TeacherDashboard() {
 
             {/* Modal for Student */}
             {showStudentModal && (
-                <div className="text-black fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
                     <div className="bg-white p-6 rounded shadow-lg w-96">
                         <h2 className="text-xl font-bold mb-4">Create Student</h2>
 
