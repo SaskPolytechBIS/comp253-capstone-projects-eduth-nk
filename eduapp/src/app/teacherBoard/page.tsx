@@ -4,10 +4,10 @@
 import React, { useState } from "react";
 import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
-import { getStudentName } from "@/app/teacherBoard/api/route";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
+import {} from './api/route'
 
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
@@ -25,10 +25,12 @@ export default function TeacherDashboard() {
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
 
+    //redirects to login if no teacher cookie
     if (Cookies.get('teacherId') == undefined) {
         redirect('/login')
     }
 
+    const classes =
     const handleClassSubmit = () => {
         console.log("Class:", className, "Teacher:", teacherName);
         setClassName("");
