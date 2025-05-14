@@ -36,6 +36,7 @@ export default function TeacherDashboard() {
     getTeacherClasses(Number(teacherId)).then(classResult => {
         if (classResult == null || classResult instanceof PostgrestError || classResult.length == undefined || classResult.length < 1) {
             alert("Error with populating classes.");
+            console.log(classResult);
         } else {
             classes = classResult[0].ClassID;
             console.log(classes);
