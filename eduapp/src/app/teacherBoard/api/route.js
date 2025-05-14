@@ -1,20 +1,40 @@
 import { supabase } from '@/lib/supabase'
 
-export async function getStudent() {
-    let {data: Student, error} = await supabase
-        .from('Student')
-        .select('StudentID')
+export async function getTeacherClasses(teacherId) {
+    let { data: Class, error } = await supabase
+        .from('Class')
+        .select("ClassID")
+        .like('TeacherID', teacherId)
 
-    if(Student == null) {
-        return error;
+    if (Class == null) {
+        return error
     } else {
-        return Student;
+        return Class
     }
 }
 
-export async function getStudentName() {
-        let { data: Student, error } = await supabase
-            .from('Student')
-            .select('StudentName')
-        return Student;
+export async function getStudentsFromClass (classId) {
+    let { data: Student, error } = await supabase
+        .from('Student')
+        .select('StudentID')
+        .like('ClassID', classId)
+
+    if (Student == null) {
+        return error
+    } else {
+        return Student
+    }
+}
+
+export async function getStudentNames (studentId) {
+    let { data: Student, error } = await supabase
+        .from('Student')
+        .select('StudentName')
+        .like('StudentID', studentId)
+
+    if (Student == null) {
+        return error
+    } else {
+        return Student
+    }
 }

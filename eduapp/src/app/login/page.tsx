@@ -3,7 +3,7 @@
 import {FormEvent, useState} from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-icons/fa
 import { checkTeacherLogin, checkStudentLogin} from "./api/route"
-import { useRouter } from "next/navigation";
+import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 import { PostgrestError } from "@supabase/supabase-js";
 
@@ -14,6 +14,12 @@ export default function LoginPage() {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const router = useRouter();
 
+    if (Cookies.get('teacherId') != undefined) {
+        redirect('/teacherBoard');
+    } else if (Cookies.get('studentId') != undefined ) {
+        redirect('/studentBoard');
+    }
+
     async function handleSubmit (e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
@@ -23,7 +29,7 @@ export default function LoginPage() {
                     if (teacherId == null || teacherId instanceof PostgrestError || teacherId.length == 0) {
                         alert("Login invalid.");
                         if (teacherId instanceof PostgrestError) {
-                            console.log(teacherId)
+                            console.log(teacherId);
                         }
                     } else {
                         Cookies.set("teacherId", teacherId[0].TeacherID)

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom/client";
 import { Bell   } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
-import { useRouter } from "next/navigation";
+import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 
 
@@ -12,10 +12,13 @@ export default function StudentDashboard() {
     const [userName, setUserName] = useState("sample");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
+
+    if (Cookies.get('studentId') == undefined) {
+        redirect('/login');
+    }
+
     // Handle logout
     const handleLogout = () => {
-        localStorage.clear();       // Clear token or session info
-        sessionStorage.clear();     // Optional
         Cookies.remove("studentId");
         router.push("/login");         // Redirect to login
     };
