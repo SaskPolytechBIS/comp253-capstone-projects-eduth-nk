@@ -1,20 +1,21 @@
 "use client";
 
-import { supabase } from "@/lib/supabase";
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
-import { getStudentName } from "@/app/teacherBoard/api/route";
 import ClientEditorModal from "@/components/ClientEditorModal";
-import { useRouter } from "next/navigation";
+import {redirect, useRouter} from "next/navigation";
+import Cookies from "js-cookie";
+import { getStudentsFromClass, getStudentNames, getTeacherClasses } from './api/route';
+import {PostgrestError} from "@supabase/supabase-js";
+
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
-    const [classList, setClassList] = useState<string[]>([]);
-    const [studentList, setStudentList] = useState<string[]>([]);
 
     //handle pop-up modal for add class and student
     const [showClassModal, setShowClassModal] = useState(false);
@@ -24,95 +25,30 @@ export default function TeacherDashboard() {
     const [studentName, setStudentName] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
+    let classes;
 
-    //fetchStudents
-    const fetchStudents = async () => {
-        const { data, error } = await supabase.from("Student").select("studentName");
-        if (error) {
-            console.error("Failed to fetch students:", error.message);
-            return;
-        }
-        const names = data.map((item) => item.studentName);
-        setStudentList(names);
-    };
-
-    //user effect
-    useEffect(() => {
-        fetchClasses();
-        fetchStudents();
-    }, []);
-
-    const fetchClasses = async () => {
-        const { data, error } = await supabase.from("Class").select("className");
-        if (error) {
-            console.error("Error fetching class list:", error.message);
-            return;
-        }
-        const names = data.map((item) => item.className);
-        console.log("Fetched classes:", names);
-        setClassList(names);
-    };
+    if (Cookies.get('teacherId') == undefined) {
+        redirect('/login')
+    }
 
 
 
-
-    //handleClassSubmit method
-    const handleClassSubmit = async () => {
-        if (!className || !teacherName) {
-            alert("Please fill in both class name and teacher name.");
-            return;
-        }
-        const newClass = {
-            className,
-            teacherName
-        };
-
-        // save data to supabase
-        const { error } = await supabase.from("Class").insert([newClass]);
-        if (error) {
-            console.error("Supabase insert failed:", error);
-
-        }else {
-            console.log("Class saved to Supabase");
-            await fetchClasses();
-        }
-
-        // clear out
+    const handleClassSubmit = () => {
+        console.log("Class:", className, "Teacher:", teacherName);
         setClassName("");
         setTeacherName("");
         setShowClassModal(false);
     };
 
-
-
-    //handleStudentSubmit method
-    const handleStudentSubmit = async () => {
-        const newStudent = {
-            studentName,
-            username: studentUsername,
-            password: studentPassword,
-            class: "Math"
-        };
-
-        const { error } = await supabase.from("Student").insert([newStudent]);
-        if (error) {
-            console.error("Supabase insert failed:", error.message);
-        } else {
-            console.log("Student saved to Supabase");
-            fetchStudents();
-        }
-
+    const handleStudentSubmit = () => {
+        console.log("Student:", studentName, "Username:", studentUsername);
         setStudentName("");
         setStudentUsername("");
-        setStudentPassword("");
         setShowStudentModal(false);
     };
-
-
     // Handle logout
     const handleLogout = () => {
-        localStorage.clear();       // Clear token or session info
-        sessionStorage.clear();     // Optional
+        Cookies.remove("teacherId");
         router.push("/login");         // Redirect to login
     };
 
@@ -181,14 +117,10 @@ export default function TeacherDashboard() {
                         <div className="mb-4 ">
                             <label className="block text-sm font-medium mb-1">Class</label>
                             <select className="w-full border rounded px-3 py-2">
-                                {/*<option>HilsenDager6/7</option>*/}
-                                {/*<option>Math</option>*/}
-                                {/*<option>IT</option>*/}
-                                {/*<option>ACC</option>*/}
-                                {classList.map((cls, index) => (
-                                    <option key={index}>{cls}</option>
-                                ))}
-
+                                <option>HilsenDager6/7</option>
+                                <option>Math</option>
+                                <option>IT</option>
+                                <option>ACC</option>
                             </select>
                         </div>
 
@@ -243,11 +175,56 @@ export default function TeacherDashboard() {
                                     of their child through the application at home.
                                 </td>
                                 <td className="border p-3 text-center text-xs text-blue-700">
-                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
                                     <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3"></td>
-                                <td className="border p-3"></td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -257,11 +234,56 @@ export default function TeacherDashboard() {
                                     It will include a database that holds the information for login and the paths to the files for assignments.:
                                 </td>
                                 <td className="border p-3 text-center text-xs text-blue-700">
-                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
                                     <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3"></td>
-                                <td className="border p-3"></td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -271,11 +293,56 @@ export default function TeacherDashboard() {
                                     Questions we can ask ourselves include:
                                 </td>
                                 <td className="border p-3 text-center text-xs text-blue-700">
-                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
                                     <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3"></td>
-                                <td className="border p-3"></td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                </td>
                             </tr>
                             </tbody>
                         </table>
@@ -299,7 +366,7 @@ export default function TeacherDashboard() {
 
             {/* Modal for Class */}
             {showClassModal && (
-                <div className="text-black fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
                     <div className="bg-white p-6 text-black rounded shadow-lg w-96">
                         <h2 className="text-xl font-bold mb-4">Create Class</h2>
                         <input
@@ -311,13 +378,9 @@ export default function TeacherDashboard() {
                         />
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Teacher</label>
-                            <select className="w-full border rounded px-3 py-2"
-                                value={teacherName}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTeacherName(e.target.value)}
-                                >
-                                <option value="">Select a teacher</option>
-                                <option value="Taylor">Taylor</option>
-                                <option value="Jordan">Jordan</option>
+                            <select className="w-full border rounded px-3 py-2">
+                                <option>Taylor</option>
+                                <option>Jordan</option>
                             </select>
                         </div>
                         <div className="flex justify-end space-x-2">
@@ -330,7 +393,7 @@ export default function TeacherDashboard() {
 
             {/* Modal for Student */}
             {showStudentModal && (
-                <div className="text-black fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
                     <div className="bg-white p-6 rounded shadow-lg w-96">
                         <h2 className="text-xl font-bold mb-4">Create Student</h2>
 
