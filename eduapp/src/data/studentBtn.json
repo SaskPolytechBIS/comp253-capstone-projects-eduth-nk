@@ -1,0 +1,14 @@
+[
+  {
+    "studentName": "Bobby Joe",
+    "username": "bobby123",
+    "password": "pass321",
+    "class": "Math"
+  },
+  {
+    "studentName": "Anna Tom",
+    "username": "anna321",
+    "password": "secure456",
+    "class": "Science"
+  }
+]
