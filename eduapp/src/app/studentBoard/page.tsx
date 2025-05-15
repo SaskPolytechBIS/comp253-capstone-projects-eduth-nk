@@ -106,7 +106,6 @@ export default function StudentDashboard() {
                                     <th className="border px-4 py-2 text-center">Basic</th>
                                     <th className="border px-4 py-2 text-center">Intermediate</th>
                                     <th className="border px-4 py-2 text-center">Advanced</th>
-                                    <th className="border px-4 py-2 text-center">Comment</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -118,57 +117,120 @@ export default function StudentDashboard() {
                                         Supabase
                                         for the application database.
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        </>
-                                    </td>
+
                                 </tr>
                                 <tr className="hover:bg-gray-50">
                                     <td className="border px-4 py-3">
                                         Time Management: This project will challenge our ability to plan effectively
                                         and deliver results under deadlines set by both our team and stakeholders.
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
-                                    </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
                                 </tr>
                                 <tr className="hover:bg-gray-50">
@@ -177,28 +239,59 @@ export default function StudentDashboard() {
                                         we will need to remain flexible—reassessing priorities, adjusting timelines,
                                         and refining strategies to stay aligned with project goals
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
-                                    </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
                                 </tr>
                                 <tr className="hover:bg-gray-50">
@@ -207,28 +300,58 @@ export default function StudentDashboard() {
                                         how to delegate responsibility, balance workloads, and to communicate through
                                         conflicts all while maintaining a shared vision..
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <label>Legend</label>
-                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                        </>
-                                    </td>
-                                    <td className="border px-4 py-3 text-center text-xs">
-                                        <>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
                                     </td>
                                 </tr>
                                 </tbody>

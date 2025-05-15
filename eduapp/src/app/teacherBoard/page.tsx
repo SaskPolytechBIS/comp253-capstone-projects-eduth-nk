@@ -170,7 +170,6 @@ export default function TeacherDashboard() {
                                 <th className="border p-2 text-center">Basic</th>
                                 <th className="border p-2 text-center">Intermediate</th>
                                 <th className="border p-2 text-center">Advanced</th>
-                                <th className="border px-4 py-2 text-center">Student Comment</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -197,6 +196,7 @@ export default function TeacherDashboard() {
                                         </select>
                                     </div>
                                     <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
@@ -214,6 +214,7 @@ export default function TeacherDashboard() {
                                         </select>
                                     </div>
                                     <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
@@ -231,10 +232,9 @@ export default function TeacherDashboard() {
                                         </select>
                                     </div>
                                     <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
-                                <td className="border px-4 py-3 text-center text-xs">
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                </td>
+
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -259,6 +259,7 @@ export default function TeacherDashboard() {
                                         </select>
                                     </div>
                                     <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
@@ -276,6 +277,7 @@ export default function TeacherDashboard() {
                                         </select>
                                     </div>
                                     <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
@@ -293,10 +295,9 @@ export default function TeacherDashboard() {
                                         </select>
                                     </div>
                                     <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
-                                <td className="border px-4 py-3 text-center text-xs">
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                </td>
+
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -321,6 +322,7 @@ export default function TeacherDashboard() {
                                         </select>
                                     </div>
                                     <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
@@ -338,6 +340,7 @@ export default function TeacherDashboard() {
                                         </select>
                                     </div>
                                     <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
 
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
@@ -356,10 +359,9 @@ export default function TeacherDashboard() {
                                         </select>
                                     </div>
                                     <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                 </td>
-                                <td className="border px-4 py-3 text-center text-xs">
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                </td>
+
                             </tr>
                             </tbody>
                         </table>
