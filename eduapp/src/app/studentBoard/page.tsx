@@ -106,6 +106,7 @@ export default function StudentDashboard() {
                                     <th className="border px-4 py-2 text-center">Basic</th>
                                     <th className="border px-4 py-2 text-center">Intermediate</th>
                                     <th className="border px-4 py-2 text-center">Advanced</th>
+                                    <th className="border px-4 py-2 text-center">Comment</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -119,19 +120,24 @@ export default function StudentDashboard() {
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                        </>
+                                    </td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
                                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                         </>
                                     </td>
@@ -143,19 +149,24 @@ export default function StudentDashboard() {
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                        </>
+                                    </td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
                                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                         </>
                                     </td>
@@ -168,19 +179,24 @@ export default function StudentDashboard() {
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                        </>
+                                    </td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
                                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                         </>
                                     </td>
@@ -193,19 +209,24 @@ export default function StudentDashboard() {
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
-                                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
                                         </>
                                     </td>
                                     <td className="border px-4 py-3 text-center text-xs">
                                         <>
-                                            <label>Legend: </label>
+                                            <label>Legend</label>
+                                            <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                        </>
+                                    </td>
+                                    <td className="border px-4 py-3 text-center text-xs">
+                                        <>
                                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
                                         </>
                                     </td>
