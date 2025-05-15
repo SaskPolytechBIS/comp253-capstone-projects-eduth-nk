@@ -1,11 +1,11 @@
 "use client";
 
 
-import React, {useEffect, useState} from "react";
+import React, {ReactNode, useEffect, useState} from "react";
 import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
-import {redirect} from "next/navigation";
+import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 import { getStudentsFromClass, getTeacherClasses } from './api/route';
 import {PostgrestError} from "@supabase/supabase-js";
@@ -17,6 +17,7 @@ export default function TeacherDashboard() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
+    const router = useRouter();
 
     //handle pop-up modal for add class and student
     const [showClassModal, setShowClassModal] = useState(false);
@@ -27,30 +28,31 @@ export default function TeacherDashboard() {
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
 
+
     //class population
     const [selectedClass, setSelectedClass] = useState("");
-    let classes = [{ClassName:"error",ClassID:"1"}, {ClassName:"erw342323rwerw", ClassID: "2"}];
+    const [classes, setClasses] = useState([{ClassID: "0", ClassName: "Error"}]);
+    //let classes = [{ClassName:"error",ClassID:"1"}, {ClassName:"erw342323rwerw", ClassID: "2"}];
+
+    useEffect(() => {
+        async function loadClasses() {
+            await getTeacherClasses(teacherId).then(classResult => {
+                if (classResult == null || classResult instanceof PostgrestError || classResult.length == undefined || classResult.length < 1) {
+                    console.log("Error with populating classes.");
+                    console.log(classResult);
+                } else {
+                    setClasses(classResult);
+                }
+            });
+        }
+
+        loadClasses();
+    })
 
     //redirects to login if no teacher cookie
     if (teacherId == undefined) {
-        redirect('/login')
+        router.push('/login')
     }
-
-    function getClasses() {
-        getTeacherClasses(teacherId).then(classResult => {
-            if (classResult == null || classResult instanceof PostgrestError || classResult.length == undefined || classResult.length < 1) {
-                alert("Error with populating classes.");
-                console.log(classResult);
-            } else {
-                console.log("Fetched data.")
-                console.log(classResult)
-                classes = classResult;
-            }
-        });
-    }
-
-    getClasses();
-
 
     const handleClassSubmit = () => {
         console.log("Class:", className, "Teacher:", teacherName);
@@ -136,9 +138,9 @@ export default function TeacherDashboard() {
                         <div className="mb-4 ">
                             <label className="block text-sm font-medium mb-1">Class</label>
                             {/*
-                            Populates class list with classes
-                            */}
-                            <select className="w-full border rounded px-3 py-2" onLoad={getClasses} >
+                    Populates class list with classes
+                    */}
+                            <select className="w-full border rounded px-3 py-2">
                                 {classes.map((classes) => (
                                     <option key={classes.ClassID} value={classes.ClassName}>
                                         {classes.ClassName}
