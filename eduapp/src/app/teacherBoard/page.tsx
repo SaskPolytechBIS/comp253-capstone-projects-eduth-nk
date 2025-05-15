@@ -1,7 +1,7 @@
 "use client";
 
 
-import React, { useState } from "react";
+import React, {useRef, useState } from "react";
 import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
@@ -30,8 +30,6 @@ export default function TeacherDashboard() {
     if (Cookies.get('teacherId') == undefined) {
         redirect('/login')
     }
-
-
 
     const handleClassSubmit = () => {
         console.log("Class:", className, "Teacher:", teacherName);
@@ -67,6 +65,25 @@ export default function TeacherDashboard() {
     //handle new student and add new class
     const handleNewClass = () => setShowClassModal(true);
     const handleNewStudent = () => setShowStudentModal(true);
+
+    //handle files upload
+    const uploadEvidence = ()=>{
+        console.log("Evidence Upload");
+
+    }
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const handleButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            console.log('Selected file:', file.name);
+
+        }
+    };
 
     return (
         <div className="flex flex-col min-h-screen ">
@@ -195,8 +212,18 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
@@ -213,8 +240,18 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
@@ -231,8 +268,18 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
                                 </td>
 
                             </tr>
@@ -258,8 +305,18 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
@@ -276,8 +333,18 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
@@ -294,8 +361,18 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
                                 </td>
 
                             </tr>
@@ -321,8 +398,18 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
                                     <div className="mb-4 text-black text-sm font-medium">
@@ -339,8 +426,18 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
 
                                 </td>
                                 <td className="border p-3 text-center text-xs ">
@@ -358,10 +455,19 @@ export default function TeacherDashboard() {
                                             <option>&#99;</option>
                                         </select>
                                     </div>
-                                    <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
                                 </td>
-
                             </tr>
                             </tbody>
                         </table>
