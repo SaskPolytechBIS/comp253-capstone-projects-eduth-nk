@@ -1,22 +1,22 @@
 "use client";
 
 
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
-import {redirect, useRouter} from "next/navigation";
+import {redirect} from "next/navigation";
 import Cookies from "js-cookie";
-import { getStudentsFromClass, getStudentNames, getTeacherClasses } from './api/route';
+import { getStudentsFromClass, getTeacherClasses } from './api/route';
 import {PostgrestError} from "@supabase/supabase-js";
+
+const teacherId = Cookies.get('teacherId')
 
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
-    const router = useRouter();
-    const teacherId = Cookies.get('teacherId')
 
     //handle pop-up modal for add class and student
     const [showClassModal, setShowClassModal] = useState(false);
@@ -26,22 +26,28 @@ export default function TeacherDashboard() {
     const [studentName, setStudentName] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
-    let classes;
+
+    //class population
+    const [selectedClass, setSelectedClass] = useState("");
+    let classes = [{ClassName:"error",ClassID:"1"}, {ClassName:"erw342323rwerw", ClassID: "2"}];
 
     //redirects to login if no teacher cookie
     if (teacherId == undefined) {
         redirect('/login')
     }
 
-    getTeacherClasses(Number(teacherId)).then(classResult => {
-        if (classResult == null || classResult instanceof PostgrestError || classResult.length == undefined || classResult.length < 1) {
-            alert("Error with populating classes.");
-            console.log(classResult);
-        } else {
-            classes = classResult[0].ClassID;
-            console.log(classes);
-        }
-    });
+    function getClasses() {
+        getTeacherClasses(teacherId).then(classResult => {
+            if (classResult == null || classResult instanceof PostgrestError || classResult.length == undefined || classResult.length < 1) {
+                alert("Error with populating classes.");
+                console.log(classResult);
+            } else {
+                console.log("Fetched data.")
+                classes = classResult;
+            }
+        });
+    }
+
 
     const handleClassSubmit = () => {
         console.log("Class:", className, "Teacher:", teacherName);
@@ -59,7 +65,7 @@ export default function TeacherDashboard() {
     // Handle logout
     const handleLogout = () => {
         Cookies.remove("teacherId");
-        router.push("/login");         // Redirect to login
+        redirect("/login");// Redirect to login
     };
 
     //const studentName = getStudentName();
@@ -126,11 +132,15 @@ export default function TeacherDashboard() {
                     <div className="w-full md:w-1/3 bg-white p-4 rounded-xl shadow">
                         <div className="mb-4 ">
                             <label className="block text-sm font-medium mb-1">Class</label>
-                            <select className="w-full border rounded px-3 py-2">
-                                <option>HilsenDager6/7</option>
-                                <option>Math</option>
-                                <option>IT</option>
-                                <option>ACC</option>
+                            {/*
+                            Populates class list with classes
+                            */}
+                            <select className="w-full border rounded px-3 py-2" onLoad={getClasses} >
+                                {classes.map((classes) => (
+                                    <option key={classes.ClassID} value={classes.ClassName}>
+                                        {classes.ClassName}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
