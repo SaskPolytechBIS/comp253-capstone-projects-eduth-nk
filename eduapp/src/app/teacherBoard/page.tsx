@@ -43,10 +43,13 @@ export default function TeacherDashboard() {
                 console.log(classResult);
             } else {
                 console.log("Fetched data.")
+                console.log(classResult)
                 classes = classResult;
             }
         });
     }
+
+    getClasses();
 
 
     const handleClassSubmit = () => {
