@@ -10,7 +10,7 @@ import Cookies from "js-cookie";
 import { getStudentsFromClass, getTeacherClasses } from './api/route';
 import {PostgrestError} from "@supabase/supabase-js";
 
-const teacherId = Cookies.get('teacherId')
+
 
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
@@ -18,6 +18,7 @@ export default function TeacherDashboard() {
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
+    const teacherId = Cookies.get('teacherId')
 
     //handle pop-up modal for add class and student
     const [showClassModal, setShowClassModal] = useState(false);
@@ -30,28 +31,68 @@ export default function TeacherDashboard() {
 
 
     //class population
-    const [selectedClass, setSelectedClass] = useState("");
+    const [classId, setClassId] = useState("");
     const [classes, setClasses] = useState([{ClassID: "0", ClassName: "Error"}]);
-    //let classes = [{ClassName:"error",ClassID:"1"}, {ClassName:"erw342323rwerw", ClassID: "2"}];
+    const [students, setStudents] = useState([{StudentID: "0", StudentName: "Error"}]);
 
+    //populates the dropdown menu. WITHOUT THIS IT WILL BE STATIC.
     useEffect(() => {
+        //wrapper function
         async function loadClasses() {
+            //actual logic
             await getTeacherClasses(teacherId).then(classResult => {
-                if (classResult == null || classResult instanceof PostgrestError || classResult.length == undefined || classResult.length < 1) {
-                    console.log("Error with populating classes.");
-                    console.log(classResult);
+                if (classResult == null || classResult instanceof PostgrestError || classResult.length == undefined) {
+                    alert("Error with populating classes: " + classResult)
+                } else if (classResult.length < 1) {
+                    alert("No classes applicable.");
                 } else {
                     setClasses(classResult);
                 }
             });
         }
-
-        loadClasses();
+        //calls function to populate. does not need to do anything with 'then'
+        loadClasses().then(r => {});
     })
+
+        useEffect(() => {
+
+            if (!classId) return;
+
+            let isCurrent = true;
+
+            async function getStudents() {
+
+                await getStudentsFromClass(classId).then(studentsResult => {
+
+                    if(!isCurrent) return;
+
+                    if (studentsResult == null || studentsResult instanceof PostgrestError || studentsResult.length == undefined) {
+                        alert("Error with populating classes: " + studentsResult);
+                    } else if (studentsResult.length < 1) {
+                        alert("No students applicable.");
+                    } else {
+                        setStudents(studentsResult);
+                    }
+                }); //end of studentsFromClass()
+                }
+
+            getStudents().then(r => {});
+
+            return () => {
+                isCurrent = false;
+            }
+            }); //end of useEffect
+
+
 
     //redirects to login if no teacher cookie
     if (teacherId == undefined) {
         router.push('/login')
+    }
+
+    const handleSelectChange = (event: { target: { value: any; }; }) => {
+        const selectedClass = event.target.value;
+        setClassId(selectedClass);
     }
 
     const handleClassSubmit = () => {
@@ -138,11 +179,11 @@ export default function TeacherDashboard() {
                         <div className="mb-4 ">
                             <label className="block text-sm font-medium mb-1">Class</label>
                             {/*
-                    Populates class list with classes
-                    */}
-                            <select className="w-full border rounded px-3 py-2">
+                            Populates class list with classes
+                            */}
+                            <select className="w-full border rounded px-3 py-2" onChange={handleSelectChange} >
                                 {classes.map((classes) => (
-                                    <option key={classes.ClassID} value={classes.ClassName}>
+                                    <option key={classes.ClassID} value={classes.ClassID}>
                                         {classes.ClassName}
                                     </option>
                                 ))}
@@ -167,11 +208,11 @@ export default function TeacherDashboard() {
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Student</label>
                             <select className="w-full border rounded px-3 py-2">
-                                <option>Bobby Joe</option>
-                                <option>Sunny Le</option>
-                                <option>Jack Son</option>
-                                <option>Anna Tom</option>
-                                <option>Jacky Chan</option>
+                                {students.map((students) => (
+                                    <option key={students.StudentID} value={students.StudentName}>
+                                        {students.StudentName}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
