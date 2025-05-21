@@ -25,6 +25,7 @@ export default function TeacherDashboard() {
     const [studentName, setStudentName] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
+    const [showPopup, setShowPopup] = useState(false);
     let classes;
 
     if (Cookies.get('teacherId') == undefined) {
@@ -49,6 +50,17 @@ export default function TeacherDashboard() {
         Cookies.remove("teacherId");
         router.push("/login");         // Redirect to login
     };
+    // Show legendItems
+    const legendItems = [
+        { code: "✓", description: "Used when knowledge has been demonstrated individually" },
+        { code: "S", description: "Used when knowledge has been demonstrated individually, but with a silly mistake" },
+        { code: "H", description: "Used when knowledge has been demonstrated individually, but with help from a teacher or peer" },
+        { code: "G", description: "Used when knowledge has been demonstrated within a group" },
+        { code: "X", description: "Used when a question has been attempted, but answered incorrectly" },
+        { code: "N", description: "Used when a question has not been attempted" },
+        { code: "O", description: "Used when knowledge has been demonstrated individually, seen through observation" },
+        { code: "C", description: "Used when knowledge has been demonstrated individually, seen through a conversation" },
+    ];
 
     //const studentName = getStudentName();
     const handleNewAssignmentClick = () => {
@@ -176,7 +188,9 @@ export default function TeacherDashboard() {
                     <div className="w-full md:w-2/3 bg-white p-4 rounded-xl shadow overflow-x-auto">
                         {/* Top Buttons */}
                         <div className="flex justify-end gap-2 mb-4">
-                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                            <button
+                                onClick={() => setShowPopup(true)}
+                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                                 Show Legend
                             </button>
                         </div>
@@ -477,6 +491,26 @@ export default function TeacherDashboard() {
                                 Update Map
                             </button>
                         </div>
+                        {showPopup && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-self-end bg-transparent">
+                                <div className="bg-white rounded-xl p-6 shadow-lg max-w-md w-full relative">
+                                    <h2 className="text-xl font-bold mb-4 text-center">Legend</h2>
+                                    <ul className="space-y-2 text-sm text-black">
+                                        {legendItems.map((item, index) => (
+                                            <li key={index}>
+                                                <span className="font-bold">{item.code}</span>: {item.description}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <button
+                                        onClick={() => setShowPopup(false)}
+                                        className="absolute top-2 right-3 text-gray-500 hover:text-black text-lg"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
