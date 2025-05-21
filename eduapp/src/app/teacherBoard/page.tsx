@@ -1,14 +1,14 @@
 "use client";
 
-
-import React, {useRef, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import React, { useState, useEffect } from "react";
 import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
+import { getStudentName } from "@/app/teacherBoard/api/route";
 import ClientEditorModal from "@/components/ClientEditorModal";
-import {redirect, useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import { getStudentsFromClass, getStudentNames, getTeacherClasses } from './api/route';
-import {PostgrestError} from "@supabase/supabase-js";
+
 
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
@@ -16,6 +16,14 @@ export default function TeacherDashboard() {
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
+    const [classList, setClassList] = useState<string[]>([]);
+    const [studentList, setStudentList] = useState<string[]>([]);
+    const [studentClass, setStudentClass] = useState("");
+    const [teacherMap, setTeacherMap] = useState<{ [name: string]: number }>({});
+    const [teacherList, setTeacherList] = useState<string[]>([]);
+
+
+
 
     //handle pop-up modal for add class and student
     const [showClassModal, setShowClassModal] = useState(false);
@@ -25,42 +33,162 @@ export default function TeacherDashboard() {
     const [studentName, setStudentName] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
-    const [showPopup, setShowPopup] = useState(false);
-    let classes;
 
-    if (Cookies.get('teacherId') == undefined) {
-        redirect('/login')
-    }
+    //fetchTeachers
+    const fetchTeachers = async () => {
+        const { data, error } = await supabase.from("Teacher").select("TeacherID, TeacherName");
 
-    const handleClassSubmit = () => {
-        console.log("Class:", className, "Teacher:", teacherName);
+        console.log("Supabase fetch result:", { data, error });
+
+        if (error) {
+            console.error("Failed to fetch teacher list:", error.message);
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            console.warn("No teacher data fetched.");
+            return;
+        }
+
+        const map: { [name: string]: number } = {};
+        const names: string[] = [];
+
+        data.forEach((t) => {
+            const cleanName = t.TeacherName.trim();
+            map[cleanName] = t.TeacherID;
+            names.push(cleanName);
+        });
+
+        console.log("teacherList:", names);
+        setTeacherMap(map);
+        setTeacherList(names);
+    };
+
+
+
+    //fetchStudents
+    const fetchStudents = async () => {
+        const { data, error } = await supabase.from("Student").select("StudentName");
+
+        if (error) {
+            console.error(" Failed to fetch students:", error.message);
+            return;
+        }
+
+        const names = data.map((item) => item.StudentName);
+        setStudentList(names);
+    };
+
+    //class map
+    const [classMap, setClassMap] = useState<{ [name: string]: number }>({});
+
+    useEffect(() => {
+        fetchClasses();
+        fetchStudents();
+        fetchTeachers();
+    }, []);
+
+
+    //fetchClass
+    const fetchClasses = async () => {
+        const { data: classData, error: classError } = await supabase
+            .from("Class")
+            .select("ClassID, ClassName");
+
+        if (classError) {
+            console.error("Error fetching class list:", classError.message);
+            return;
+        }
+
+        const names = classData.map((item) => item.ClassName);
+        const map: { [name: string]: number } = {};
+        classData.forEach((item) => {
+            map[item.ClassName] = item.ClassID;
+        });
+
+        setClassList(names);
+        setClassMap(map);
+    };
+
+
+    //handleClassSubmit method
+    const handleClassSubmit = async () => {
+        if (!className || !teacherName) {
+            alert("Please fill in both class name and teacher name.");
+            return;
+        }
+
+        const trimmedTeacherName = teacherName.trim();
+        const teacherId = teacherMap[trimmedTeacherName];
+
+        if (!teacherId) {
+            alert("Invalid teacher selected.");
+            console.error("Teacher not found in teacherMap:", trimmedTeacherName);
+            return;
+        }
+
+        const newClass = {
+            ClassName: className,
+            TeacherID: teacherId,
+        };
+
+        const { error } = await supabase.from("Class").insert([newClass]);
+
+        if (error) {
+            console.error("Failed to insert class into Supabase:", error.message);
+        } else {
+            console.log("Class successfully added to Supabase.");
+            await fetchClasses(); // Refresh the class list
+        }
+
+        // Clear form after submission
         setClassName("");
         setTeacherName("");
         setShowClassModal(false);
     };
 
-    const handleStudentSubmit = () => {
-        console.log("Student:", studentName, "Username:", studentUsername);
+
+
+
+    //handleStudentSubmit method
+    const handleStudentSubmit = async () => {
+        if (!studentName || !studentUsername || !studentPassword || !studentClass) {
+            alert("Please fill in all student fields.");
+            return;
+        }
+
+        const newStudent = {
+            StudentName: studentName,
+            username: studentUsername,
+            password: studentPassword,
+            ClassID: classMap[studentClass]
+        };
+
+        const { error } = await supabase.from("Student").insert([newStudent]);
+        if (error) {
+            console.error("Supabase insert failed:", error.message);
+        } else {
+            console.log("Student saved to Supabase");
+            fetchStudents();
+        }
+
+        // clear inputs
         setStudentName("");
         setStudentUsername("");
+        setStudentPassword("");
+        setStudentClass("");
         setShowStudentModal(false);
     };
+
+
+
     // Handle logout
     const handleLogout = () => {
+        localStorage.clear();       // Clear token or session info
+        sessionStorage.clear();     // Optional
         Cookies.remove("teacherId");
         router.push("/login");         // Redirect to login
     };
-    // Show legendItems
-    const legendItems = [
-        { code: "✓", description: "Used when knowledge has been demonstrated individually" },
-        { code: "S", description: "Used when knowledge has been demonstrated individually, but with a silly mistake" },
-        { code: "H", description: "Used when knowledge has been demonstrated individually, but with help from a teacher or peer" },
-        { code: "G", description: "Used when knowledge has been demonstrated within a group" },
-        { code: "X", description: "Used when a question has been attempted, but answered incorrectly" },
-        { code: "N", description: "Used when a question has not been attempted" },
-        { code: "O", description: "Used when knowledge has been demonstrated individually, seen through observation" },
-        { code: "C", description: "Used when knowledge has been demonstrated individually, seen through a conversation" },
-    ];
 
     //const studentName = getStudentName();
     const handleNewAssignmentClick = () => {
@@ -77,25 +205,6 @@ export default function TeacherDashboard() {
     //handle new student and add new class
     const handleNewClass = () => setShowClassModal(true);
     const handleNewStudent = () => setShowStudentModal(true);
-
-    //handle files upload
-    const uploadEvidence = ()=>{
-        console.log("Evidence Upload");
-
-    }
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-    const handleButtonClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            console.log('Selected file:', file.name);
-
-        }
-    };
 
     return (
         <div className="flex flex-col min-h-screen ">
@@ -145,11 +254,18 @@ export default function TeacherDashboard() {
                     <div className="w-full md:w-1/3 bg-white p-4 rounded-xl shadow">
                         <div className="mb-4 ">
                             <label className="block text-sm font-medium mb-1">Class</label>
-                            <select className="w-full border rounded px-3 py-2">
-                                <option>HilsenDager6/7</option>
-                                <option>Math</option>
-                                <option>IT</option>
-                                <option>ACC</option>
+                            {/* Student Class */}
+                            <select
+                                className="w-full border rounded px-3 py-2"
+                                value={studentClass}
+                                onChange={(e) => setStudentClass(e.target.value)}
+                            >
+                                <option value="">Select a class</option>
+                                {classList.map((cls, index) => (
+                                    <option key={index} value={cls}>
+                                        {cls}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -171,12 +287,13 @@ export default function TeacherDashboard() {
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Student</label>
                             <select className="w-full border rounded px-3 py-2">
-                                <option>Bobby Joe</option>
-                                <option>Sunny Le</option>
-                                <option>Jack Son</option>
-                                <option>Anna Tom</option>
-                                <option>Jacky Chan</option>
+                                {studentList.map((student, index) => (
+                                    <option key={index} value={student}>
+                                        {student}
+                                    </option>
+                                ))}
                             </select>
+
                         </div>
 
                         <button className="w-full bg-purple-600 text-white rounded px-3 py-2 hover:bg-purple-700">
@@ -186,14 +303,6 @@ export default function TeacherDashboard() {
 
                     {/* Main Content */}
                     <div className="w-full md:w-2/3 bg-white p-4 rounded-xl shadow overflow-x-auto">
-                        {/* Top Buttons */}
-                        <div className="flex justify-end gap-2 mb-4">
-                            <button
-                                onClick={() => setShowPopup(true)}
-                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                                Show Legend
-                            </button>
-                        </div>
                         <table className="w-full table-auto border-collapse">
                             <thead>
                             <tr className="bg-gray-100">
@@ -211,91 +320,12 @@ export default function TeacherDashboard() {
                                     and students to have a conversation about their assessments and allow the parents to view the progress
                                     of their child through the application at home.
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-
+                                <td className="border p-3"></td>
+                                <td className="border p-3"></td>
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -304,91 +334,12 @@ export default function TeacherDashboard() {
                                     and be hosted through a web application.
                                     It will include a database that holds the information for login and the paths to the files for assignments.:
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-
+                                <td className="border p-3"></td>
+                                <td className="border p-3"></td>
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -397,91 +348,12 @@ export default function TeacherDashboard() {
                                     This is the basis of the framework that we have been requested, and any changes should keep this framework the same.
                                     Questions we can ask ourselves include:
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
+                                <td className="border p-3"></td>
+                                <td className="border p-3"></td>
                             </tr>
                             </tbody>
                         </table>
@@ -491,26 +363,6 @@ export default function TeacherDashboard() {
                                 Update Map
                             </button>
                         </div>
-                        {showPopup && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-self-end bg-transparent">
-                                <div className="bg-white rounded-xl p-6 shadow-lg max-w-md w-full relative">
-                                    <h2 className="text-xl font-bold mb-4 text-center">Legend</h2>
-                                    <ul className="space-y-2 text-sm text-black">
-                                        {legendItems.map((item, index) => (
-                                            <li key={index}>
-                                                <span className="font-bold">{item.code}</span>: {item.description}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    <button
-                                        onClick={() => setShowPopup(false)}
-                                        className="absolute top-2 right-3 text-gray-500 hover:text-black text-lg"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -535,12 +387,25 @@ export default function TeacherDashboard() {
                             onChange={(e) => setClassName(e.target.value)}
                             className="w-full p-2 border rounded mb-4"
                         />
+
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Teacher</label>
-                            <select className="w-full border rounded px-3 py-2">
-                                <option>Taylor</option>
-                                <option>Jordan</option>
+                            <select
+                                className="w-full border rounded px-3 py-2"
+                                value={teacherName}
+                                onChange={(e) => setTeacherName(e.target.value.trim())}
+                            >
+                                <option value="" disabled>Select a teacher</option>
+                                {teacherList.map((teacher, index) => {
+                                    const trimmed = teacher.trim(); // 清除空格
+                                    return (
+                                        <option key={index} value={trimmed}>
+                                            {trimmed}
+                                        </option>
+                                    );
+                                })}
                             </select>
+
                         </div>
                         <div className="flex justify-end space-x-2">
                             <button onClick={() => setShowClassModal(false)} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
@@ -577,15 +442,23 @@ export default function TeacherDashboard() {
                             onChange={(e) => setStudentPassword(e.target.value)}
                             className="w-full p-2 border rounded mb-4"
                         />
+
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Class</label>
-                            <select className="w-full border rounded px-3 py-2 space-x-2 line-height:1.5">
-                                <option>HilsenDager6/7</option>
-                                <option>Math</option>
-                                <option>IT</option>
-                                <option>ACC</option>
+                            <select
+                                className="w-full border rounded px-3 py-2"
+                                value={studentClass}
+                                onChange={(e) => setStudentClass(e.target.value)}
+                            >
+                                <option value="">Select a class</option>
+                                {classList.map((cls, index) => (
+                                    <option key={index} value={cls}>
+                                        {cls}
+                                    </option>
+                                ))}
                             </select>
                         </div>
+
 
                         <br/>
                         <br/>
