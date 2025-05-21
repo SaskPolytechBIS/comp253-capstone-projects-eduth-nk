@@ -37,51 +37,63 @@ export default function TeacherDashboard() {
 
     //populates the dropdown menu. WITHOUT THIS IT WILL BE STATIC.
     useEffect(() => {
-        //wrapper function
-        async function loadClasses() {
-            //actual logic
-            await getTeacherClasses(teacherId).then(classResult => {
-                if (classResult == null || classResult instanceof PostgrestError || classResult.length == undefined) {
-                    alert("Error with populating classes: " + classResult)
-                } else if (classResult.length < 1) {
+        const loadClasses = async () => {
+            try {
+                const classResult = await getTeacherClasses(teacherId);
+
+                if (!Array.isArray(classResult)) {
+                    alert("Error with populating classes: " + JSON.stringify(classResult));
+                    return;
+                }
+
+                if (classResult.length === 0) {
                     alert("No classes applicable.");
-                } else {
-                    setClasses(classResult);
-                }
-            });
-        }
-        //calls function to populate. does not need to do anything with 'then'
-        loadClasses().then(r => {});
-    })
-
-        useEffect(() => {
-
-            if (!classId) return;
-
-            let isCurrent = true;
-
-            async function getStudents() {
-
-                await getStudentsFromClass(classId).then(studentsResult => {
-
-                    if(!isCurrent) return;
-
-                    if (studentsResult == null || studentsResult instanceof PostgrestError || studentsResult.length == undefined) {
-                        alert("Error with populating classes: " + studentsResult);
-                    } else if (studentsResult.length < 1) {
-                        alert("No students applicable.");
-                    } else {
-                        setStudents(studentsResult);
-                    }
-                }); //end of studentsFromClass()
+                    return;
                 }
 
-            getStudents().then(r => {});
-
-            return () => {
-                isCurrent = false;
+                setClasses(classResult);
+            } catch (error) {
+                alert("Unexpected error: " + error);
             }
-            }); //end of useEffect
+        };
+
+        if (teacherId) {
+            loadClasses();
+        }
+    });
+
+    useEffect(() => {
+        if (!classId) return;
+
+        let isCurrent = true;
+
+        const getStudents = async () => {
+            try {
+                const studentsResult = await getStudentsFromClass(classId);
+                if (!isCurrent) return;
+
+                if (!Array.isArray(studentsResult)) {
+                    alert("Error with populating classes: " + JSON.stringify(studentsResult));
+                    return;
+                }
+
+                if (studentsResult.length === 0) {
+                    alert("No students applicable.");
+                    return;
+                }
+
+                setStudents(studentsResult);
+
+            } catch (error) {
+                alert("Unexpected error: " + error);
+            }
+        };
+        getStudents();
+
+        return () => {
+            isCurrent = false;
+        };
+    }, [classId]);
 
 
 
