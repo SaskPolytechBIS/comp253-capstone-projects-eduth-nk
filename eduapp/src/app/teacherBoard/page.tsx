@@ -10,6 +10,7 @@ import Cookies from "js-cookie";
 import { getStudentsFromClass, getTeacherClasses } from './api/route';
 import {PostgrestError} from "@supabase/supabase-js";
 import Table from 'react-bootstrap/Table';
+import { LegendModal} from '@/lib/Modals';
 
 
 
@@ -273,9 +274,15 @@ export default function TeacherDashboard() {
                         <div className="flex justify-end gap-2 mb-4">
                             <button
                                 onClick={() => setShowPopup(true)}
-                                className="bg-blue-600 text-black px-4 py-2 rounded hover:bg-blue-700">
+                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                                 Show Legend
                             </button>
+
+                            <LegendModal
+                                isOpen={showPopup}
+                                onClose={() => setShowPopup(false)}
+                                items={legendItems}
+                            />
                         </div>
                         <Table className="w-full table-auto border-collapse">
                             <thead>
@@ -587,26 +594,6 @@ export default function TeacherDashboard() {
             />
 
             {/* Modal for Class */}
-            {showPopup && (
-                <div className="fixed inset-0 z-50 flex items-center justify-self-end bg-transparent">
-                    <div className="bg-white rounded-xl p-6 shadow-lg max-w-md w-full relative">
-                        <h2 className="text-xl font-bold mb-4 text-center text-black">Legend</h2>
-                        <ul className="space-y-2 text-sm text-black">
-                            {legendItems.map((item, index) => (
-                                <li key={index}>
-                                    <span className="font-bold">{item.code}</span>: {item.description}
-                                </li>
-                            ))}
-                        </ul>
-                        <button
-                            onClick={() => setShowPopup(false)}
-                            className="absolute top-2 right-3 text-gray-500 hover:text-black text-lg"
-                        >
-                            ✕
-                        </button>
-                    </div>
-                </div>
-            )}
             {showClassModal && (
                 <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
                     <div className="bg-white p-6 text-black rounded shadow-lg w-96">
