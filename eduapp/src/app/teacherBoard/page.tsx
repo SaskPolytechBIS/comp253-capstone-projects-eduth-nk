@@ -9,6 +9,7 @@ import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 import { getStudentsFromClass, getTeacherClasses } from './api/route';
 import {PostgrestError} from "@supabase/supabase-js";
+import Table from 'react-bootstrap/Table';
 
 
 
