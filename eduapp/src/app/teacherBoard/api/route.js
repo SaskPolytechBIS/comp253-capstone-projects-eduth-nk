@@ -3,8 +3,8 @@ import { supabase } from '@/lib/supabase'
 export async function getTeacherClasses(teacherId) {
     let { data: Class, error } = await supabase
         .from('Class')
-        .select("ClassID")
-        .like('TeacherID', teacherId)
+        .select('ClassID, ClassName')
+        .eq('TeacherID', teacherId);
 
     if (Class == null) {
         return error
@@ -30,21 +30,8 @@ export async function getTeacherName(teacherId) {
 export async function getStudentsFromClass (classId) {
     let { data: Student, error } = await supabase
         .from('Student')
-        .select('StudentID')
-        .like('ClassID', classId)
-
-    if (Student == null) {
-        return error
-    } else {
-        return Student
-    }
-}
-
-export async function getStudentNames (studentId) {
-    let { data: Student, error } = await supabase
-        .from('Student')
-        .select('StudentName')
-        .like('StudentID', studentId)
+        .select('StudentID,StudentName')
+        .eq('ClassID', classId);
 
     if (Student == null) {
         return error

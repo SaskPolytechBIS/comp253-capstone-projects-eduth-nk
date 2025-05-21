@@ -1,14 +1,16 @@
 "use client";
 
 
-import React, {useRef, useState } from "react";
+import React, {ReactNode, useEffect, useState} from "react";
 import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
-import { getStudentsFromClass, getStudentNames, getTeacherClasses } from './api/route';
+import { getStudentsFromClass, getTeacherClasses } from './api/route';
 import {PostgrestError} from "@supabase/supabase-js";
+
+
 
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
@@ -16,6 +18,7 @@ export default function TeacherDashboard() {
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
+    const teacherId = Cookies.get('teacherId')
 
     //handle pop-up modal for add class and student
     const [showClassModal, setShowClassModal] = useState(false);
@@ -25,11 +28,83 @@ export default function TeacherDashboard() {
     const [studentName, setStudentName] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
-    const [showPopup, setShowPopup] = useState(false);
-    let classes;
 
-    if (Cookies.get('teacherId') == undefined) {
-        redirect('/login')
+
+    //class population
+    const [classId, setClassId] = useState("");
+    const [classes, setClasses] = useState([{ClassID: "0", ClassName: "Error"}]);
+    const [students, setStudents] = useState([{StudentID: "0", StudentName: "Error"}]);
+
+    //populates the dropdown menu. WITHOUT THIS IT WILL BE STATIC.
+    useEffect(() => {
+        const loadClasses = async () => {
+            try {
+                const classResult = await getTeacherClasses(teacherId);
+
+                if (!Array.isArray(classResult)) {
+                    alert("Error with populating classes: " + JSON.stringify(classResult));
+                    return;
+                }
+
+                if (classResult.length === 0) {
+                    alert("No classes applicable.");
+                    return;
+                }
+
+                setClasses(classResult);
+            } catch (error) {
+                alert("Unexpected error: " + error);
+            }
+        };
+
+        if (teacherId) {
+            loadClasses();
+        }
+    });
+
+    useEffect(() => {
+        if (!classId) return;
+
+        let isCurrent = true;
+
+        const getStudents = async () => {
+            try {
+                const studentsResult = await getStudentsFromClass(classId);
+                if (!isCurrent) return;
+
+                if (!Array.isArray(studentsResult)) {
+                    alert("Error with populating classes: " + JSON.stringify(studentsResult));
+                    return;
+                }
+
+                if (studentsResult.length === 0) {
+                    alert("No students applicable.");
+                    return;
+                }
+
+                setStudents(studentsResult);
+
+            } catch (error) {
+                alert("Unexpected error: " + error);
+            }
+        };
+        getStudents();
+
+        return () => {
+            isCurrent = false;
+        };
+    }, [classId]);
+
+
+
+    //redirects to login if no teacher cookie
+    if (teacherId == undefined) {
+        router.push('/login')
+    }
+
+    const handleSelectChange = (event: { target: { value: any; }; }) => {
+        const selectedClass = event.target.value;
+        setClassId(selectedClass);
     }
 
     const handleClassSubmit = () => {
@@ -48,19 +123,8 @@ export default function TeacherDashboard() {
     // Handle logout
     const handleLogout = () => {
         Cookies.remove("teacherId");
-        router.push("/login");         // Redirect to login
+        redirect("/login");// Redirect to login
     };
-    // Show legendItems
-    const legendItems = [
-        { code: "✓", description: "Used when knowledge has been demonstrated individually" },
-        { code: "S", description: "Used when knowledge has been demonstrated individually, but with a silly mistake" },
-        { code: "H", description: "Used when knowledge has been demonstrated individually, but with help from a teacher or peer" },
-        { code: "G", description: "Used when knowledge has been demonstrated within a group" },
-        { code: "X", description: "Used when a question has been attempted, but answered incorrectly" },
-        { code: "N", description: "Used when a question has not been attempted" },
-        { code: "O", description: "Used when knowledge has been demonstrated individually, seen through observation" },
-        { code: "C", description: "Used when knowledge has been demonstrated individually, seen through a conversation" },
-    ];
 
     //const studentName = getStudentName();
     const handleNewAssignmentClick = () => {
@@ -77,25 +141,6 @@ export default function TeacherDashboard() {
     //handle new student and add new class
     const handleNewClass = () => setShowClassModal(true);
     const handleNewStudent = () => setShowStudentModal(true);
-
-    //handle files upload
-    const uploadEvidence = ()=>{
-        console.log("Evidence Upload");
-
-    }
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-    const handleButtonClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            console.log('Selected file:', file.name);
-
-        }
-    };
 
     return (
         <div className="flex flex-col min-h-screen ">
@@ -145,11 +190,15 @@ export default function TeacherDashboard() {
                     <div className="w-full md:w-1/3 bg-white p-4 rounded-xl shadow">
                         <div className="mb-4 ">
                             <label className="block text-sm font-medium mb-1">Class</label>
-                            <select className="w-full border rounded px-3 py-2">
-                                <option>HilsenDager6/7</option>
-                                <option>Math</option>
-                                <option>IT</option>
-                                <option>ACC</option>
+                            {/*
+                            Populates class list with classes
+                            */}
+                            <select className="w-full border rounded px-3 py-2" onChange={handleSelectChange} >
+                                {classes.map((classes) => (
+                                    <option key={classes.ClassID} value={classes.ClassID}>
+                                        {classes.ClassName}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -171,11 +220,11 @@ export default function TeacherDashboard() {
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Student</label>
                             <select className="w-full border rounded px-3 py-2">
-                                <option>Bobby Joe</option>
-                                <option>Sunny Le</option>
-                                <option>Jack Son</option>
-                                <option>Anna Tom</option>
-                                <option>Jacky Chan</option>
+                                {students.map((students) => (
+                                    <option key={students.StudentID} value={students.StudentName}>
+                                        {students.StudentName}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -186,14 +235,6 @@ export default function TeacherDashboard() {
 
                     {/* Main Content */}
                     <div className="w-full md:w-2/3 bg-white p-4 rounded-xl shadow overflow-x-auto">
-                        {/* Top Buttons */}
-                        <div className="flex justify-end gap-2 mb-4">
-                            <button
-                                onClick={() => setShowPopup(true)}
-                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                                Show Legend
-                            </button>
-                        </div>
                         <table className="w-full table-auto border-collapse">
                             <thead>
                             <tr className="bg-gray-100">
@@ -211,91 +252,12 @@ export default function TeacherDashboard() {
                                     and students to have a conversation about their assessments and allow the parents to view the progress
                                     of their child through the application at home.
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-
+                                <td className="border p-3"></td>
+                                <td className="border p-3"></td>
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -304,91 +266,12 @@ export default function TeacherDashboard() {
                                     and be hosted through a web application.
                                     It will include a database that holds the information for login and the paths to the files for assignments.:
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-
+                                <td className="border p-3"></td>
+                                <td className="border p-3"></td>
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -397,91 +280,12 @@ export default function TeacherDashboard() {
                                     This is the basis of the framework that we have been requested, and any changes should keep this framework the same.
                                     Questions we can ask ourselves include:
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
+                                <td className="border p-3 text-center text-xs text-blue-700">
+                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
+                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
                                 </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
+                                <td className="border p-3"></td>
+                                <td className="border p-3"></td>
                             </tr>
                             </tbody>
                         </table>
@@ -491,26 +295,6 @@ export default function TeacherDashboard() {
                                 Update Map
                             </button>
                         </div>
-                        {showPopup && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-self-end bg-transparent">
-                                <div className="bg-white rounded-xl p-6 shadow-lg max-w-md w-full relative">
-                                    <h2 className="text-xl font-bold mb-4 text-center">Legend</h2>
-                                    <ul className="space-y-2 text-sm text-black">
-                                        {legendItems.map((item, index) => (
-                                            <li key={index}>
-                                                <span className="font-bold">{item.code}</span>: {item.description}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    <button
-                                        onClick={() => setShowPopup(false)}
-                                        className="absolute top-2 right-3 text-gray-500 hover:text-black text-lg"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
 
