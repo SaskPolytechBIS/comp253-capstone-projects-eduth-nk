@@ -383,7 +383,7 @@ export default function StudentDashboard() {
                         {showPopup && (
                             <div className="fixed inset-0 z-50 flex items-center justify-self-end bg-transparent">
                                 <div className="bg-white rounded-xl p-6 shadow-lg max-w-md w-full relative">
-                                    <h2 className="text-xl font-bold mb-4 text-center">Legend</h2>
+                                    <h2 className="text-xl font-bold mb-4 text-center text-black">Legend</h2>
                                     <ul className="space-y-2 text-sm text-black">
                                         {legendItems.map((item, index) => (
                                             <li key={index}>
