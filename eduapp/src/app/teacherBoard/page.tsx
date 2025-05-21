@@ -9,6 +9,7 @@ import ClientEditorModal from "@/components/ClientEditorModal";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 
+
 export default function TeacherDashboard() {
     const [userName, setUserName] = useState("sample");
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,6 +18,12 @@ export default function TeacherDashboard() {
     const router = useRouter();
     const [classList, setClassList] = useState<string[]>([]);
     const [studentList, setStudentList] = useState<string[]>([]);
+    const [studentClass, setStudentClass] = useState("");
+    const [teacherMap, setTeacherMap] = useState<{ [name: string]: number }>({});
+    const [teacherList, setTeacherList] = useState<string[]>([]);
+
+
+
 
     //handle pop-up modal for add class and student
     const [showClassModal, setShowClassModal] = useState(false);
@@ -27,35 +34,81 @@ export default function TeacherDashboard() {
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
 
-    //fetchStudents
-    const fetchStudents = async () => {
-        const { data, error } = await supabase.from("Student").select("studentName");
+    //fetchTeachers
+    const fetchTeachers = async () => {
+        const { data, error } = await supabase.from("Teacher").select("TeacherID, TeacherName");
+
+        console.log("Supabase fetch result:", { data, error });
+
         if (error) {
-            console.error("Failed to fetch students:", error.message);
+            console.error("Failed to fetch teacher list:", error.message);
             return;
         }
-        const names = data.map((item) => item.studentName);
+
+        if (!data || data.length === 0) {
+            console.warn("No teacher data fetched.");
+            return;
+        }
+
+        const map: { [name: string]: number } = {};
+        const names: string[] = [];
+
+        data.forEach((t) => {
+            const cleanName = t.TeacherName.trim();
+            map[cleanName] = t.TeacherID;
+            names.push(cleanName);
+        });
+
+        console.log("teacherList:", names);
+        setTeacherMap(map);
+        setTeacherList(names);
+    };
+
+
+
+    //fetchStudents
+    const fetchStudents = async () => {
+        const { data, error } = await supabase.from("Student").select("StudentName");
+
+        if (error) {
+            console.error(" Failed to fetch students:", error.message);
+            return;
+        }
+
+        const names = data.map((item) => item.StudentName);
         setStudentList(names);
     };
 
-    //user effect
+    //class map
+    const [classMap, setClassMap] = useState<{ [name: string]: number }>({});
+
     useEffect(() => {
         fetchClasses();
         fetchStudents();
+        fetchTeachers();
     }, []);
 
+
+    //fetchClass
     const fetchClasses = async () => {
-        const { data, error } = await supabase.from("Class").select("className");
-        if (error) {
-            console.error("Error fetching class list:", error.message);
+        const { data: classData, error: classError } = await supabase
+            .from("Class")
+            .select("ClassID, ClassName");
+
+        if (classError) {
+            console.error("Error fetching class list:", classError.message);
             return;
         }
-        const names = data.map((item) => item.className);
-        console.log("Fetched classes:", names);
+
+        const names = classData.map((item) => item.ClassName);
+        const map: { [name: string]: number } = {};
+        classData.forEach((item) => {
+            map[item.ClassName] = item.ClassID;
+        });
+
         setClassList(names);
+        setClassMap(map);
     };
-
-
 
 
     //handleClassSubmit method
@@ -64,22 +117,31 @@ export default function TeacherDashboard() {
             alert("Please fill in both class name and teacher name.");
             return;
         }
-        const newClass = {
-            className,
-            teacherName
-        };
 
-        // save data to supabase
-        const { error } = await supabase.from("Class").insert([newClass]);
-        if (error) {
-            console.error("Supabase insert failed:", error);
+        const trimmedTeacherName = teacherName.trim();
+        const teacherId = teacherMap[trimmedTeacherName];
 
-        }else {
-            console.log("Class saved to Supabase");
-            await fetchClasses();
+        if (!teacherId) {
+            alert("Invalid teacher selected.");
+            console.error("Teacher not found in teacherMap:", trimmedTeacherName);
+            return;
         }
 
-        // clear out
+        const newClass = {
+            ClassName: className,
+            TeacherID: teacherId,
+        };
+
+        const { error } = await supabase.from("Class").insert([newClass]);
+
+        if (error) {
+            console.error("Failed to insert class into Supabase:", error.message);
+        } else {
+            console.log("Class successfully added to Supabase.");
+            await fetchClasses(); // Refresh the class list
+        }
+
+        // Clear form after submission
         setClassName("");
         setTeacherName("");
         setShowClassModal(false);
@@ -87,13 +149,19 @@ export default function TeacherDashboard() {
 
 
 
+
     //handleStudentSubmit method
     const handleStudentSubmit = async () => {
+        if (!studentName || !studentUsername || !studentPassword || !studentClass) {
+            alert("Please fill in all student fields.");
+            return;
+        }
+
         const newStudent = {
-            studentName,
+            StudentName: studentName,
             username: studentUsername,
             password: studentPassword,
-            class: "Math"
+            ClassID: classMap[studentClass]
         };
 
         const { error } = await supabase.from("Student").insert([newStudent]);
@@ -104,11 +172,14 @@ export default function TeacherDashboard() {
             fetchStudents();
         }
 
+        // clear inputs
         setStudentName("");
         setStudentUsername("");
         setStudentPassword("");
+        setStudentClass("");
         setShowStudentModal(false);
     };
+
 
 
     // Handle logout
@@ -183,15 +254,18 @@ export default function TeacherDashboard() {
                     <div className="w-full md:w-1/3 bg-white p-4 rounded-xl shadow">
                         <div className="mb-4 ">
                             <label className="block text-sm font-medium mb-1">Class</label>
-                            <select className="w-full border rounded px-3 py-2">
-                                {/*<option>HilsenDager6/7</option>*/}
-                                {/*<option>Math</option>*/}
-                                {/*<option>IT</option>*/}
-                                {/*<option>ACC</option>*/}
+                            {/* Student Class */}
+                            <select
+                                className="w-full border rounded px-3 py-2"
+                                value={studentClass}
+                                onChange={(e) => setStudentClass(e.target.value)}
+                            >
+                                <option value="">Select a class</option>
                                 {classList.map((cls, index) => (
-                                    <option key={index}>{cls}</option>
+                                    <option key={index} value={cls}>
+                                        {cls}
+                                    </option>
                                 ))}
-
                             </select>
                         </div>
 
@@ -213,12 +287,13 @@ export default function TeacherDashboard() {
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Student</label>
                             <select className="w-full border rounded px-3 py-2">
-                                <option>Bobby Joe</option>
-                                <option>Sunny Le</option>
-                                <option>Jack Son</option>
-                                <option>Anna Tom</option>
-                                <option>Jacky Chan</option>
+                                {studentList.map((student, index) => (
+                                    <option key={index} value={student}>
+                                        {student}
+                                    </option>
+                                ))}
                             </select>
+
                         </div>
 
                         <button className="w-full bg-purple-600 text-white rounded px-3 py-2 hover:bg-purple-700">
@@ -312,16 +387,25 @@ export default function TeacherDashboard() {
                             onChange={(e) => setClassName(e.target.value)}
                             className="w-full p-2 border rounded mb-4"
                         />
+
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Teacher</label>
-                            <select className="w-full border rounded px-3 py-2"
+                            <select
+                                className="w-full border rounded px-3 py-2"
                                 value={teacherName}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTeacherName(e.target.value)}
-                                >
-                                <option value="">Select a teacher</option>
-                                <option value="Taylor">Taylor</option>
-                                <option value="Jordan">Jordan</option>
+                                onChange={(e) => setTeacherName(e.target.value.trim())}
+                            >
+                                <option value="" disabled>Select a teacher</option>
+                                {teacherList.map((teacher, index) => {
+                                    const trimmed = teacher.trim(); // 清除空格
+                                    return (
+                                        <option key={index} value={trimmed}>
+                                            {trimmed}
+                                        </option>
+                                    );
+                                })}
                             </select>
+
                         </div>
                         <div className="flex justify-end space-x-2">
                             <button onClick={() => setShowClassModal(false)} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
@@ -358,15 +442,23 @@ export default function TeacherDashboard() {
                             onChange={(e) => setStudentPassword(e.target.value)}
                             className="w-full p-2 border rounded mb-4"
                         />
+
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Class</label>
-                            <select className="w-full border rounded px-3 py-2 space-x-2 line-height:1.5">
-                                <option>HilsenDager6/7</option>
-                                <option>Math</option>
-                                <option>IT</option>
-                                <option>ACC</option>
+                            <select
+                                className="w-full border rounded px-3 py-2"
+                                value={studentClass}
+                                onChange={(e) => setStudentClass(e.target.value)}
+                            >
+                                <option value="">Select a class</option>
+                                {classList.map((cls, index) => (
+                                    <option key={index} value={cls}>
+                                        {cls}
+                                    </option>
+                                ))}
                             </select>
                         </div>
+
 
                         <br/>
                         <br/>
