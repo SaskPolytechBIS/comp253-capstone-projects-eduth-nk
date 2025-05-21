@@ -1,13 +1,15 @@
 "use client";
 
-import { supabase } from "@/lib/supabase";
-import React, { useState, useEffect } from "react";
+
+import React, {useRef, useEffect, useState} from "react";
 import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
-import { getStudentName } from "@/app/teacherBoard/api/route";
 import ClientEditorModal from "@/components/ClientEditorModal";
-import { useRouter } from "next/navigation";
+import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
+import { getStudentsFromClass, getTeacherClasses } from './api/route';
+import {PostgrestError} from "@supabase/supabase-js";
+
 
 
 export default function TeacherDashboard() {
@@ -16,14 +18,7 @@ export default function TeacherDashboard() {
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
-    const [classList, setClassList] = useState<string[]>([]);
-    const [studentList, setStudentList] = useState<string[]>([]);
-    const [studentClass, setStudentClass] = useState("");
-    const [teacherMap, setTeacherMap] = useState<{ [name: string]: number }>({});
-    const [teacherList, setTeacherList] = useState<string[]>([]);
-
-
-
+    const teacherId = Cookies.get('teacherId')
 
     //handle pop-up modal for add class and student
     const [showClassModal, setShowClassModal] = useState(false);
@@ -34,160 +29,101 @@ export default function TeacherDashboard() {
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
 
-    //fetchTeachers
-    const fetchTeachers = async () => {
-        const { data, error } = await supabase.from("Teacher").select("TeacherID, TeacherName");
 
-        console.log("Supabase fetch result:", { data, error });
+    //class population
+    const [classId, setClassId] = useState("");
+    const [classes, setClasses] = useState([{ClassID: "0", ClassName: "Error"}]);
+    const [students, setStudents] = useState([{StudentID: "0", StudentName: "Error"}]);
 
-        if (error) {
-            console.error("Failed to fetch teacher list:", error.message);
-            return;
-        }
-
-        if (!data || data.length === 0) {
-            console.warn("No teacher data fetched.");
-            return;
-        }
-
-        const map: { [name: string]: number } = {};
-        const names: string[] = [];
-
-        data.forEach((t) => {
-            const cleanName = t.TeacherName.trim();
-            map[cleanName] = t.TeacherID;
-            names.push(cleanName);
-        });
-
-        console.log("teacherList:", names);
-        setTeacherMap(map);
-        setTeacherList(names);
-    };
-
-
-
-    //fetchStudents
-    const fetchStudents = async () => {
-        const { data, error } = await supabase.from("Student").select("StudentName");
-
-        if (error) {
-            console.error(" Failed to fetch students:", error.message);
-            return;
-        }
-
-        const names = data.map((item) => item.StudentName);
-        setStudentList(names);
-    };
-
-    //class map
-    const [classMap, setClassMap] = useState<{ [name: string]: number }>({});
-
+    //populates the dropdown menu. WITHOUT THIS IT WILL BE STATIC.
     useEffect(() => {
-        fetchClasses();
-        fetchStudents();
-        fetchTeachers();
-    }, []);
+        const loadClasses = async () => {
+            try {
+                const classResult = await getTeacherClasses(teacherId);
 
+                if (!Array.isArray(classResult)) {
+                    alert("Error with populating classes: " + JSON.stringify(classResult));
+                    return;
+                }
 
-    //fetchClass
-    const fetchClasses = async () => {
-        const { data: classData, error: classError } = await supabase
-            .from("Class")
-            .select("ClassID, ClassName");
+                if (classResult.length === 0) {
+                    alert("No classes applicable.");
+                    return;
+                }
 
-        if (classError) {
-            console.error("Error fetching class list:", classError.message);
-            return;
-        }
-
-        const names = classData.map((item) => item.ClassName);
-        const map: { [name: string]: number } = {};
-        classData.forEach((item) => {
-            map[item.ClassName] = item.ClassID;
-        });
-
-        setClassList(names);
-        setClassMap(map);
-    };
-
-
-    //handleClassSubmit method
-    const handleClassSubmit = async () => {
-        if (!className || !teacherName) {
-            alert("Please fill in both class name and teacher name.");
-            return;
-        }
-
-        const trimmedTeacherName = teacherName.trim();
-        const teacherId = teacherMap[trimmedTeacherName];
-
-        if (!teacherId) {
-            alert("Invalid teacher selected.");
-            console.error("Teacher not found in teacherMap:", trimmedTeacherName);
-            return;
-        }
-
-        const newClass = {
-            ClassName: className,
-            TeacherID: teacherId,
+                setClasses(classResult);
+            } catch (error) {
+                alert("Unexpected error: " + error);
+            }
         };
 
-        const { error } = await supabase.from("Class").insert([newClass]);
-
-        if (error) {
-            console.error("Failed to insert class into Supabase:", error.message);
-        } else {
-            console.log("Class successfully added to Supabase.");
-            await fetchClasses(); // Refresh the class list
+        if (teacherId) {
+            loadClasses();
         }
+    });
 
-        // Clear form after submission
+    useEffect(() => {
+        if (!classId) return;
+
+        let isCurrent = true;
+
+        const getStudents = async () => {
+            try {
+                const studentsResult = await getStudentsFromClass(classId);
+                if (!isCurrent) return;
+
+                if (!Array.isArray(studentsResult)) {
+                    alert("Error with populating classes: " + JSON.stringify(studentsResult));
+                    return;
+                }
+
+                if (studentsResult.length === 0) {
+                    alert("No students applicable.");
+                    return;
+                }
+
+                setStudents(studentsResult);
+
+            } catch (error) {
+                alert("Unexpected error: " + error);
+            }
+        };
+        getStudents();
+
+        return () => {
+            isCurrent = false;
+        };
+    }, [classId]);
+
+
+
+    //redirects to login if no teacher cookie
+    if (teacherId == undefined) {
+        router.push('/login')
+    }
+
+    const handleSelectChange = (event: { target: { value: any; }; }) => {
+        const selectedClass = event.target.value;
+        setClassId(selectedClass);
+    }
+
+    const handleClassSubmit = () => {
+        console.log("Class:", className, "Teacher:", teacherName);
         setClassName("");
         setTeacherName("");
         setShowClassModal(false);
     };
 
-
-
-
-    //handleStudentSubmit method
-    const handleStudentSubmit = async () => {
-        if (!studentName || !studentUsername || !studentPassword || !studentClass) {
-            alert("Please fill in all student fields.");
-            return;
-        }
-
-        const newStudent = {
-            StudentName: studentName,
-            username: studentUsername,
-            password: studentPassword,
-            ClassID: classMap[studentClass]
-        };
-
-        const { error } = await supabase.from("Student").insert([newStudent]);
-        if (error) {
-            console.error("Supabase insert failed:", error.message);
-        } else {
-            console.log("Student saved to Supabase");
-            fetchStudents();
-        }
-
-        // clear inputs
+    const handleStudentSubmit = () => {
+        console.log("Student:", studentName, "Username:", studentUsername);
         setStudentName("");
         setStudentUsername("");
-        setStudentPassword("");
-        setStudentClass("");
         setShowStudentModal(false);
     };
-
-
-
     // Handle logout
     const handleLogout = () => {
-        localStorage.clear();       // Clear token or session info
-        sessionStorage.clear();     // Optional
         Cookies.remove("teacherId");
-        router.push("/login");         // Redirect to login
+        redirect("/login");// Redirect to login
     };
 
     //const studentName = getStudentName();
@@ -205,6 +141,25 @@ export default function TeacherDashboard() {
     //handle new student and add new class
     const handleNewClass = () => setShowClassModal(true);
     const handleNewStudent = () => setShowStudentModal(true);
+
+    //handle files upload
+    const uploadEvidence = ()=>{
+        console.log("Evidence Upload");
+
+    }
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const handleButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            console.log('Selected file:', file.name);
+
+        }
+    };
 
     return (
         <div className="flex flex-col min-h-screen ">
@@ -254,16 +209,13 @@ export default function TeacherDashboard() {
                     <div className="w-full md:w-1/3 bg-white p-4 rounded-xl shadow">
                         <div className="mb-4 ">
                             <label className="block text-sm font-medium mb-1">Class</label>
-                            {/* Student Class */}
-                            <select
-                                className="w-full border rounded px-3 py-2"
-                                value={studentClass}
-                                onChange={(e) => setStudentClass(e.target.value)}
-                            >
-                                <option value="">Select a class</option>
-                                {classList.map((cls, index) => (
-                                    <option key={index} value={cls}>
-                                        {cls}
+                            {/*
+                            Populates class list with classes
+                            */}
+                            <select className="w-full border rounded px-3 py-2" onChange={handleSelectChange} >
+                                {classes.map((classes) => (
+                                    <option key={classes.ClassID} value={classes.ClassID}>
+                                        {classes.ClassName}
                                     </option>
                                 ))}
                             </select>
@@ -287,13 +239,12 @@ export default function TeacherDashboard() {
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Student</label>
                             <select className="w-full border rounded px-3 py-2">
-                                {studentList.map((student, index) => (
-                                    <option key={index} value={student}>
-                                        {student}
+                                {students.map((students) => (
+                                    <option key={students.StudentID} value={students.StudentName}>
+                                        {students.StudentName}
                                     </option>
                                 ))}
                             </select>
-
                         </div>
 
                         <button className="w-full bg-purple-600 text-white rounded px-3 py-2 hover:bg-purple-700">
@@ -387,25 +338,12 @@ export default function TeacherDashboard() {
                             onChange={(e) => setClassName(e.target.value)}
                             className="w-full p-2 border rounded mb-4"
                         />
-
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Teacher</label>
-                            <select
-                                className="w-full border rounded px-3 py-2"
-                                value={teacherName}
-                                onChange={(e) => setTeacherName(e.target.value.trim())}
-                            >
-                                <option value="" disabled>Select a teacher</option>
-                                {teacherList.map((teacher, index) => {
-                                    const trimmed = teacher.trim(); // 清除空格
-                                    return (
-                                        <option key={index} value={trimmed}>
-                                            {trimmed}
-                                        </option>
-                                    );
-                                })}
+                            <select className="w-full border rounded px-3 py-2">
+                                <option>Taylor</option>
+                                <option>Jordan</option>
                             </select>
-
                         </div>
                         <div className="flex justify-end space-x-2">
                             <button onClick={() => setShowClassModal(false)} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
@@ -442,23 +380,15 @@ export default function TeacherDashboard() {
                             onChange={(e) => setStudentPassword(e.target.value)}
                             className="w-full p-2 border rounded mb-4"
                         />
-
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Class</label>
-                            <select
-                                className="w-full border rounded px-3 py-2"
-                                value={studentClass}
-                                onChange={(e) => setStudentClass(e.target.value)}
-                            >
-                                <option value="">Select a class</option>
-                                {classList.map((cls, index) => (
-                                    <option key={index} value={cls}>
-                                        {cls}
-                                    </option>
-                                ))}
+                            <select className="w-full border rounded px-3 py-2 space-x-2 line-height:1.5">
+                                <option>HilsenDager6/7</option>
+                                <option>Math</option>
+                                <option>IT</option>
+                                <option>ACC</option>
                             </select>
                         </div>
-
 
                         <br/>
                         <br/>
