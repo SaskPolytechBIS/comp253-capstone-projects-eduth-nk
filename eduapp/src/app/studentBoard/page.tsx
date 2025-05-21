@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom/client";
 import { Bell   } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
-import { useRouter } from "next/navigation";
+import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 
 
@@ -12,10 +12,13 @@ export default function StudentDashboard() {
     const [userName, setUserName] = useState("sample");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
+
+    if (Cookies.get('studentId') == undefined) {
+        redirect('/login');
+    }
+
     // Handle logout
     const handleLogout = () => {
-        localStorage.clear();       // Clear token or session info
-        sessionStorage.clear();     // Optional
         Cookies.remove("studentId");
         router.push("/login");         // Redirect to login
     };
@@ -114,32 +117,121 @@ export default function StudentDashboard() {
                                         Supabase
                                         for the application database.
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs text-blue-700">
-                                        <>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3"></td>
-                                    <td className="border px-4 py-3"></td>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
+                                    </td>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
+                                    </td>
+
                                 </tr>
                                 <tr className="hover:bg-gray-50">
                                     <td className="border px-4 py-3">
                                         Time Management: This project will challenge our ability to plan effectively
                                         and deliver results under deadlines set by both our team and stakeholders.
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs text-blue-700">
-                                        <>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3"></td>
-                                    <td className="border px-4 py-3"></td>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
+                                    </td>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
+                                    </td>
                                 </tr>
                                 <tr className="hover:bg-gray-50">
                                     <td className="border px-4 py-3">
@@ -147,16 +239,60 @@ export default function StudentDashboard() {
                                         we will need to remain flexible—reassessing priorities, adjusting timelines,
                                         and refining strategies to stay aligned with project goals
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs text-blue-700">
-                                        <>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3"></td>
-                                    <td className="border px-4 py-3"></td>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
+                                    </td>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
+                                    </td>
                                 </tr>
                                 <tr className="hover:bg-gray-50">
                                     <td className="border px-4 py-3">
@@ -164,16 +300,59 @@ export default function StudentDashboard() {
                                         how to delegate responsibility, balance workloads, and to communicate through
                                         conflicts all while maintaining a shared vision..
                                     </td>
-                                    <td className="border px-4 py-3 text-center text-xs text-blue-700">
-                                        <>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                            <span
-                                                className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
-                                        </>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
                                     </td>
-                                    <td className="border px-4 py-3"></td>
-                                    <td className="border px-4 py-3"></td>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+
+                                    </td>
+                                    <td className="border p-3 text-center text-xs ">
+                                        <div className="mb-4 text-black text-sm font-medium">
+                                            <select className="w-full border rounded px-3 py-2">
+                                                <option></option>
+                                                <option>&#10003;.</option>
+                                                <option>&#83;</option>
+                                                <option>&#72;</option>
+                                                <option>&#71;</option>
+                                                <option>&#88;</option>
+                                                <option>&#78;</option>
+                                                <option>&#10003;</option>
+                                                <option>&#111;</option>
+                                                <option>&#99;</option>
+                                            </select>
+                                        </div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -181,9 +360,6 @@ export default function StudentDashboard() {
 
                         {/* Bottom Buttons */}
                         <div className="flex justify-end gap-2 mt-4">
-                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                                Show Legend
-                            </button>
                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                                 Update Map
                             </button>

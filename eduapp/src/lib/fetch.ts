@@ -1,10 +1,10 @@
 import { supabase } from "./supabase";
 
-export async function fetchUserName(userId: string) {
+export async function fetchUserName(teacherId: string) {
     const { data, error } = await supabase
-        .from("teachers") //table name
+        .from("Teacher") //table name
         .select("name")
-        .eq("id", userId)
+        .eq("id", teacherId)
         .single();
 
     if (error) {
