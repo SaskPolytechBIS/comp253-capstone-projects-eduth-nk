@@ -1,7 +1,7 @@
 "use client";
 
 
-import React, {ReactNode, useEffect, useState} from "react";
+import React, {useRef, useEffect, useState} from "react";
 import { Bell } from "lucide-react"; // icon library or image
 import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
@@ -141,6 +141,25 @@ export default function TeacherDashboard() {
     //handle new student and add new class
     const handleNewClass = () => setShowClassModal(true);
     const handleNewStudent = () => setShowStudentModal(true);
+
+    //handle files upload
+    const uploadEvidence = ()=>{
+        console.log("Evidence Upload");
+
+    }
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const handleButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            console.log('Selected file:', file.name);
+
+        }
+    };
 
     return (
         <div className="flex flex-col min-h-screen ">
