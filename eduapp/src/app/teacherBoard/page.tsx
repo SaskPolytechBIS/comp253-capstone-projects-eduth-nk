@@ -254,7 +254,13 @@ export default function TeacherDashboard() {
 
                     {/* Main Content */}
                     <div className="w-full md:w-2/3 bg-white p-4 rounded-xl shadow overflow-x-auto">
-                        <table className="w-full table-auto border-collapse">
+                        {/* Top Buttons */}
+                        <div className="flex justify-end gap-2 mb-4">
+                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                Show Legend
+                            </button>
+                        </div>
+                        <Table className="w-full table-auto border-collapse">
                             <thead>
                             <tr className="bg-gray-100">
                                 <th className="border p-2 text-left">Content</th>
@@ -271,12 +277,91 @@ export default function TeacherDashboard() {
                                     and students to have a conversation about their assessments and allow the parents to view the progress
                                     of their child through the application at home.
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
-                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                <td className="border p-3 text-center text-xs ">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
                                 </td>
-                                <td className="border p-3"></td>
-                                <td className="border p-3"></td>
+                                <td className="border p-3 text-center text-xs ">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
+                                </td>
+                                <td className="border p-3 text-center text-xs ">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
+                                </td>
+
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -285,12 +370,91 @@ export default function TeacherDashboard() {
                                     and be hosted through a web application.
                                     It will include a database that holds the information for login and the paths to the files for assignments.:
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
-                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                <td className="border p-3 text-center text-xs ">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
                                 </td>
-                                <td className="border p-3"></td>
-                                <td className="border p-3"></td>
+                                <td className="border p-3 text-center text-xs ">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
+                                </td>
+                                <td className="border p-3 text-center text-xs ">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
+                                </td>
+
                             </tr>
                             <tr className="hover:bg-gray-50">
                                 <td className="border p-3 text-sm">
@@ -299,15 +463,94 @@ export default function TeacherDashboard() {
                                     This is the basis of the framework that we have been requested, and any changes should keep this framework the same.
                                     Questions we can ask ourselves include:
                                 </td>
-                                <td className="border p-3 text-center text-xs text-blue-700">
-                                    <span className="block underline cursor-pointer">&lt;Enter Assessment&gt;</span>
-                                    <span className="block underline cursor-pointer">&lt;attach evidence&gt;</span>
+                                <td className="border p-3 text-center text-xs ">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
                                 </td>
-                                <td className="border p-3"></td>
-                                <td className="border p-3"></td>
+                                <td className="border p-3 text-center text-xs ">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
+
+                                </td>
+                                <td className="border p-3 text-center text-xs ">
+                                    <div className="mb-4 text-black text-sm font-medium">
+                                        <select className="w-full border rounded px-3 py-2">
+                                            <option></option>
+                                            <option>&#10003;.</option>
+                                            <option>&#83;</option>
+                                            <option>&#72;</option>
+                                            <option>&#71;</option>
+                                            <option>&#88;</option>
+                                            <option>&#78;</option>
+                                            <option>&#10003;</option>
+                                            <option>&#111;</option>
+                                            <option>&#99;</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
+                                </td>
                             </tr>
                             </tbody>
-                        </table>
+                        </Table>
 
                         <div className="text-right mt-4">
                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
