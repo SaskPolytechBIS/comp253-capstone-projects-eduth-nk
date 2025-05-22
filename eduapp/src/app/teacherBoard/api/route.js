@@ -13,20 +13,6 @@ export async function getTeacherClasses(teacherId) {
     }
 }
 
-export async function getTeacherName(teacherId) {
-    const { data, error } = await supabase
-        .from("TeacherLogin") //table name
-        .select("Username")
-        .eq("TeacherID", teacherId)
-        .single();
-
-    if (error) {
-        console.error("Error fetching user name:", error);
-        return null;
-    }
-
-    return data.name;
-}
 export async function getStudentsFromClass (classId) {
     let { data: Student, error } = await supabase
         .from('Student')
@@ -37,5 +23,38 @@ export async function getStudentsFromClass (classId) {
         return error
     } else {
         return Student
+    }
+}
+
+export async function createStudent(studentName, studentClass, studentUsername, studentPassword) {
+    const { data, error } = await supabase
+        .from('Student')
+        .insert([
+            { StudentName: `${studentName}`, ClassID: `${studentClass}`}
+        ])
+        .select('StudentID')
+        .single()
+
+    console.log(data)
+    if (error) {
+        console.log("Error inserting student: " + error.message);
+    } else {
+        await createStudentLogin(data.StudentID, studentUsername, studentPassword)
+    }
+
+}
+
+async function createStudentLogin(studentId, studentUsername, studentPassword){
+    const { data, error } = await supabase
+        .from('StudentLogin')
+        .insert([
+            { StudentID: `${studentId}`, Username: `${studentUsername}`, Password: `${studentPassword}` },
+        ])
+        .select()
+
+    if (error) {
+        console.log("Error inserting student login: " + error.message)
+    } else {
+        return data;
     }
 }
