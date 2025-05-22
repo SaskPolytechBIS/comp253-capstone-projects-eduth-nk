@@ -7,7 +7,7 @@ import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
-import { getStudentsFromClass, getTeacherClasses } from './api/route';
+import { getStudentsFromClass, getTeacherClasses, createStudent} from './api/route';
 import {PostgrestError} from "@supabase/supabase-js";
 import Table from 'react-bootstrap/Table';
 import { LegendModal, ClassModal,StudentModal} from '@/lib/Modals';
@@ -220,6 +220,8 @@ export default function TeacherDashboard() {
                             classId={classId}
                             setClassId={setClassId}
                             classes={classes}
+                            setStudentClass={setStudentClass}
+                            studentClass={studentClass}
                         />
                     </div>
                </div>
