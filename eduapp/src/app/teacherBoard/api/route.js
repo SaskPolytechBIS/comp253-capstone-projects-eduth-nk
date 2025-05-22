@@ -58,3 +58,7 @@ async function createStudentLogin(studentId, studentUsername, studentPassword){
         return data;
     }
 }
+
+export async function getAllTeachers() {
+    
+}
