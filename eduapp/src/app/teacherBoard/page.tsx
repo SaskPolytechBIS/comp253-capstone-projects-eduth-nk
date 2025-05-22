@@ -30,7 +30,7 @@ export default function TeacherDashboard() {
     const [studentName, setStudentName] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
-
+    const [studentClass, setStudentClass] = useState("");
 
     //show pop up for legend
     const [showPopup, setShowPopup] = useState(false);
@@ -133,17 +133,12 @@ export default function TeacherDashboard() {
     };
 
     const handleStudentSubmit = () => {
-        if (!classId) {
-            alert("Please select a class.");
-            return;
-        }
-
-        // Reset form
-        setStudentName('');
-        setStudentUsername('');
-        setStudentPassword('');
-        setClassId('');
+        console.log("Student:", studentName, "Username:", studentUsername, "Password:", studentPassword, "Class", studentClass);
+        setStudentName("");
+        setStudentUsername("");
         setShowStudentModal(false);
+        createStudent(studentName, studentClass, studentUsername, studentPassword).then(value => {console.log(value)})
+
     };
 
     // Handle logout

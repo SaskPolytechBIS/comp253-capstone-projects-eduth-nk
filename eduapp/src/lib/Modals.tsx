@@ -117,6 +117,7 @@ export const StudentModal = ({
 }) => {
     if (!isOpen) return null;
 
+    let studentClass;
     return (
         <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm z-50">
             <div className="bg-white p-6 rounded shadow-lg w-96">
@@ -146,15 +147,11 @@ export const StudentModal = ({
 
                 <div className="mb-4">
                     <label className="block text-sm font-medium mb-1">Class</label>
-                    <select
-                        value={classId}
-                        onChange={(e) => setClassId(e.target.value)}
-                        className="w-full border rounded px-3 py-2"
-                    >
-                        <option value="">Select a class</option>
-                        {classes.map((cls) => (
-                            <option key={cls.ClassID} value={cls.ClassID}>
-                                {cls.ClassName}
+                    <select className="w-full border rounded px-3 py-2 space-x-2 line-height:1.5" value={studentClass} onChange={(e) => setStudentClass(e.target.value)}>
+                        <option value="">Select a class!</option>
+                        {classes.map((classes) => (
+                            <option key={classes.ClassID} value={classes.ClassID}>
+                                {classes.ClassName}
                             </option>
                         ))}
                     </select>
