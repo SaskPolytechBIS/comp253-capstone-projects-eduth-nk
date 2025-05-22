@@ -101,6 +101,8 @@ export const StudentModal = ({
                                  classId,
                                  setClassId,
                                  classes,
+                                 studentClass,
+                                 setStudentClass
                              }: {
     isOpen: boolean;
     onClose: () => void;
@@ -114,10 +116,11 @@ export const StudentModal = ({
     classId: string;
     setClassId: (value: string) => void;
     classes: { ClassID: string; ClassName: string }[];
+    studentClass: string;
+    setStudentClass: (value: string) => void;
 }) => {
     if (!isOpen) return null;
 
-    let studentClass;
     return (
         <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm z-50">
             <div className="bg-white p-6 rounded shadow-lg w-96">
