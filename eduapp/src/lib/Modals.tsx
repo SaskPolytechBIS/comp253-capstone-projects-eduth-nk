@@ -113,7 +113,7 @@ export const StudentModal = ({
     setStudentPassword: (value: string) => void;
     classId: string;
     setClassId: (value: string) => void;
-    classes: { id: string; name: string }[];
+    classes: { ClassID: string; ClassName: string }[];
 }) => {
     if (!isOpen) return null;
 
@@ -153,8 +153,8 @@ export const StudentModal = ({
                     >
                         <option value="">Select a class</option>
                         {classes.map((cls) => (
-                            <option key={cls.id} value={cls.id}>
-                                {cls.name}
+                            <option key={cls.ClassID} value={cls.ClassID}>
+                                {cls.ClassName}
                             </option>
                         ))}
                     </select>
