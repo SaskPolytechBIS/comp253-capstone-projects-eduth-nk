@@ -7,10 +7,10 @@ import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
-import { getStudentsFromClass, getTeacherClasses, createStudent } from './api/route';
+import { getStudentsFromClass, getTeacherClasses } from './api/route';
 import {PostgrestError} from "@supabase/supabase-js";
 import Table from 'react-bootstrap/Table';
-import { LegendModal} from '@/lib/Modals';
+import { LegendModal, ClassModal,StudentModal} from '@/lib/Modals';
 
 
 
@@ -125,10 +125,11 @@ export default function TeacherDashboard() {
     }
 
     const handleClassSubmit = () => {
-        console.log("Class:", className, "Teacher:", teacherName);
+        console.log("Class:", className, "TeacherId:", teacherId);
         setClassName("");
         setTeacherName("");
         setShowClassModal(false);
+
     };
 
     const handleStudentSubmit = () => {
@@ -139,6 +140,7 @@ export default function TeacherDashboard() {
         createStudent(studentName, studentClass, studentUsername, studentPassword).then(value => {console.log(value)})
 
     };
+
     // Handle logout
     const handleLogout = () => {
         Cookies.remove("teacherId");
@@ -188,14 +190,38 @@ export default function TeacherDashboard() {
                    <button onClick={handleNewAssignmentClick} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
                        + New Assignment
                    </button>
+                    <div>
+                        <button onClick={handleNewClass} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
+                            Create Class
+                        </button>
+                        <ClassModal
+                            isOpen={showClassModal}
+                            onClose={() => setShowClassModal(false)}
+                            onSubmit={handleClassSubmit}
+                            className={className}
+                            setClassName={setClassName}
+                        />
+                    </div>
+                    <div>
+                       <button onClick={handleNewStudent} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
+                           Create Student
+                       </button>
 
-                   <button onClick={handleNewClass} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                       Create Class
-                   </button>
-
-                   <button onClick={handleNewStudent} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                       Create Student
-                   </button>
+                        <StudentModal
+                            isOpen={showStudentModal}
+                            onClose={() => setShowStudentModal(false)}
+                            onSubmit={handleStudentSubmit}
+                            studentName={studentName}
+                            setStudentName={setStudentName}
+                            studentUsername={studentUsername}
+                            setStudentUsername={setStudentUsername}
+                            studentPassword={studentPassword}
+                            setStudentPassword={setStudentPassword}
+                            classId={classId}
+                            setClassId={setClassId}
+                            classes={classes}
+                        />
+                    </div>
                </div>
 
                 <div className="flex items-center gap-4">
@@ -588,6 +614,7 @@ export default function TeacherDashboard() {
                 </div>
 
             </div>
+
             {/* Modal Component */}
             <ClientEditorModal
                 isOpen={isModalOpen}
@@ -595,82 +622,6 @@ export default function TeacherDashboard() {
                 onSave={handleModalSave}
                 initialContent={assignmentContent}
             />
-
-            {/* Modal for Class */}
-            {showClassModal && (
-                <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
-                    <div className="bg-white p-6 text-black rounded shadow-lg w-96">
-                        <h2 className="text-xl font-bold mb-4">Create Class</h2>
-                        <input
-                            type="text"
-                            placeholder="Enter class name"
-                            value={className}
-                            onChange={(e) => setClassName(e.target.value)}
-                            className="w-full p-2 border rounded mb-4"
-                        />
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium mb-1">Teacher</label>
-                            <select className="w-full border rounded px-3 py-2">
-                                <option>Taylor</option>
-                                <option>Jordan</option>
-                            </select>
-                        </div>
-                        <div className="flex justify-end space-x-2">
-                            <button onClick={() => setShowClassModal(false)} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-                            <button onClick={handleClassSubmit} className="px-4 py-2 bg-violet-700 text-white rounded">Create</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Modal for Student */}
-            {showStudentModal && (
-                <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
-                    <div className="bg-white p-6 rounded shadow-lg w-96">
-                        <h2 className="text-xl font-bold mb-4">Create Student</h2>
-
-                        <input
-                            type="text"
-                            placeholder="Enter student name"
-                            value={studentName}
-                            onChange={(e) => setStudentName(e.target.value)}
-                            className="w-full p-2 border rounded mb-4"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Create student username"
-                            value={studentUsername}
-                            onChange={(e) => setStudentUsername(e.target.value)}
-                            className="w-full p-2 border rounded mb-4"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Create student password"
-                            value={studentPassword}
-                            onChange={(e) => setStudentPassword(e.target.value)}
-                            className="w-full p-2 border rounded mb-4"
-                        />
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium mb-1">Class</label>
-                            <select className="w-full border rounded px-3 py-2 space-x-2 line-height:1.5" value={studentClass} onChange={(e) => setStudentClass(e.target.value)}>
-                                <option value="">Select a class!</option>
-                                {classes.map((classes) => (
-                                    <option key={classes.ClassID} value={classes.ClassID}>
-                                        {classes.ClassName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <br/>
-                        <br/>
-                        <div className="flex justify-end space-x-2">
-                            <button onClick={() => setShowStudentModal(false)} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-                            <button onClick={handleStudentSubmit} className="px-4 py-2 bg-violet-700 text-white rounded">Create</button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
 
     );
