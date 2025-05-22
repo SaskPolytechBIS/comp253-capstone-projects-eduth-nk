@@ -7,7 +7,7 @@ import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
-import { getStudentsFromClass, getTeacherClasses } from './api/route';
+import { getStudentsFromClass, getTeacherClasses, createStudent } from './api/route';
 import {PostgrestError} from "@supabase/supabase-js";
 import Table from 'react-bootstrap/Table';
 import { LegendModal} from '@/lib/Modals';
@@ -30,6 +30,7 @@ export default function TeacherDashboard() {
     const [studentName, setStudentName] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
+    const [studentClass, setStudentClass] = useState("");
 
     //show pop up for legend
     const [showPopup, setShowPopup] = useState(false);
@@ -131,10 +132,12 @@ export default function TeacherDashboard() {
     };
 
     const handleStudentSubmit = () => {
-        console.log("Student:", studentName, "Username:", studentUsername);
+        console.log("Student:", studentName, "Username:", studentUsername, "Password:", studentPassword, "Class", studentClass);
         setStudentName("");
         setStudentUsername("");
         setShowStudentModal(false);
+        createStudent(studentName, studentClass, studentUsername, studentPassword).then(value => {console.log(value)})
+
     };
     // Handle logout
     const handleLogout = () => {
@@ -649,11 +652,13 @@ export default function TeacherDashboard() {
                         />
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Class</label>
-                            <select className="w-full border rounded px-3 py-2 space-x-2 line-height:1.5">
-                                <option>HilsenDager6/7</option>
-                                <option>Math</option>
-                                <option>IT</option>
-                                <option>ACC</option>
+                            <select className="w-full border rounded px-3 py-2 space-x-2 line-height:1.5" value={studentClass} onChange={(e) => setStudentClass(e.target.value)}>
+                                <option value="">Select a class!</option>
+                                {classes.map((classes) => (
+                                    <option key={classes.ClassID} value={classes.ClassID}>
+                                        {classes.ClassName}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
