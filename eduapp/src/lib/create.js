@@ -33,6 +33,47 @@ async function createStudentLogin(studentId, studentUsername, studentPassword){
     }
 }
 
-export async function createClass() {
-    
+export async function createClass(className, teacherId) {
+    const { data, error } = await supabase
+        .from('Class')
+        .insert([
+            { ClassName: `${className}`, TeacherID: `${teacherId}` },
+        ])
+        .select()
+
+    if (error){
+        console.log("Error creating class: " + error.message)
+    } else {
+        return data;
+    }
+}
+
+export async function createNavMapTemplate(JSON) {
+
+    const { data, error } = await supabase
+        .from('Template')
+        .insert([
+            { JSON: `${JSON}`},
+        ])
+        .select()
+
+    if (error) {
+        console.log("Error creating template: " + error.message)
+    }
+
+}
+
+export async function createAssignment(studentId, teacherId, templateId, assignmentFolder) {
+
+    const { data, error } = await supabase
+        .from('Assignment')
+        .insert([
+            { StudentID: `${studentId}`, TeacherID: `${teacherId}`, TemplateID: `${templateId}`, AssignmentFolder: `${assignmentFolder}` },
+        ])
+        .select()
+
+    if (error) {
+        console.log("Error creating assignment: " + error.message)
+    }
+
 }
