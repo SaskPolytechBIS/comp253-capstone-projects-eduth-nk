@@ -52,3 +52,30 @@ export async function getStudentNames (studentId) {
         return Student
     }
 }
+
+export async function getAllStudent () {
+    let { data: data, error } = await supabase
+        .from('Student')
+        .select(`StudentID, StudentName`)
+
+    if (error) {
+        console.error("Error fetching students:", error);
+        return [];
+    }
+
+    return data || [];
+}
+
+export async function getAllClass () {
+    let { data: data, error } = await supabase
+        .from('Class')
+        .select(`ClassID, ClassName`)
+
+    if (error) {
+        console.error("Error fetching students:", error);
+        return [];
+    }
+
+    return data || [];
+}
+
