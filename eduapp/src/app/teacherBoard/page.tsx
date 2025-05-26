@@ -134,8 +134,6 @@ export default function TeacherDashboard() {
             loadTeachers();
     }, []);
 
-
-
     //redirects to login if no teacher cookie
     if (teacherId == undefined) {
         router.push('/login')
