@@ -30,7 +30,7 @@ export async function getAllTeachers() {
 
     let { data: Teacher, error } = await supabase
         .from('Teacher')
-        .select('TeacherID', 'TeacherName')
+        .select('TeacherID,TeacherName')
 
     if (error) {
         console.log("Error retrieving teachers: " + error.message)
