@@ -7,8 +7,8 @@ import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
-import { getStudentsFromClass, getTeacherClasses, createStudent} from './api/route';
-import {PostgrestError} from "@supabase/supabase-js";
+import { createStudent, createClass } from '@/lib/create';
+import { getStudentsFromClass, getTeacherClasses, getAllTeachers} from "@/lib/select";
 import Table from 'react-bootstrap/Table';
 import { LegendModal, ClassModal,StudentModal} from '@/lib/Modals';
 
