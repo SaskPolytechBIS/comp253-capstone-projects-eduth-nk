@@ -1,5 +1,6 @@
 import React from 'react';
 
+
 //Legend items
 type LegendItem = {
     code: string;
@@ -42,14 +43,20 @@ export const ClassModal = ({
                                isOpen,
                                onClose,
                                onSubmit,
+                               teacherId,
+                               setTeacherId,
                                className,
-                               setClassName
+                               setClassName,
+                               teachers
                            }: {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: () => void;
     className: string;
     setClassName: (value: string) => void;
+    teacherId: string;
+    setTeacherId: (value: string) => void;
+    teachers: {TeacherID: any, TeacherName: any}[];
 }) => {
     if (!isOpen) return null;
 
@@ -68,9 +75,12 @@ export const ClassModal = ({
 
                 <div className="mb-4">
                     <label className="block text-sm font-medium mb-1">Teacher</label>
-                    <select className="w-full border rounded px-3 py-2">
-                        <option>Taylor</option>
-                        <option>Jordan</option>
+                    <select className="w-full border rounded px-3 py-2" value={teacherId} onChange={(e) => setTeacherId(e.target.value)}>
+                        {teachers.map((teachers) => (
+                            <option key={teachers.TeacherID} value={teachers.TeacherID}>
+                                {teachers.TeacherName}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
@@ -98,8 +108,6 @@ export const StudentModal = ({
                                  setStudentUsername,
                                  studentPassword,
                                  setStudentPassword,
-                                 classId,
-                                 setClassId,
                                  classes,
                                  studentClass,
                                  setStudentClass
@@ -113,8 +121,6 @@ export const StudentModal = ({
     setStudentUsername: (value: string) => void;
     studentPassword: string;
     setStudentPassword: (value: string) => void;
-    classId: string;
-    setClassId: (value: string) => void;
     classes: { ClassID: string; ClassName: string }[];
     studentClass: string;
     setStudentClass: (value: string) => void;

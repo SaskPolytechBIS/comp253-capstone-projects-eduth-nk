@@ -26,11 +26,11 @@ export default function TeacherDashboard() {
     const [showClassModal, setShowClassModal] = useState(false);
     const [showStudentModal, setShowStudentModal] = useState(false);
     const [className, setClassName] = useState("");
-    const [teacherName, setTeacherName] = useState("");
     const [studentName, setStudentName] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
     const [studentClass, setStudentClass] = useState("");
+    const [classTeacherId, setClassTeacherId] = useState("");
 
     //show pop up for legend
     const [showPopup, setShowPopup] = useState(false);
@@ -47,10 +47,11 @@ export default function TeacherDashboard() {
         { code: "C", description: "Used when knowledge has been demonstrated individually, seen through a conversation" },
     ];
 
-    //class population
+    //populations
     const [classId, setClassId] = useState("");
     const [classes, setClasses] = useState([{ClassID: "0", ClassName: "Error"}]);
     const [students, setStudents] = useState([{StudentID: "0", StudentName: "Error"}]);
+    const [teachers, setTeachers] = useState([{TeacherID: "0", TeacherName: "Error"}]);
 
     //populates the dropdown menu. WITHOUT THIS IT WILL BE STATIC.
     useEffect(() => {
@@ -84,7 +85,7 @@ export default function TeacherDashboard() {
 
         let isCurrent = true;
 
-        const getStudents = async () => {
+        const fetchStudents = async () => {
             try {
                 const studentsResult = await getStudentsFromClass(classId);
                 if (!isCurrent) return;
@@ -96,23 +97,42 @@ export default function TeacherDashboard() {
 
                 if (studentsResult.length === 0) {
                     alert("No students applicable.");
+                    console.log("No students.");
                     return;
                 }
 
                 setStudents(studentsResult);
-
             } catch (error) {
                 alert("Unexpected error: " + error);
             }
         };
-        getStudents();
 
-        return () => {
-            isCurrent = false;
-        };
+        fetchStudents();
+
     }, [classId]);
 
+    useEffect(() => {
+        const loadTeachers = async () => {
+            try {
+                const teacherResult = await getAllTeachers();
 
+                if (!Array.isArray(teacherResult)) {
+                    alert("Error with populating teachers: " + JSON.stringify(teacherResult));
+                    return;
+                }
+
+                if (teacherResult.length === 0) {
+                    alert("No teachers.");
+                    return;
+                }
+
+                setTeachers(teacherResult);
+            } catch (error) {
+                alert("Unexpected error: " + error);
+            }
+        };
+            loadTeachers();
+    }, []);
 
     //redirects to login if no teacher cookie
     if (teacherId == undefined) {
@@ -125,11 +145,10 @@ export default function TeacherDashboard() {
     }
 
     const handleClassSubmit = () => {
-        console.log("Class:", className, "TeacherId:", teacherId);
+        console.log("Class:", className, "TeacherId:", classTeacherId);
         setClassName("");
-        setTeacherName("");
         setShowClassModal(false);
-
+        createClass(className, classTeacherId);
     };
 
     const handleStudentSubmit = () => {
@@ -137,8 +156,7 @@ export default function TeacherDashboard() {
         setStudentName("");
         setStudentUsername("");
         setShowStudentModal(false);
-        createStudent(studentName, studentClass, studentUsername, studentPassword).then(value => {console.log(value)})
-
+        createStudent(studentName, studentClass, studentUsername, studentPassword);
     };
 
     // Handle logout
@@ -200,6 +218,9 @@ export default function TeacherDashboard() {
                             onSubmit={handleClassSubmit}
                             className={className}
                             setClassName={setClassName}
+                            teachers={teachers}
+                            teacherId={classTeacherId}
+                            setTeacherId={setClassTeacherId}
                         />
                     </div>
                     <div>
@@ -217,8 +238,6 @@ export default function TeacherDashboard() {
                             setStudentUsername={setStudentUsername}
                             studentPassword={studentPassword}
                             setStudentPassword={setStudentPassword}
-                            classId={classId}
-                            setClassId={setClassId}
                             classes={classes}
                             setStudentClass={setStudentClass}
                             studentClass={studentClass}
