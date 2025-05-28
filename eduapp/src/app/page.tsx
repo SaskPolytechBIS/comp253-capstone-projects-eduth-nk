@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-      <div className="bg-amber-50 text-black min-h-screen flex items-center justify-center p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <div className="bg-[#FFF9F9] text-black min-h-screen flex items-center justify-center p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
         <main className="flex flex-col gap-8 items-center max-w-3xl text-center">
           <Image
               className="invert-[.05] brightness-[1.1]"

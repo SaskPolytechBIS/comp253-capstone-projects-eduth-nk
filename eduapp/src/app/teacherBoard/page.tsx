@@ -11,7 +11,7 @@ import { createStudent, createClass } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers} from "@/lib/select";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
-import { LegendModal, ClassModal,StudentModal,EditStudentModal} from '@/lib/Modals';
+import { LegendModal, ClassModal,StudentModal,EditStudentModal,ClassModalEdit} from '@/lib/Modals';
 
 
 
@@ -168,7 +168,7 @@ export default function TeacherDashboard() {
     //handle new student and add class & edit
     const handleNewClass = () => setShowClassModal(true);
     const handleNewStudent = () => setShowStudentModal(true);
-    const handleEdit = () => {
+    const handleStudentEdit = () => {
         setIsEditOpen(true);
     };
 
@@ -329,33 +329,39 @@ export default function TeacherDashboard() {
                             studentClass={studentClass}
                         />
                     </div>
-                       <button onClick={handleEdit} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                           Edit
+
+                   <div>
+                       <button onClick={handleStudentEdit} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
+                           Edit Student
                        </button>
 
-                   <EditStudentModal
-                       isOpen={isEditOpen}
-                       onClose={() => setIsEditOpen(false)}
-                       onSubmit={handleEdit}
-                       students={students.map((s) => ({
-                           id: s.StudentID,
-                           name: s.StudentName,
+                       <EditStudentModal
+                           isOpen={isEditOpen}
+                           onClose={() => setIsEditOpen(false)}
+                           onSubmit={handleStudentEdit} //fix on submit code here
+                           students={students.map((s) => ({
+                               id: s.StudentID,
+                               name: s.StudentName,
 
-                       }))}
-                       selectedStudentId={selectedStudentId}
-                       setSelectedStudentId={setSelectedStudentId}
-                       studentName={studentName}
-                       setStudentName={setStudentName}
-                       studentUsername={studentUsername}
-                       setStudentUsername={setStudentUsername}
-                       studentPassword={studentPassword}
-                       setStudentPassword={setStudentPassword}
-                       studentClass={studentClass}
-                       setStudentClass={setStudentClass}
-                       classes={classes}
-                   />
+                           }))}
+                           selectedStudentId={selectedStudentId}
+                           setSelectedStudentId={setSelectedStudentId}
+                           studentName={studentName}
+                           setStudentName={setStudentName}
+                           studentUsername={studentUsername}
+                           setStudentUsername={setStudentUsername}
+                           studentPassword={studentPassword}
+                           setStudentPassword={setStudentPassword}
+                           studentClass={studentClass}
+                           setStudentClass={setStudentClass}
+                           classes={classes}
+                       />
+                   </div>
+
                    <div>
-
+                       <button className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
+                           Edit Class
+                       </button>
                    </div>
                </div>
 

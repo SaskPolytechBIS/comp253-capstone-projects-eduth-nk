@@ -311,3 +311,64 @@ export const EditStudentModal = ({
     );
 };
 
+export const ClassModalEdit = ({
+                                   isOpen,
+                                   onClose,
+                                   onSubmit,
+                                   teacherId,
+                                   setTeacherId,
+                                   className,
+                                   setClassName,
+                                   teachers,
+                               }: {
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: () => void;
+    className: string;
+    setClassName: (value: string) => void;
+    teacherId: string;
+    setTeacherId: (value: string) => void;
+    teachers: { TeacherID: any; TeacherName: any }[];
+}) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm z-50">
+            <div className="bg-white p-6 rounded shadow-lg w-96">
+                <h2 className="text-xl font-bold mb-4">Edit Class</h2>
+
+                <input
+                    type="text"
+                    placeholder="Enter class name"
+                    value={className}
+                    onChange={(e) => setClassName(e.target.value)}
+                    className="w-full p-2 border rounded mb-4"
+                />
+
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Teacher</label>
+                    <select
+                        className="w-full border rounded px-3 py-2"
+                        value={teacherId}
+                        onChange={(e) => setTeacherId(e.target.value)}
+                    >
+                        {teachers.map((teacher) => (
+                            <option key={teacher.TeacherID} value={teacher.TeacherID}>
+                                {teacher.TeacherName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="flex justify-end space-x-2">
+                    <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
+                        Cancel
+                    </button>
+                    <button onClick={onSubmit} className="px-4 py-2 bg-blue-600 text-white rounded">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
