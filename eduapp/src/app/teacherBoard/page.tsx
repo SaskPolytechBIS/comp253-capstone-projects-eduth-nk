@@ -12,6 +12,7 @@ import { getStudentsFromClass, getTeacherClasses, getAllTeachers} from "@/lib/se
 import Table from 'react-bootstrap/Table';
 import { LegendModal, ClassModal,StudentModal} from '@/lib/Modals';
 import {supabase} from "@/lib/supabase";
+import { LegendModal, ClassModal,StudentModal,EditModal} from '@/lib/Modals';
 
 
 
@@ -35,6 +36,11 @@ export default function TeacherDashboard() {
 
     //show pop up for legend
     const [showPopup, setShowPopup] = useState(false);
+
+    //handle edit
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [selectedStudentId, setSelectedStudentId] = useState('');
+
 
     // Show legendItems
     const legendItems = [
@@ -160,9 +166,12 @@ export default function TeacherDashboard() {
         // TODO: save to DB
     };
 
-    //handle new student and add new class
+    //handle new student and add class & edit
     const handleNewClass = () => setShowClassModal(true);
     const handleNewStudent = () => setShowStudentModal(true);
+    const handleEdit = () => {
+        setIsEditOpen(true);
+    };
 
     //handle files upload
     const uploadEvidence = ()=>{
@@ -321,6 +330,34 @@ export default function TeacherDashboard() {
                             studentClass={studentClass}
                         />
                     </div>
+                       <button onClick={handleEdit} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
+                           Edit
+                       </button>
+
+                   <EditModal
+                       isOpen={isEditOpen}
+                       onClose={() => setIsEditOpen(false)}
+                       onSubmit={handleEdit}
+                       students={students.map((s) => ({
+                           id: s.StudentID,
+                           name: s.StudentName,
+
+                       }))}
+                       selectedStudentId={selectedStudentId}
+                       setSelectedStudentId={setSelectedStudentId}
+                       studentName={studentName}
+                       setStudentName={setStudentName}
+                       studentUsername={studentUsername}
+                       setStudentUsername={setStudentUsername}
+                       studentPassword={studentPassword}
+                       setStudentPassword={setStudentPassword}
+                       studentClass={studentClass}
+                       setStudentClass={setStudentClass}
+                       classes={classes}
+                   />
+                   <div>
+
+                   </div>
                </div>
 
                 <div className="flex items-center gap-4">
