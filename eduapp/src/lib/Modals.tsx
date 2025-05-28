@@ -185,7 +185,7 @@ type Student = {
     classId: string;
 };
 
-export const EditModal = ({
+export const EditStudentModal = ({
                               isOpen,
                               onClose,
                               onSubmit,

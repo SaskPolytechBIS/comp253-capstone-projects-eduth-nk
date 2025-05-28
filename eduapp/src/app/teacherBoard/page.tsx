@@ -11,7 +11,7 @@ import { createStudent, createClass } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers} from "@/lib/select";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
-import { LegendModal, ClassModal,StudentModal,EditModal} from '@/lib/Modals';
+import { LegendModal, ClassModal,StudentModal,EditStudentModal} from '@/lib/Modals';
 
 
 
@@ -333,7 +333,7 @@ export default function TeacherDashboard() {
                            Edit
                        </button>
 
-                   <EditModal
+                   <EditStudentModal
                        isOpen={isEditOpen}
                        onClose={() => setIsEditOpen(false)}
                        onSubmit={handleEdit}
