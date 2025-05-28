@@ -11,7 +11,11 @@ import { createStudent, createClass } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers} from "@/lib/select";
 import Table from 'react-bootstrap/Table';
 import { LegendModal, ClassModal,StudentModal} from '@/lib/Modals';
+
 import { supabase } from "@/lib/supabase";
+
+
+
 
 
 export default function TeacherDashboard() {
@@ -134,6 +138,7 @@ export default function TeacherDashboard() {
             loadTeachers();
     }, []);
 
+
     //read the certain class
     useEffect(() => {
         if (!classId) return;
@@ -159,6 +164,7 @@ export default function TeacherDashboard() {
 
         fetchTemplate();
     }, [classId]);
+
 
     //redirects to login if no teacher cookie
     if (teacherId == undefined) {
@@ -226,6 +232,7 @@ export default function TeacherDashboard() {
         }
     };
 
+
     //UpdateMap
     const handleUpdateMap = async () => {
         const jsonToStore = {
@@ -261,6 +268,7 @@ export default function TeacherDashboard() {
             console.log("JSON saved successfully.");
         }
     };
+
 
 
     return (
