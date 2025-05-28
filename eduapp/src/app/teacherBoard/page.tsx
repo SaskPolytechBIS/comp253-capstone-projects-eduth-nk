@@ -243,21 +243,22 @@ export default function TeacherDashboard() {
 
             }
         };
+        //log it before send to supabase
+        console.log("Saving JSON:", JSON.stringify(jsonToStore, null, 2));
 
-        const { data, error } = await supabase
-            .from("template")
-            .upsert([
-                {
-                    class_id: classId,
-                    unit_name: "Unit 1",
-                    json_data: jsonToStore
-                }
-            ]);
+        if (!assignmentContent) {
+            console.error("Assignment content is empty!");
+            return;
+        }
+
+        const { error } = await supabase.from("Template").insert([
+            { JSON: jsonToStore }
+        ]);
 
         if (error) {
-            console.error("Failed to save JSON:", error);
+            console.error("Failed to save JSON:", error.message);
         } else {
-            console.log("JSON saved successfully");
+            console.log("JSON saved successfully.");
         }
     };
 
@@ -692,6 +693,7 @@ export default function TeacherDashboard() {
                             {/*<button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">*/}
                             {/*    Update Map*/}
                             {/*</button>*/}
+                            {/*update the button*/}
                             <button onClick={handleUpdateMap} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                                 Update Map
                             </button>
