@@ -11,6 +11,7 @@ import { createStudent, createClass } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers} from "@/lib/select";
 import Table from 'react-bootstrap/Table';
 import { LegendModal, ClassModal,StudentModal} from '@/lib/Modals';
+import {supabase} from "@/lib/supabase";
 
 
 
@@ -57,18 +58,11 @@ export default function TeacherDashboard() {
     useEffect(() => {
         const loadClasses = async () => {
             try {
-                const classResult = await getTeacherClasses(teacherId);
-
+                const classResult = await getTeacherClasses(teacherId!);
                 if (!Array.isArray(classResult)) {
                     alert("Error with populating classes: " + JSON.stringify(classResult));
                     return;
                 }
-
-                if (classResult.length === 0) {
-                    alert("No classes applicable.");
-                    return;
-                }
-
                 setClasses(classResult);
             } catch (error) {
                 alert("Unexpected error: " + error);
@@ -78,7 +72,7 @@ export default function TeacherDashboard() {
         if (teacherId) {
             loadClasses();
         }
-    });
+    }, [teacherId]);
 
     useEffect(() => {
         if (!classId) return;
@@ -115,23 +109,12 @@ export default function TeacherDashboard() {
         const loadTeachers = async () => {
             try {
                 const teacherResult = await getAllTeachers();
-
-                if (!Array.isArray(teacherResult)) {
-                    alert("Error with populating teachers: " + JSON.stringify(teacherResult));
-                    return;
-                }
-
-                if (teacherResult.length === 0) {
-                    alert("No teachers.");
-                    return;
-                }
-
-                setTeachers(teacherResult);
+                setTeachers(teacherResult ?? []);
             } catch (error) {
                 alert("Unexpected error: " + error);
             }
         };
-            loadTeachers();
+        loadTeachers();
     }, []);
 
     //redirects to login if no teacher cookie
@@ -186,17 +169,112 @@ export default function TeacherDashboard() {
         console.log("Evidence Upload");
 
     }
+
+    type ColumnType = "Basic" | "Intermediate" | "Advanced";
+    // Attach files
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [selectedCell, setSelectedCell] = useState<{ row: number; column: ColumnType } | null>(null);
+    const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, File[]>>>({});
 
-    const handleButtonClick = () => {
-        fileInputRef.current?.click();
-    };
+    // Dummy data
+    const dummyData = [
+        {
+            content: `The project's main goal is to supplement the Building Thinking Classroom framework.\nWe will create a dual-interface system that fosters collaborative learning...`,
+        },
+        {
+            content: `This project features a database designed to store files uploaded by teachers and students,\nincluding media, voice messages, and collaborative notes...`,
+        },
+        {
+            content: `Considerations should be made towards the functionality of the application for both students and teachers...`,
+        },
+    ];
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            console.log('Selected file:', file.name);
+    // Evaluation Cell Component
+    const EvaluationCell = React.memo(({
+                                row,
+                                column,
+                                attachedFiles,
+                                setAttachedFiles,
+                            }: {
+        row: number;
+        column: ColumnType;
+        attachedFiles: Record<number, Record<ColumnType, File[]>>;
+        setAttachedFiles: React.Dispatch<
+            React.SetStateAction<Record<number, Record<ColumnType, File[]>>>
+        >;
+    }) => {
+        console.log("EvaluationCell render")
+        const fileInputRef = useRef<HTMLInputElement>(null);
 
+        const handleAttachClick = () => {
+            console.log("go to handleAttachClick")
+            fileInputRef.current?.click();
+        };
+
+        const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            console.log("go to handleFileChange")
+            const file = e.target.files?.[0];
+            if (file) {
+                setAttachedFiles((prev) => ({
+                    ...prev,
+                    [row]: {
+                        ...prev[row],
+                        [column]: [...(prev[row]?.[column] || []), file],
+                    },
+                }));
+            }
+        };
+
+        return (
+            <td className="border p-3 text-center text-xs align-top">
+                <div className="mb-2">
+                    <select className="w-full border rounded px-2 py-1">
+                        <option></option>
+                        {legendItems.map((item, idx) => (
+                            <option key={idx}>{item.code}</option>
+                        ))}
+                    </select>
+                </div>
+                <textarea className="w-full border rounded px-2 py-1 mb-2 text-xs" placeholder="Note..." />
+                <div>
+                    <button
+                        onClick={() => handleAttachClick()}
+                        className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 text-xs"
+                    >
+                        Attach
+                    </button>
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} hidden />
+                    {attachedFiles[row]?.[column]?.length > 0 && (
+                        <ul className="text-xs mt-1 list-disc list-inside">
+                            {attachedFiles[row][column].map((f, idx) => (
+                                <li key={idx}>{f.name}</li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            </td>
+        );
+    });
+
+    // Save image to DB
+    const uploadFiles = async () => {
+        for (const row in attachedFiles) {
+            const columns = attachedFiles[parseInt(row)];
+            for (const column in columns) {
+                const files = columns[column as ColumnType];
+                for (const file of files) {
+                    const filePath = `teacher/${Date.now()}-${file.name}`;
+                    const { error } = await supabase.storage
+                        .from('developing')
+                        .upload(filePath, file);
+
+                    if (error) {
+                        console.error(`Upload failed: ${file.name}`, error.message);
+                    } else {
+                        console.log(`Uploaded: ${file.name} as ${filePath}`);
+                    }
+                }
+            }
         }
     };
 
@@ -344,290 +422,35 @@ export default function TeacherDashboard() {
                             </tr>
                             </thead>
                             <tbody>
-                            <tr className="hover:bg-gray-50">
-                                <td className="border p-3 text-sm">
-                                    The project's main goal is to supplement the Building Thinking Classroom framework.
-                                    We will create a dual-interface system that fosters collaborative learning by enabling teachers
-                                    and students to have a conversation about their assessments and allow the parents to view the progress
-                                    of their child through the application at home.
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
+                                {dummyData.map((row, index) => (
+                                    <tr key={index} className="hover:bg-gray-50">
+                                        <td className="border p-3 whitespace-pre-line text-sm">{row.content}</td>
+                                        <EvaluationCell
+                                            row={index}
+                                            column="Basic"
+                                            attachedFiles={attachedFiles}
+                                            setAttachedFiles={setAttachedFiles}
                                         />
-                                    </div>
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
+                                        <EvaluationCell
+                                            row={index}
+                                            column="Intermediate"
+                                            attachedFiles={attachedFiles}
+                                            setAttachedFiles={setAttachedFiles}
                                         />
-                                    </div>
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
+                                        <EvaluationCell
+                                            row={index}
+                                            column="Advanced"
+                                            attachedFiles={attachedFiles}
+                                            setAttachedFiles={setAttachedFiles}
                                         />
-                                    </div>
-                                </td>
-
-                            </tr>
-                            <tr className="hover:bg-gray-50">
-                                <td className="border p-3 text-sm">
-                                    This project features a database designed to store files uploaded by teachers and students,
-                                    including media, voice messages, and collaborative notes. It will also include log-in functionality
-                                    and be hosted through a web application.
-                                    It will include a database that holds the information for login and the paths to the files for assignments.:
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-
-                            </tr>
-                            <tr className="hover:bg-gray-50">
-                                <td className="border p-3 text-sm">
-                                    Considerations should be made towards the functionality of the application for both students and teachers,
-                                    the ability to keep media applicable, accessible, and implementable for both sides, and the ability to log in regardless of where they are.
-                                    This is the basis of the framework that we have been requested, and any changes should keep this framework the same.
-                                    Questions we can ask ourselves include:
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-
-                                </td>
-                                <td className="border p-3 text-center text-xs ">
-                                    <div className="mb-4 text-black text-sm font-medium">
-                                        <select className="w-full border rounded px-3 py-2">
-                                            <option></option>
-                                            <option>&#10003;.</option>
-                                            <option>&#83;</option>
-                                            <option>&#72;</option>
-                                            <option>&#71;</option>
-                                            <option>&#88;</option>
-                                            <option>&#78;</option>
-                                            <option>&#10003;</option>
-                                            <option>&#111;</option>
-                                            <option>&#99;</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <textarea className="w-full border rounded px-3 py-2"></textarea>
-                                    </div>
-                                    <div>
-                                        <button onClick={handleButtonClick} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Attach Evidence</button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                        />
-                                    </div>
-                                </td>
-                            </tr>
+                                    </tr>
+                                ))}
                             </tbody>
                         </Table>
 
                         <div className="text-right mt-4">
-                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                                    onClick={uploadFiles}>
                                 Update Map
                             </button>
                         </div>
