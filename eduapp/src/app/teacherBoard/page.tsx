@@ -11,7 +11,7 @@ import { createStudent, createClass } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers} from "@/lib/select";
 import Table from 'react-bootstrap/Table';
 import { LegendModal, ClassModal,StudentModal} from '@/lib/Modals';
-
+import { supabase } from "@/lib/supabase";
 
 
 export default function TeacherDashboard() {
@@ -134,6 +134,32 @@ export default function TeacherDashboard() {
             loadTeachers();
     }, []);
 
+    //read the certain class
+    useEffect(() => {
+        if (!classId) return;
+
+        const fetchTemplate = async () => {
+            const { data, error } = await supabase
+                .from("template")
+                .select("json_data")
+                .eq("class_id", classId)
+                .eq("unit_name", "Unit 1")  // 你可以让它动态化
+                .single();
+
+            if (error) {
+                console.error("Failed to fetch JSON:", error);
+                return;
+            }
+
+            if (data && data.json_data) {
+                console.log("Fetched JSON config:", data.json_data);
+                // TODO: setState(data.json_data) or display accordingly
+            }
+        };
+
+        fetchTemplate();
+    }, [classId]);
+
     //redirects to login if no teacher cookie
     if (teacherId == undefined) {
         router.push('/login')
@@ -199,6 +225,42 @@ export default function TeacherDashboard() {
 
         }
     };
+
+    //UpdateMap
+    const handleUpdateMap = async () => {
+        const jsonToStore = {
+            // the stored format
+            content: assignmentContent,//teacher assignment content
+            studentLevels: {
+                studentId1: { individually: "✓", comment: "Well done!" },
+                studentId2: { Mistake: "S", comment: "Work on grammar more" },
+                studentId3: { helped: "H", comment: "Needed help" },
+                studentId4: { group: "G", comment: "Group effort" },
+                studentId5: { incorrectly: "X", comment: "Try again" },
+                studentId6: { notAttempted: "N", comment: "Incomplete" },
+                studentId7: { observation: "O", comment: "Observed" },
+                studentId8: { conversation: "C", comment: "Discussed" },
+
+            }
+        };
+
+        const { data, error } = await supabase
+            .from("template")
+            .upsert([
+                {
+                    class_id: classId,
+                    unit_name: "Unit 1",
+                    json_data: jsonToStore
+                }
+            ]);
+
+        if (error) {
+            console.error("Failed to save JSON:", error);
+        } else {
+            console.log("JSON saved successfully");
+        }
+    };
+
 
     return (
         <div className="flex flex-col min-h-screen ">
@@ -627,7 +689,10 @@ export default function TeacherDashboard() {
                         </Table>
 
                         <div className="text-right mt-4">
-                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                            {/*<button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">*/}
+                            {/*    Update Map*/}
+                            {/*</button>*/}
+                            <button onClick={handleUpdateMap} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                                 Update Map
                             </button>
                         </div>
