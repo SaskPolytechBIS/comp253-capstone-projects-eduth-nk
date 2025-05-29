@@ -311,16 +311,18 @@ export const EditStudentModal = ({
     );
 };
 
-export const ClassModalEdit = ({
-                                   isOpen,
-                                   onClose,
-                                   onSubmit,
-                                   teacherId,
-                                   setTeacherId,
-                                   className,
-                                   setClassName,
-                                   teachers,
-                               }: {
+type Teacher = {
+    TeacherID: string;
+    TeacherName: string;
+};
+
+type Classes = {
+    id: string;
+    name: string;
+    teacherId: string;
+};
+
+type ClassModalEditProps = {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: () => void;
@@ -328,43 +330,99 @@ export const ClassModalEdit = ({
     setClassName: (value: string) => void;
     teacherId: string;
     setTeacherId: (value: string) => void;
-    teachers: { TeacherID: any; TeacherName: any }[];
-}) => {
+    selectedClassId: string;
+    setSelectedClassId: (value: string) => void;
+    classes: Classes[];
+    teachers: Teacher[];
+};
+
+export const ClassModalEdit = ({
+                                   isOpen,
+                                   onClose,
+                                   onSubmit,
+                                   className,
+                                   setClassName,
+                                   teacherId,
+                                   setTeacherId,
+                                   selectedClassId,
+                                   setSelectedClassId,
+                                   classes,
+                                   teachers,
+                               }: ClassModalEditProps) => {
     if (!isOpen) return null;
+
+    const handleClassSelect = (id: string) => {
+        setSelectedClassId(id);
+        const selectedClass = classes.find((cls) => cls.id === id);
+        if (selectedClass) {
+            setClassName(selectedClass.name);
+            setTeacherId(selectedClass.teacherId);
+        } else {
+            setClassName("");
+            setTeacherId("");
+        }
+    };
 
     return (
         <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm z-50">
             <div className="bg-white p-6 rounded shadow-lg w-96">
                 <h2 className="text-xl font-bold mb-4">Edit Class</h2>
 
-                <input
-                    type="text"
-                    placeholder="Enter class name"
-                    value={className}
-                    onChange={(e) => setClassName(e.target.value)}
-                    className="w-full p-2 border rounded mb-4"
-                />
-
+                {/* Class Selector */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">Teacher</label>
+                    <label className="block text-sm font-medium mb-1">Select Class</label>
                     <select
+                        value={selectedClassId}
+                        onChange={(e) => handleClassSelect(e.target.value)}
                         className="w-full border rounded px-3 py-2"
-                        value={teacherId}
-                        onChange={(e) => setTeacherId(e.target.value)}
                     >
-                        {teachers.map((teacher) => (
-                            <option key={teacher.TeacherID} value={teacher.TeacherID}>
-                                {teacher.TeacherName}
+                        <option value="">Choose a class</option>
+                        {classes.map((cls) => (
+                            <option key={cls.id} value={cls.id}>
+                                {cls.name}
                             </option>
                         ))}
                     </select>
                 </div>
 
+                {/* Show only if a class is selected */}
+                {selectedClassId && (
+                    <>
+                        <input
+                            type="text"
+                            placeholder="Enter class name"
+                            value={className}
+                            onChange={(e) => setClassName(e.target.value)}
+                            className="w-full p-2 border rounded mb-4"
+                        />
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-1">Teacher</label>
+                            <select
+                                className="w-full border rounded px-3 py-2"
+                                value={teacherId}
+                                onChange={(e) => setTeacherId(e.target.value)}
+                            >
+                                <option value="">Select a teacher</option>
+                                {teachers.map((teacher) => (
+                                    <option key={teacher.TeacherID} value={teacher.TeacherID}>
+                                        {teacher.TeacherName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </>
+                )}
+
                 <div className="flex justify-end space-x-2">
                     <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
                         Cancel
                     </button>
-                    <button onClick={onSubmit} className="px-4 py-2 bg-blue-600 text-white rounded">
+                    <button
+                        onClick={onSubmit}
+                        className="px-4 py-2 bg-blue-600 text-white rounded"
+                        disabled={!selectedClassId}
+                    >
                         Save Changes
                     </button>
                 </div>
@@ -372,3 +430,4 @@ export const ClassModalEdit = ({
         </div>
     );
 };
+

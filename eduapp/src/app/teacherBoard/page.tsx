@@ -36,10 +36,6 @@ export default function TeacherDashboard() {
     //show pop up for legend
     const [showPopup, setShowPopup] = useState(false);
 
-    //handle edit
-    const [isEditOpen, setIsEditOpen] = useState(false);
-    const [selectedStudentId, setSelectedStudentId] = useState('');
-
 
     // Show legendItems
     const legendItems = [
@@ -165,13 +161,31 @@ export default function TeacherDashboard() {
         // TODO: save to DB
     };
 
+    //handle edit
+    const [isStudentEditOpen, setIsStudentEditOpen] = useState(false);
+    const [isClassEditOpen, setIsClassEditOpen] = useState(false);
+    const [selectedStudentId, setSelectedStudentId] = useState('');
+    const [selectedClassId, setSelectedClassId] = useState('');
+
     //handle new student and add class & edit
     const handleNewClass = () => setShowClassModal(true);
     const handleNewStudent = () => setShowStudentModal(true);
     const handleStudentEdit = () => {
-        setIsEditOpen(true);
+        setIsStudentEditOpen(true);
     };
 
+    const handleStudentEditSubmit = () => {
+        // update logic here
+        setIsStudentEditOpen(false);
+    };
+
+    const handleClassEdit = () => {
+        setIsClassEditOpen(true);
+    };
+    const handleClassEditSubmit = () => {
+        // handle update logic here
+        setIsClassEditOpen(false);
+    };
     //handle files upload
     const uploadEvidence = ()=>{
         console.log("Evidence Upload");
@@ -336,9 +350,9 @@ export default function TeacherDashboard() {
                        </button>
 
                        <EditStudentModal
-                           isOpen={isEditOpen}
-                           onClose={() => setIsEditOpen(false)}
-                           onSubmit={handleStudentEdit} //fix on submit code here
+                           isOpen={isStudentEditOpen}
+                           onClose={() => setIsStudentEditOpen(false)}
+                           onSubmit={handleStudentEditSubmit}
                            students={students.map((s) => ({
                                id: s.StudentID,
                                name: s.StudentName,
@@ -359,9 +373,25 @@ export default function TeacherDashboard() {
                    </div>
 
                    <div>
-                       <button className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
+                       <button onClick={() => setIsClassEditOpen(true)}
+                               className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
+                       >
                            Edit Class
                        </button>
+
+                       <ClassModalEdit
+                           isOpen={isClassEditOpen}
+                           onClose={() => setIsClassEditOpen(false)}
+                           onSubmit={handleClassEditSubmit}
+                           teachers={teachers}
+                           className={className}
+                           setClassName={setClassName}
+                           teacherId={classTeacherId}
+                           setTeacherId={setClassTeacherId}
+                           selectedClassId={selectedClassId}
+                           setSelectedClassId={setSelectedClassId}
+                           classes={classes}
+                       />
                    </div>
                </div>
 
