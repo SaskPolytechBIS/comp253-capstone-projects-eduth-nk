@@ -316,10 +316,10 @@ type Teacher = {
     TeacherName: string;
 };
 
-type Classes = {
-    id: string;
-    name: string;
-    teacherId: string;
+type Class = {
+    ClassID: string;
+    ClassName: string;
+    TeacherID: string;
 };
 
 type ClassModalEditProps = {
@@ -332,7 +332,7 @@ type ClassModalEditProps = {
     setTeacherId: (value: string) => void;
     selectedClassId: string;
     setSelectedClassId: (value: string) => void;
-    classes: Classes[];
+    classes: Class[];
     teachers: Teacher[];
 };
 
@@ -353,10 +353,10 @@ export const ClassModalEdit = ({
 
     const handleClassSelect = (id: string) => {
         setSelectedClassId(id);
-        const selectedClass = classes.find((cls) => cls.id === id);
+        const selectedClass = classes.find((cls) => cls.ClassID === id);
         if (selectedClass) {
-            setClassName(selectedClass.name);
-            setTeacherId(selectedClass.teacherId);
+            setClassName(selectedClass.ClassName);
+            setTeacherId(selectedClass.TeacherID);
         } else {
             setClassName("");
             setTeacherId("");
@@ -376,16 +376,16 @@ export const ClassModalEdit = ({
                         onChange={(e) => handleClassSelect(e.target.value)}
                         className="w-full border rounded px-3 py-2"
                     >
-                        <option value="">Choose a class</option>
+                        <option value="">Choose a class!</option>
                         {classes.map((cls) => (
-                            <option key={cls.id} value={cls.id}>
-                                {cls.name}
+                            <option key={cls.ClassID} value={cls.ClassID}>
+                                {cls.ClassName}
                             </option>
                         ))}
                     </select>
                 </div>
 
-                {/* Show only if a class is selected */}
+                {/* Editable Fields */}
                 {selectedClassId && (
                     <>
                         <input
