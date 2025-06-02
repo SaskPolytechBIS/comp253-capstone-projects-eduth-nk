@@ -52,7 +52,7 @@ export default function TeacherDashboard() {
     //populations
     const [classId, setClassId] = useState("");
     const [classes, setClasses] = useState([{ClassID: "0", ClassName: "Error"}]);
-    const [students, setStudents] = useState([{StudentID: "0", StudentName: "Error"}]);
+    const [students, setStudents] = useState([{StudentID: "0", StudentName: "Empty"}]);
     const [teachers, setTeachers] = useState([{TeacherID: "0", TeacherName: "Error"}]);
 
     //populates the dropdown menu. WITHOUT THIS IT WILL BE STATIC.
@@ -128,6 +128,7 @@ export default function TeacherDashboard() {
         setClassId(selectedClass);
     }
 
+    //handles submission of class when the submit button is pressed on the class modal
     const handleClassSubmit = () => {
         console.log("Class:", className, "TeacherId:", classTeacherId);
         setClassName("");
@@ -135,6 +136,7 @@ export default function TeacherDashboard() {
         createClass(className, classTeacherId);
     };
 
+    //handles submission of student when the submit button is pressed on the student modal
     const handleStudentSubmit = () => {
         console.log("Student:", studentName, "Username:", studentUsername, "Password:", studentPassword, "Class", studentClass);
         setStudentName("");
@@ -158,7 +160,6 @@ export default function TeacherDashboard() {
         console.log("Assignment Content:", content);
         setAssignmentContent(content);
         setIsModalOpen(false);
-        // TODO: save to DB
     };
 
     //handle edit
