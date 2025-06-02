@@ -333,7 +333,7 @@ type Teacher = {
 type Class = {
     ClassID: string;
     ClassName: string;
-    TeacherID: string;
+
 };
 
 type ClassModalEditProps = {
@@ -370,7 +370,7 @@ export const ClassModalEdit = ({
         const selectedClass = classes.find((cls) => cls.ClassID === id);
         if (selectedClass) {
             setClassName(selectedClass.ClassName);
-            setTeacherId(selectedClass.TeacherID);
+
         } else {
             setClassName("");
             setTeacherId("");

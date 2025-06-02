@@ -348,7 +348,7 @@ export default function TeacherDashboard() {
                        </button>
 
                        {isDropdownClassOpen && (
-                           <div className="absolute z-10 mt-2 w-40 bg-white rounded shadow-md border border-gray-200">
+                           <div className="absolute z-10 mt-2 w-40 bg-white rounded shadow-md border border-gray-200 text-black">
                                <button
                                    onClick={() => {
                                        setShowClassModal(true);
@@ -408,7 +408,7 @@ export default function TeacherDashboard() {
                        </button>
 
                        {isDropdownStudentOpen && (
-                           <div className="absolute z-10 mt-2 w-44 bg-white rounded shadow-md border border-gray-200">
+                           <div className="absolute z-10 mt-2 w-44 bg-white rounded shadow-md border border-gray-200 text-black">
                                <button
                                    onClick={() => {
                                        setIsStudentMenuOpen(true);
