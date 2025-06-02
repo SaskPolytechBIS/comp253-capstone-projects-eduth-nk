@@ -33,6 +33,7 @@ export default function LoginPage() {
                         }
                     } else {
                         Cookies.set("teacherId", teacherId[0].TeacherID)
+                        Cookies.set("teacherName", username)
                         router.push('/teacherBoard');
 
                     }

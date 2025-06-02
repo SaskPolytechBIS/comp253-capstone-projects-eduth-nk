@@ -186,22 +186,22 @@ type Student = {
 };
 
 export const EditStudentModal = ({
-                              isOpen,
-                              onClose,
-                              onSubmit,
-                              students,
-                              selectedStudentId,
-                              setSelectedStudentId,
-                              studentName,
-                              setStudentName,
-                              studentUsername,
-                              setStudentUsername,
-                              studentPassword,
-                              setStudentPassword,
-                              studentClass,
-                              setStudentClass,
-                              classes,
-                          }: {
+                                     isOpen,
+                                     onClose,
+                                     onSubmit,
+                                     students,
+                                     selectedStudentId,
+                                     setSelectedStudentId,
+                                     studentName,
+                                     setStudentName,
+                                     studentUsername,
+                                     setStudentUsername,
+                                     studentPassword,
+                                     setStudentPassword,
+                                     studentClass,
+                                     setStudentClass,
+                                     classes,
+                                 }: {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: () => void;
@@ -218,7 +218,6 @@ export const EditStudentModal = ({
     setStudentClass: (value: string) => void;
     classes: { ClassID: string; ClassName: string }[];
 }) => {
-    // Populate fields when a student is selected
     const handleSelectStudent = (id: string) => {
         setSelectedStudentId(id);
         const student = students.find((s) => s.id === id);
@@ -227,6 +226,11 @@ export const EditStudentModal = ({
             setStudentUsername(student.username);
             setStudentPassword(student.password);
             setStudentClass(student.classId);
+        } else {
+            setStudentName('');
+            setStudentUsername('');
+            setStudentPassword('');
+            setStudentClass('');
         }
     };
 
@@ -254,7 +258,7 @@ export const EditStudentModal = ({
                     </select>
                 </div>
 
-                {/* Edit Form */}
+                {/* Form Fields */}
                 {selectedStudentId && (
                     <>
                         <input
@@ -294,18 +298,28 @@ export const EditStudentModal = ({
                                 ))}
                             </select>
                         </div>
-
-                        {/* Buttons */}
-                        <div className="flex justify-end space-x-2">
-                            <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
-                                Cancel
-                            </button>
-                            <button onClick={onSubmit} className="px-4 py-2 bg-violet-700 text-white rounded">
-                                Update
-                            </button>
-                        </div>
                     </>
                 )}
+
+                {/* Footer Buttons */}
+                <div className="flex justify-end space-x-2">
+                    <button
+                        onClick={() => {
+                            setSelectedStudentId("");
+                            onClose();
+                        }}
+                        className="px-4 py-2 bg-gray-300 rounded"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onSubmit}
+                        className="px-4 py-2 bg-violet-700 text-white rounded disabled:opacity-50"
+                        disabled={!selectedStudentId}
+                    >
+                        Update
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -415,15 +429,21 @@ export const ClassModalEdit = ({
                 )}
 
                 <div className="flex justify-end space-x-2">
-                    <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
+                    <button
+                        onClick={() => {
+                            setSelectedClassId("");
+                            onClose();
+                        }}
+                        className="px-4 py-2 bg-gray-300 rounded"
+                    >
                         Cancel
                     </button>
                     <button
                         onClick={onSubmit}
-                        className="px-4 py-2 bg-blue-600 text-white rounded"
+                        className="px-4 py-2 bg-violet-700 text-white rounded disabled:opacity-50"
                         disabled={!selectedClassId}
                     >
-                        Save Changes
+                        Update
                     </button>
                 </div>
             </div>

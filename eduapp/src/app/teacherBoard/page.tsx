@@ -194,8 +194,6 @@ export default function TeacherDashboard() {
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
     // Attach files
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [selectedCell, setSelectedCell] = useState<{ row: number; column: ColumnType } | null>(null);
     const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, File[]>>>({});
 
     // Dummy data
@@ -210,6 +208,9 @@ export default function TeacherDashboard() {
             content: `Considerations should be made towards the functionality of the application for both students and teachers...`,
         },
     ];
+
+    // show Dialog attach image
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     // Evaluation Cell Component
     const EvaluationCell = React.memo(({
@@ -244,6 +245,9 @@ export default function TeacherDashboard() {
                         [column]: [...(prev[row]?.[column] || []), file],
                     },
                 }));
+
+                // Show dialog
+                setIsDialogOpen(true);
             }
         };
 
@@ -273,6 +277,21 @@ export default function TeacherDashboard() {
                             ))}
                         </ul>
                     )}
+                    {/* Upload Successful Dialog */}
+                    {isDialogOpen && (
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+                            <div className="bg-white border border-gray-300 p-4 rounded shadow-lg max-w-sm text-center">
+                                <h2 className="text-base font-semibold mb-2">Upload Successful</h2>
+                                <button
+                                    onClick={() => setIsDialogOpen(false)}
+                                    className="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                                >
+                                    OK
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                 </div>
             </td>
         );
@@ -294,11 +313,20 @@ export default function TeacherDashboard() {
                         console.error(`Upload failed: ${file.name}`, error.message);
                     } else {
                         console.log(`Uploaded: ${file.name} as ${filePath}`);
+
                     }
                 }
             }
         }
     };
+
+    // show menu class
+    const [isClassMenuOpen, setIsClassMenuOpen] = useState(false);
+    const [isDropdownClassOpen, setIsDropdownClassOpen] = useState(false);
+
+    // show menu student
+    const [isStudentMenuOpen, setIsStudentMenuOpen] = useState(false);
+    const [isDropdownStudentOpen, setIsDropdownStudentOpen] = useState(false);
 
     return (
         <div className="flex flex-col min-h-screen ">
@@ -308,47 +336,117 @@ export default function TeacherDashboard() {
                    <button onClick={handleNewAssignmentClick} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
                        + New Assignment
                    </button>
-                    <div>
-                        <button onClick={handleNewClass} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                            Create Class
-                        </button>
-                        <ClassModal
-                            isOpen={showClassModal}
-                            onClose={() => setShowClassModal(false)}
-                            onSubmit={handleClassSubmit}
-                            className={className}
-                            setClassName={setClassName}
-                            teachers={teachers}
-                            teacherId={classTeacherId}
-                            setTeacherId={setClassTeacherId}
-                        />
-                    </div>
-                    <div>
-                       <button onClick={handleNewStudent} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                           Create Student
+                   <div className="relative inline-block text-left">
+                       <button
+                           onClick={() => {
+                               setIsDropdownClassOpen((prev) => !prev);
+                               setIsDropdownStudentOpen(false);
+                           }}
+                           className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
+                       >
+                           Class
                        </button>
 
-                        <StudentModal
-                            isOpen={showStudentModal}
-                            onClose={() => setShowStudentModal(false)}
-                            onSubmit={handleStudentSubmit}
-                            studentName={studentName}
-                            setStudentName={setStudentName}
-                            studentUsername={studentUsername}
-                            setStudentUsername={setStudentUsername}
-                            studentPassword={studentPassword}
-                            setStudentPassword={setStudentPassword}
-                            classes={classes}
-                            setStudentClass={setStudentClass}
-                            studentClass={studentClass}
-                        />
-                    </div>
+                       {isDropdownClassOpen && (
+                           <div className="absolute z-10 mt-2 w-40 bg-white rounded shadow-md border border-gray-200">
+                               <button
+                                   onClick={() => {
+                                       setShowClassModal(true);
+                                       setIsDropdownClassOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Create Class
+                               </button>
+                               <button
+                                   onClick={() => {
+                                       setIsClassMenuOpen(true);
+                                       setIsDropdownClassOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Edit Class
+                               </button>
+                           </div>
+                       )}
 
-                   <div>
-                       <button onClick={handleStudentEdit} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                           Edit Student
+                       {/* Modals */}
+                       <ClassModal
+                           isOpen={showClassModal}
+                           onClose={() => setShowClassModal(false)}
+                           onSubmit={handleClassSubmit}
+                           className={className}
+                           setClassName={setClassName}
+                           teachers={teachers}
+                           teacherId={classTeacherId}
+                           setTeacherId={setClassTeacherId}
+                       />
+
+                       <ClassModalEdit
+                           isOpen={isClassMenuOpen}
+                           onClose={() => setIsClassMenuOpen(false)}
+                           onSubmit={handleClassEditSubmit}
+                           className={className}
+                           setClassName={setClassName}
+                           teacherId={classTeacherId}
+                           setTeacherId={setClassTeacherId}
+                           selectedClassId={selectedClassId}
+                           setSelectedClassId={setSelectedClassId}
+                           classes={classes}
+                           teachers={teachers}
+                       />
+                   </div>
+                   <div className="relative inline-block text-left">
+                       <button
+                           onClick={() => {
+                               setIsDropdownStudentOpen((prev) => !prev);
+                               setIsDropdownClassOpen(false);
+                           }}
+                           className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
+                       >
+                           Student
                        </button>
 
+                       {isDropdownStudentOpen && (
+                           <div className="absolute z-10 mt-2 w-44 bg-white rounded shadow-md border border-gray-200">
+                               <button
+                                   onClick={() => {
+                                       setIsStudentMenuOpen(true);
+                                       setIsDropdownStudentOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Create Student
+                               </button>
+                               <button
+                                   onClick={() => {
+                                       setIsStudentEditOpen(true); // mở EditStudentModal
+                                       setIsDropdownStudentOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Edit Student
+                               </button>
+                           </div>
+                       )}
+
+                       {/* Modal tạo student */}
+                       <StudentModal
+                           isOpen={isStudentMenuOpen}
+                           onClose={() => setIsStudentMenuOpen(false)}
+                           onSubmit={handleStudentSubmit}
+                           studentName={studentName}
+                           setStudentName={setStudentName}
+                           studentUsername={studentUsername}
+                           setStudentUsername={setStudentUsername}
+                           studentPassword={studentPassword}
+                           setStudentPassword={setStudentPassword}
+                           classes={classes}
+                           setStudentClass={setStudentClass}
+                           studentClass={studentClass}
+                       />
+
+                       {/* Modal sửa student */}
                        <EditStudentModal
                            isOpen={isStudentEditOpen}
                            onClose={() => setIsStudentEditOpen(false)}
@@ -356,7 +454,9 @@ export default function TeacherDashboard() {
                            students={students.map((s) => ({
                                id: s.StudentID,
                                name: s.StudentName,
-
+                               username: s.StudentName,
+                               password: "",
+                               classId: "",
                            }))}
                            selectedStudentId={selectedStudentId}
                            setSelectedStudentId={setSelectedStudentId}
@@ -368,28 +468,6 @@ export default function TeacherDashboard() {
                            setStudentPassword={setStudentPassword}
                            studentClass={studentClass}
                            setStudentClass={setStudentClass}
-                           classes={classes}
-                       />
-                   </div>
-
-                   <div>
-                       <button onClick={() => setIsClassEditOpen(true)}
-                               className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
-                       >
-                           Edit Class
-                       </button>
-
-                       <ClassModalEdit
-                           isOpen={isClassEditOpen}
-                           onClose={() => setIsClassEditOpen(false)}
-                           onSubmit={handleClassEditSubmit}
-                           teachers={teachers}
-                           className={className}
-                           setClassName={setClassName}
-                           teacherId={classTeacherId}
-                           setTeacherId={setClassTeacherId}
-                           selectedClassId={selectedClassId}
-                           setSelectedClassId={setSelectedClassId}
                            classes={classes}
                        />
                    </div>
@@ -406,8 +484,8 @@ export default function TeacherDashboard() {
 
                         {menuOpen && (
                             <div className="absolute right-0 mt-2 w-40 bg-white text-black shadow-lg rounded-md z-50">
-                                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                                    Profile
+                                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-default" disabled>
+                                    Welcome, {Cookies.get("teacherName")}
                                 </button>
                                 <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-100">
                                     Logout
