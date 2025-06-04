@@ -65,9 +65,9 @@ export default function TeacherDashboard() {
     //populations
     const [classId, setClassId] = useState("");
     const [classes, setClasses] = useState([{ClassID: "0", ClassName: "Error"}]);
-    const [students, setStudents] = useState([{StudentID: "0", StudentName: "Error"}]);
+    const [students, setStudents] = useState([{StudentID: "0", StudentName: "Empty"}]);
     const [teachers, setTeachers] = useState([{TeacherID: "0", TeacherName: "Error"}]);
-    const [units, setUnits] = useState([{UnitID: "0", UnitName: "Error"}])
+    const [units, setUnits] = useState([{UnitID: "0", UnitName: "Empty"}])
 
     //populates the classes dropdown. WITHOUT THIS IT WILL BE STATIC.
     useEffect(() => {
@@ -135,19 +135,19 @@ export default function TeacherDashboard() {
     }, []);
 
     useEffect(() => {
-
         if (!classId) {
             return;
         }
         const loadUnits = async () => {
             try {
-                const unitResult = await getUnits();
+                const unitResult = await getUnits(classId);
                 setUnits(unitResult ?? []);
             } catch (error) {
                 alert("Unexpected error: " + error);
             }
         };
-    })
+        loadUnits();
+    }, [classId])
 
     //redirects to login if no teacher cookie
     if (teacherId == undefined) {
@@ -577,11 +577,11 @@ export default function TeacherDashboard() {
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Unit</label>
                             <select className="w-full border rounded px-3 py-2">
-                                <option>Area and Perimeter</option>
-                                <option>Unit 1</option>
-                                <option>Unit 2</option>
-                                <option>Unit 3</option>
-                                <option>Unit 4</option>
+                                {units.map((units) => (
+                                    <option key={units.UnitID} value={units.UnitID}>
+                                        {units.UnitName}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 

@@ -46,7 +46,7 @@ export async function getUnits(classId) {
         .eq('ClassID', classId)
 
     if (error) {
-        return error
+        console.log("Error retrieving units: " + error.message);
     } else {
         return Units
     }

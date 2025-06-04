@@ -21,3 +21,14 @@ export async function deleteStudent (studentId) {
         console.log("Error deleting student: " + error.message)
     }
 }
+
+export async function deleteUnit (unitId){
+    const { error } = await supabase
+        .from('Units')
+        .delete()
+        .eq('UnitID', `${unitId}`)
+
+    if (error) {
+        console.log("Error deleting unit: " + error.message)
+    }
+}

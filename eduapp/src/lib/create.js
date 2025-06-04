@@ -1,4 +1,5 @@
 import {supabase} from "./supabase";
+import {forEach} from "react-bootstrap/ElementChildren";
 
 export async function createStudent(studentName, studentClass, studentUsername, studentPassword) {
     const { data, error } = await supabase
@@ -9,7 +10,6 @@ export async function createStudent(studentName, studentClass, studentUsername, 
         .select('StudentID')
         .single()
 
-    console.log(data)
     if (error) {
         console.log("Error inserting student: " + error.message);
     } else {
@@ -48,17 +48,38 @@ export async function createClass(className, teacherId) {
     }
 }
 
-export async function createAssignment(studentId, unitId, assignmentFolder) {
-
+export async function createUnit(classId, unitName, students, className){
     const { data, error } = await supabase
-        .from('Assignment')
+        .from('Units')
         .insert([
-            { StudentID: `${studentId}`, UnitID: `${unitId}`, AssignmentFolder: `${assignmentFolder}` },
+            { ClassID: `${classId}`, UnitName: `${unitName}`}
         ])
-        .select()
+        .select('UnitID')
+        .single()
 
     if (error) {
-        console.log("Error creating assignment: " + error.message)
+        console.log("Error inserting unit: " + error.message);
+    } else {
+        await createAssignment(data.UnitID, unitName, students, className)
+    }
+}
+
+export async function createAssignment(unitId, unitName, students, className) {
+
+    for (const StudentID of students) {
+
+        let assignmentString = "assignment/" + className + "/" + unitName + "/" + students.StudentName
+
+        const { data, error } = await supabase
+            .from('Assignment')
+            .insert([
+                { UnitID: `${unitId}`, StudentID: `${StudentID}`, AssignmentFolder: `${assignmentString}` },
+            ])
+            .select()
+
+        if (error) {
+            console.log("Error creating assignment: " + error.message)
+        }
     }
 
 }

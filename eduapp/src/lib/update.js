@@ -24,3 +24,15 @@ export async function updateStudent(studentId, studentName, classId) {
     }
 
 }
+
+export async function updateUnit(unitId, unitName) {
+    const { data, error } = await supabase
+        .from('Units')
+        .update({ UnitName: `${unitName}` })
+        .eq('UnitID', `${unitId}`)
+        .select()
+
+    if (error) {
+        console.log("Error updating unit: " + error.message)
+    }
+}
