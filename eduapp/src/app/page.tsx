@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-      <div className="bg-amber-50 text-black min-h-screen flex items-center justify-center p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <div className="bg-[#FFF9F9] text-black min-h-screen flex items-center justify-center p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
         <main className="flex flex-col gap-8 items-center max-w-3xl text-center">
           <Image
               className="invert-[.05] brightness-[1.1]"
@@ -15,8 +15,10 @@ export default function Home() {
 
           <ol className="text-sm leading-6 font-[family-name:var(--font-geist-mono)] space-y-4">
             <li>
-              The Project is to create an application to complement the assessment portion of the Building Thinking Classrooms
-              framework that allows teachers to provide feedback and the student to review.
+              1. Our goal is to build a tool that helps teachers share feedback more effectively and gives students a clear way to view and understand their learning journey—supporting the principles of Building Thinking Classrooms.
+            </li>
+            <li>
+              2. EduTh!nk bridges the gap between classroom assessment and student engagement by providing a seamless platform for teachers to offer insightful feedback and for students to revisit and grow from their learning experiences.
             </li>
           </ol>
 
