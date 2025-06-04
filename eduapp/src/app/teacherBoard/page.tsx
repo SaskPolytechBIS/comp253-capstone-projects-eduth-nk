@@ -615,77 +615,36 @@ export default function TeacherDashboard() {
                             </tr>
                             </thead>
                             <tbody>
-                                {/* Row 1 */}
-                                <tr className="hover:bg-gray-50">
-                                    <td className="border p-3 whitespace-pre-line text-sm align-top">
-                                <textarea
-                                    className="w-full border rounded p-2 my-2"
-                                    rows={4}
-                                    placeholder="Click to create assignment #1"
-                                />
-                                    </td>
-                                    <EvaluationCell row={0} column="Basic" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                    <EvaluationCell row={0} column="Intermediate" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                    <EvaluationCell row={0} column="Advanced" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                </tr>
-
-                                {/* Row 2 */}
-                                <tr className="hover:bg-gray-50">
-                                    <td className="border p-3 whitespace-pre-line text-sm align-top">
-                                <textarea
-                                    className="w-full border rounded p-2 my-2"
-                                    rows={4}
-                                    placeholder="Click to create assignment #2"
-                                />
-                                    </td>
-                                    <EvaluationCell row={1} column="Basic" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                    <EvaluationCell row={1} column="Intermediate" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                    <EvaluationCell row={1} column="Advanced" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                </tr>
-
-                                {/* Row 3 */}
-                                <tr className="hover:bg-gray-50">
-                                    <td className="border p-3 whitespace-pre-line text-sm align-top">
-                                <textarea
-                                    className="w-full border rounded p-2 my-2"
-                                    rows={4}
-                                    placeholder="Click to create assignment #3"
-                                />
-                                    </td>
-                                    <EvaluationCell row={2} column="Basic" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                    <EvaluationCell row={2} column="Intermediate" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                    <EvaluationCell row={2} column="Advanced" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                </tr>
-
-                                {/* Row 4 */}
-                                <tr className="hover:bg-gray-50">
-                                    <td className="border p-3 whitespace-pre-line text-sm align-top">
-                                    <textarea
-                                        className="w-full border rounded p-2 my-2"
-                                        rows={4}
-                                        placeholder="Click to create assignment #4"
-                                    />
-                                    </td>
-                                    <EvaluationCell row={3} column="Basic" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                    <EvaluationCell row={3} column="Intermediate" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                    <EvaluationCell row={3} column="Advanced" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                </tr>
-
-                                {/* Row 5 */}
-                                <tr className="hover:bg-gray-50">
-                                    <td className="border p-3 whitespace-pre-line text-sm align-top">
-                                    <textarea
-                                        className="w-full border rounded p-2 my-2"
-                                        rows={4}
-                                        placeholder="Click to create assignment #5"
-                                    />
-                                    </td>
-                                    <EvaluationCell row={4} column="Basic" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                    <EvaluationCell row={4} column="Intermediate" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                    <EvaluationCell row={4} column="Advanced" attachedFiles={attachedFiles} setAttachedFiles={setAttachedFiles} />
-                                </tr>
+                                {Array.from({ length: 5 }).map((_, index) => (
+                                    <tr key={index} className="hover:bg-gray-50">
+                                        <td className="border p-3 whitespace-pre-line text-sm align-top">
+                                              <textarea
+                                                  className="w-full border rounded p-2 my-2 "
+                                                  rows={4}
+                                                  placeholder={`Click to create assignment #${index + 1}`}
+                                              />
+                                        </td>
+                                        <EvaluationCell
+                                            row={index}
+                                            column="Basic"
+                                            attachedFiles={attachedFiles}
+                                            setAttachedFiles={setAttachedFiles}
+                                        />
+                                        <EvaluationCell
+                                            row={index}
+                                            column="Intermediate"
+                                            attachedFiles={attachedFiles}
+                                            setAttachedFiles={setAttachedFiles}
+                                        />
+                                        <EvaluationCell
+                                            row={index}
+                                            column="Advanced"
+                                            attachedFiles={attachedFiles}
+                                            setAttachedFiles={setAttachedFiles}
+                                        />
+                                    </tr>
+                                ))}
                             </tbody>
-
                         </Table>
 
                         <div className="text-right mt-4">
