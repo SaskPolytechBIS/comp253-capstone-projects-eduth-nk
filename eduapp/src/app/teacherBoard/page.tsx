@@ -165,10 +165,7 @@ export default function TeacherDashboard() {
         redirect("/login");// Redirect to login
     };
 
-    //const studentName = getStudentName();
-    const handleNewAssignmentClick = () => {
-        setIsModalOpen(true);
-    };
+
 
     const handleModalSave = (content: string) => {
         console.log("Assignment Content:", content);
@@ -622,8 +619,6 @@ export default function TeacherDashboard() {
                                     <tr key={index} className="hover:bg-gray-50">
                                         <td className="border p-3 whitespace-pre-line text-sm align-top">
                                               <textarea
-                                                  readOnly
-                                                  onClick={() => handleNewAssignmentClick()}
                                                   className="w-full border rounded p-2 my-2 cursor-pointer hover:bg-gray-100"
                                                   rows={4}
                                                   placeholder={`Click to create assignment #${index + 1}`}
