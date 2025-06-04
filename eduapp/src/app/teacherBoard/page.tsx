@@ -11,12 +11,12 @@ import { createStudent, createClass } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers} from "@/lib/select";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
-import { LegendModal, ClassModal,StudentModal,EditStudentModal,ClassModalEdit} from '@/lib/Modals';
+import { LegendModal, ClassModal,StudentModal,
+    EditStudentModal,ClassModalEdit,ClassModalDelete} from '@/lib/Modals';
 
 
 
 export default function TeacherDashboard() {
-    const [userName, setUserName] = useState("sample");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [assignmentContent, setAssignmentContent] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
@@ -33,6 +33,20 @@ export default function TeacherDashboard() {
     const [studentClass, setStudentClass] = useState("");
     const [classTeacherId, setClassTeacherId] = useState("");
 
+    //Delete Class
+    const [isDeleteModalClassOpen, setIsDeleteModalClassOpen] = useState(false);
+    const handleDelete = async () => {
+        if (!selectedClassId) return;
+
+        try {
+            //Add more if needed
+            console.log("Deleted class ID:", selectedClassId);
+
+        } catch (error) {
+            console.error("Failed to delete class:", error);
+        }
+    };
+
     //show pop up for legend
     const [showPopup, setShowPopup] = useState(false);
 
@@ -48,6 +62,8 @@ export default function TeacherDashboard() {
         { code: "O", description: "Used when knowledge has been demonstrated individually, seen through observation" },
         { code: "C", description: "Used when knowledge has been demonstrated individually, seen through a conversation" },
     ];
+
+
 
     //populations
     const [classId, setClassId] = useState("");
@@ -163,6 +179,8 @@ export default function TeacherDashboard() {
 
     //handle edit
     const [isStudentEditOpen, setIsStudentEditOpen] = useState(false);
+    const [isStudentDeleteOpen, setIsStudentDeleteOpen] = useState(false);
+    const [isDropdownDeleteStudentOpen, setIsDropdownDeleteStudentOpen] = useState(false);
     const [isClassEditOpen, setIsClassEditOpen] = useState(false);
     const [selectedStudentId, setSelectedStudentId] = useState('');
     const [selectedClassId, setSelectedClassId] = useState('');
@@ -170,9 +188,7 @@ export default function TeacherDashboard() {
     //handle new student and add class & edit
     const handleNewClass = () => setShowClassModal(true);
     const handleNewStudent = () => setShowStudentModal(true);
-    const handleStudentEdit = () => {
-        setIsStudentEditOpen(true);
-    };
+    const handleStudentEdit = () => {setIsStudentEditOpen(true);};
 
     const handleStudentEditSubmit = () => {
         // update logic here
@@ -323,19 +339,19 @@ export default function TeacherDashboard() {
     // show menu class
     const [isClassMenuOpen, setIsClassMenuOpen] = useState(false);
     const [isDropdownClassOpen, setIsDropdownClassOpen] = useState(false);
-
+    //delete
+    const [isClassDeleteMenuOpen, setIsClassDeleteMenuOpen] = useState(false);
+    const [isDropdownDeleteClassOpen, setIsDropdownDeleteClassOpen] = useState(false);
     // show menu student
     const [isStudentMenuOpen, setIsStudentMenuOpen] = useState(false);
     const [isDropdownStudentOpen, setIsDropdownStudentOpen] = useState(false);
+
 
     return (
         <div className="flex flex-col min-h-screen ">
             {/* Top Banner */}
             <header className="w-full bg-violet-700 px-6 py-4 flex justify-between items-center ">
                <div className="flex space-x-4">
-                   <button onClick={handleNewAssignmentClick} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                       + New Assignment
-                   </button>
                    <div className="relative inline-block text-left">
                        <button
                            onClick={() => {
@@ -367,6 +383,15 @@ export default function TeacherDashboard() {
                                >
                                    Edit Class
                                </button>
+                               <button
+                                   onClick={() => {
+                                       setIsDeleteModalClassOpen(true);
+                                       setIsDropdownClassOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Delete Class
+                               </button>
                            </div>
                        )}
 
@@ -395,6 +420,16 @@ export default function TeacherDashboard() {
                            classes={classes}
                            teachers={teachers}
                        />
+
+                       <ClassModalDelete
+                           isOpen={isDeleteModalClassOpen}
+                           onClose={() => setIsDeleteModalClassOpen(false)}
+                           onDelete={handleDelete}
+                           selectedClassId={selectedClassId}
+                           setSelectedClassId={setSelectedClassId}
+                           classes={classes}
+                       />
+
                    </div>
                    <div className="relative inline-block text-left">
                        <button
@@ -420,17 +455,26 @@ export default function TeacherDashboard() {
                                </button>
                                <button
                                    onClick={() => {
-                                       setIsStudentEditOpen(true); // mở EditStudentModal
+                                       setIsStudentEditOpen(true); // open EditStudentModal
                                        setIsDropdownStudentOpen(false);
                                    }}
                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                                >
                                    Edit Student
                                </button>
+                               <button
+                                   onClick={() => {
+                                       setIsStudentDeleteOpen(true); //
+                                       setIsDropdownDeleteStudentOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Delete Student
+                               </button>
                            </div>
                        )}
 
-                       {/* Modal tạo student */}
+                       {/* Modal create student */}
                        <StudentModal
                            isOpen={isStudentMenuOpen}
                            onClose={() => setIsStudentMenuOpen(false)}
@@ -446,7 +490,7 @@ export default function TeacherDashboard() {
                            studentClass={studentClass}
                        />
 
-                       {/* Modal sửa student */}
+                       {/* Modal edit student */}
                        <EditStudentModal
                            isOpen={isStudentEditOpen}
                            onClose={() => setIsStudentEditOpen(false)}
