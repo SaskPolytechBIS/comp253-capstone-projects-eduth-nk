@@ -516,4 +516,70 @@ export const ClassModalDelete = ({
     );
 };
 
+//Delete student
+type DeleteStudentModalProps = {
+    isOpen: boolean;
+    onClose: () => void;
+    onDelete: () => void;
+    selectedStudentId: string;
+    setSelectedStudentId: (id: string) => void;
+    students: Student[];
+};
+
+export const DeleteStudentModal = ({
+                                       isOpen,
+                                       onClose,
+                                       onDelete,
+                                       selectedStudentId,
+                                       setSelectedStudentId,
+                                       students,
+                                   }: DeleteStudentModalProps) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm z-50">
+            <div className="bg-white p-6 rounded shadow-lg w-96">
+                <h2 className="text-xl font-bold mb-4">Delete Student</h2>
+
+                {/* Student Selector */}
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Select Student to Delete</label>
+                    <select
+                        value={selectedStudentId}
+                        onChange={(e) => setSelectedStudentId(e.target.value)}
+                        className="w-full border rounded px-3 py-2"
+                    >
+                        <option value="">Choose a student</option>
+                        {students.map((student) => (
+                            <option key={student.id} value={student.id}>
+                                {student.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="flex justify-end space-x-2">
+                    <button
+                        onClick={() => {
+                            setSelectedStudentId('');
+                            onClose();
+                        }}
+                        className="px-4 py-2 bg-gray-300 rounded"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onDelete}
+                        className="px-4 py-2 bg-red-600 text-white rounded disabled:opacity-50"
+                        disabled={!selectedStudentId}
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 

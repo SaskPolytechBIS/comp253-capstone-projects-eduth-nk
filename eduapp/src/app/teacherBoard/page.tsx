@@ -12,7 +12,7 @@ import { getStudentsFromClass, getTeacherClasses, getAllTeachers} from "@/lib/se
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
 import { LegendModal, ClassModal,StudentModal,
-    EditStudentModal,ClassModalEdit,ClassModalDelete} from '@/lib/Modals';
+    EditStudentModal,ClassModalEdit,ClassModalDelete, DeleteStudentModal} from '@/lib/Modals';
 
 
 
@@ -33,6 +33,13 @@ export default function TeacherDashboard() {
     const [studentClass, setStudentClass] = useState("");
     const [classTeacherId, setClassTeacherId] = useState("");
 
+    //handle edit
+    const [isStudentEditOpen, setIsStudentEditOpen] = useState(false);
+    const [isStudentDeleteOpen, setIsStudentDeleteOpen] = useState(false);
+    const [isDropdownDeleteStudentOpen, setIsDropdownDeleteStudentOpen] = useState(false);
+    const [isClassEditOpen, setIsClassEditOpen] = useState(false);
+    const [selectedStudentId, setSelectedStudentId] = useState('');
+    const [selectedClassId, setSelectedClassId] = useState('');
     //Delete Class
     const [isDeleteModalClassOpen, setIsDeleteModalClassOpen] = useState(false);
     const handleDelete = async () => {
@@ -47,6 +54,19 @@ export default function TeacherDashboard() {
         }
     };
 
+    //Delete Student
+    const [isDeleteModalStudentOpen, setIsDeleteModalStudentOpen] = useState(false);
+    const handleDeleteStudent = async () => {
+        if (!selectedStudentId) return;
+
+        try {
+            //Add more if needed
+            console.log("Deleted Student Id:", selectedStudentId);
+
+        } catch (error) {
+            console.error("Failed to delete class:", error);
+        }
+    };
     //show pop up for legend
     const [showPopup, setShowPopup] = useState(false);
 
@@ -174,18 +194,6 @@ export default function TeacherDashboard() {
         // TODO: save to DB
     };
 
-    //handle edit
-    const [isStudentEditOpen, setIsStudentEditOpen] = useState(false);
-    const [isStudentDeleteOpen, setIsStudentDeleteOpen] = useState(false);
-    const [isDropdownDeleteStudentOpen, setIsDropdownDeleteStudentOpen] = useState(false);
-    const [isClassEditOpen, setIsClassEditOpen] = useState(false);
-    const [selectedStudentId, setSelectedStudentId] = useState('');
-    const [selectedClassId, setSelectedClassId] = useState('');
-
-    //handle new student and add class & edit
-    const handleNewClass = () => setShowClassModal(true);
-    const handleNewStudent = () => setShowStudentModal(true);
-    const handleStudentEdit = () => {setIsStudentEditOpen(true);};
 
     const handleStudentEditSubmit = () => {
         // update logic here
@@ -290,7 +298,7 @@ export default function TeacherDashboard() {
                     {isDialogOpen && (
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
                             <div className="bg-white border border-gray-300 p-4 rounded shadow-lg max-w-sm text-center">
-                                <h2 className="text-base font-semibold mb-2">Upload Successful</h2>
+                                <h2 className="text-base font-semibold mb-2">Attach Successful</h2>
                                 <button
                                     onClick={() => setIsDialogOpen(false)}
                                     className="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
@@ -338,8 +346,12 @@ export default function TeacherDashboard() {
     // show menu student
     const [isStudentMenuOpen, setIsStudentMenuOpen] = useState(false);
     const [isDropdownStudentOpen, setIsDropdownStudentOpen] = useState(false);
+    //show unit
+    const [isDropdownUnitOpen, setIsDropdownUnitOpen] = useState(false);
+    const [isUnitMenuOpen, setIsUnitMenuOpen] = useState(false);
 
 
+    // @ts-ignore
     return (
         <div className="flex flex-col min-h-screen ">
             {/* Top Banner */}
@@ -463,13 +475,14 @@ export default function TeacherDashboard() {
                                </button>
                                <button
                                    onClick={() => {
-                                       setIsStudentDeleteOpen(true); //
-                                       setIsDropdownDeleteStudentOpen(false);
+                                       setIsDeleteModalStudentOpen(true);
+                                       setIsDropdownStudentOpen(false);
                                    }}
                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                                >
                                    Delete Student
                                </button>
+
                            </div>
                        )}
 
@@ -513,6 +526,71 @@ export default function TeacherDashboard() {
                            setStudentClass={setStudentClass}
                            classes={classes}
                        />
+
+                       {/* Modal Delete student */}
+                       <DeleteStudentModal
+                           isOpen={isDeleteModalStudentOpen}
+                           onClose={() => setIsDeleteModalStudentOpen(false)}
+                           onDelete={handleDeleteStudent}
+                           selectedStudentId={selectedStudentId}
+                           setSelectedStudentId={setSelectedStudentId}
+                           students={students.map((s) => ({
+                               id: s.StudentID,
+                               name: s.StudentName,
+                               username: s.StudentName,
+                               password: "",
+                               classId: "",
+                           }))}
+                       />
+                   </div>
+
+
+                   <div className="relative inline-block text-left">
+                       <button
+                           onClick={() => {
+                               setIsDropdownUnitOpen((prev) => !prev);
+                               setIsDropdownUnitOpen(false);
+                           }}
+                           className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
+                       >
+                           Unit
+                       </button>
+
+                       {isDropdownUnitOpen && (
+                           <div className="absolute z-10 mt-2 w-44 bg-white rounded shadow-md border border-gray-200 text-black">
+                               <button
+                                   onClick={() => {
+                                       setIsUnitMenuOpen(true);
+                                       setIsDropdownUnitOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Create Unit
+                               </button>
+                               <button
+                                   onClick={() => {
+                                       setIsUnitMenuOpen(true);
+                                       setIsDropdownUnitOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Edit Unit
+                               </button>
+                               <button
+                                   onClick={() => {
+                                       setIsUnitMenuOpen(true);
+                                       setIsDropdownUnitOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Delete Unit
+                               </button>
+
+                           </div>
+                       )}
+
+                       {/* Modal Unit */}
+                       
                    </div>
                </div>
 
