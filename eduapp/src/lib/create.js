@@ -48,12 +48,12 @@ export async function createClass(className, teacherId) {
     }
 }
 
-export async function createAssignment(studentId, teacherId, templateId, assignmentFolder) {
+export async function createAssignment(studentId, unitId, assignmentFolder) {
 
     const { data, error } = await supabase
         .from('Assignment')
         .insert([
-            { StudentID: `${studentId}`, TeacherID: `${teacherId}`, TemplateID: `${templateId}`, AssignmentFolder: `${assignmentFolder}` },
+            { StudentID: `${studentId}`, UnitID: `${unitId}`, AssignmentFolder: `${assignmentFolder}` },
         ])
         .select()
 

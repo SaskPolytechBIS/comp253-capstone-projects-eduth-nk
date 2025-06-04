@@ -8,7 +8,7 @@ import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 import { createStudent, createClass } from '@/lib/create';
-import { getStudentsFromClass, getTeacherClasses, getAllTeachers} from "@/lib/select";
+import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from "@/lib/select";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
 import { LegendModal, ClassModal,StudentModal,
@@ -50,7 +50,6 @@ export default function TeacherDashboard() {
     //show pop up for legend
     const [showPopup, setShowPopup] = useState(false);
 
-
     // Show legendItems
     const legendItems = [
         { code: "✓", description: "Used when knowledge has been demonstrated individually" },
@@ -63,15 +62,14 @@ export default function TeacherDashboard() {
         { code: "C", description: "Used when knowledge has been demonstrated individually, seen through a conversation" },
     ];
 
-
-
     //populations
     const [classId, setClassId] = useState("");
     const [classes, setClasses] = useState([{ClassID: "0", ClassName: "Error"}]);
     const [students, setStudents] = useState([{StudentID: "0", StudentName: "Error"}]);
     const [teachers, setTeachers] = useState([{TeacherID: "0", TeacherName: "Error"}]);
+    const [units, setUnits] = useState([{UnitID: "0", UnitName: "Error"}])
 
-    //populates the dropdown menu. WITHOUT THIS IT WILL BE STATIC.
+    //populates the classes dropdown. WITHOUT THIS IT WILL BE STATIC.
     useEffect(() => {
         const loadClasses = async () => {
             try {
@@ -91,6 +89,7 @@ export default function TeacherDashboard() {
         }
     }, [teacherId]);
 
+    //update students useEffect. WILL BE STATIC WITHOUT
     useEffect(() => {
         if (!classId) return;
 
@@ -122,6 +121,7 @@ export default function TeacherDashboard() {
 
     }, [classId]);
 
+    //update teachers. WILL BE STATIC OTHERWISE
     useEffect(() => {
         const loadTeachers = async () => {
             try {
@@ -133,6 +133,21 @@ export default function TeacherDashboard() {
         };
         loadTeachers();
     }, []);
+
+    useEffect(() => {
+
+        if (!classId) {
+            return;
+        }
+        const loadUnits = async () => {
+            try {
+                const unitResult = await getUnits();
+                setUnits(unitResult ?? []);
+            } catch (error) {
+                alert("Unexpected error: " + error);
+            }
+        };
+    })
 
     //redirects to login if no teacher cookie
     if (teacherId == undefined) {
@@ -550,6 +565,7 @@ export default function TeacherDashboard() {
                             Populates class list with classes
                             */}
                             <select className="w-full border rounded px-3 py-2" onChange={handleSelectChange} >
+                                <option value={0}>Choose a class!</option>
                                 {classes.map((classes) => (
                                     <option key={classes.ClassID} value={classes.ClassID}>
                                         {classes.ClassName}

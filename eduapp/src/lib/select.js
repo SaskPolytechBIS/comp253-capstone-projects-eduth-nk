@@ -37,5 +37,17 @@ export async function getAllTeachers() {
     } else {
         return Teacher;
     }
+}
 
+export async function getUnits(classId) {
+    let { data: Units, error } = await supabase
+        .from('Units')
+        .select('UnitID,UnitName')
+        .eq('ClassID', classId)
+
+    if (error) {
+        return error
+    } else {
+        return Units
+    }
 }
