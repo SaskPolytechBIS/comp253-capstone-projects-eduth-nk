@@ -198,15 +198,11 @@ export default function TeacherDashboard() {
 
     // Dummy data
     const dummyData = [
-        {
-            content: `The project's main goal is to supplement the Building Thinking Classroom framework.\nWe will create a dual-interface system that fosters collaborative learning...`,
-        },
-        {
-            content: `This project features a database designed to store files uploaded by teachers and students,\nincluding media, voice messages, and collaborative notes...`,
-        },
-        {
-            content: `Considerations should be made towards the functionality of the application for both students and teachers...`,
-        },
+        { content: `The project's main goal is to supplement the Building Thinking Classroom framework.` },
+        { content: `This project features a database designed to store files uploaded by teachers and students.` },
+        { content: `Considerations should be made towards the functionality of the application.` },
+        { content: `This fourth dummy record can simulate a collaborative environment.` },
+        { content: `Finally, this record rounds out the demo with full interaction capability.` },
     ];
 
     // show Dialog attach image
@@ -333,9 +329,11 @@ export default function TeacherDashboard() {
             {/* Top Banner */}
             <header className="w-full bg-violet-700 px-6 py-4 flex justify-between items-center ">
                <div className="flex space-x-4">
+                   {/*
                    <button onClick={handleNewAssignmentClick} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
                        + New Assignment
                    </button>
+                    */}
                    <div className="relative inline-block text-left">
                        <button
                            onClick={() => {
@@ -572,9 +570,17 @@ export default function TeacherDashboard() {
                             </tr>
                             </thead>
                             <tbody>
-                                {dummyData.map((row, index) => (
+                                {Array.from({ length: 5 }).map((_, index) => (
                                     <tr key={index} className="hover:bg-gray-50">
-                                        <td className="border p-3 whitespace-pre-line text-sm">{row.content}</td>
+                                        <td className="border p-3 whitespace-pre-line text-sm align-top">
+                                              <textarea
+                                                  readOnly
+                                                  onClick={() => handleNewAssignmentClick()}
+                                                  className="w-full border rounded p-2 my-2 cursor-pointer hover:bg-gray-100"
+                                                  rows={4}
+                                                  placeholder={`Click to create assignment #${index + 1}`}
+                                              />
+                                        </td>
                                         <EvaluationCell
                                             row={index}
                                             column="Basic"
