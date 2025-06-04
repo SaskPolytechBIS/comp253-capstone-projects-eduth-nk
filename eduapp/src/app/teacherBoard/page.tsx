@@ -619,7 +619,7 @@ export default function TeacherDashboard() {
                                     <tr key={index} className="hover:bg-gray-50">
                                         <td className="border p-3 whitespace-pre-line text-sm align-top">
                                               <textarea
-                                                  className="w-full border rounded p-2 my-2 cursor-pointer hover:bg-gray-100"
+                                                  className="w-full border rounded p-2 my-2 "
                                                   rows={4}
                                                   placeholder={`Click to create assignment #${index + 1}`}
                                               />
