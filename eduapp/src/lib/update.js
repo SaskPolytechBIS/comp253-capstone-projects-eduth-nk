@@ -24,15 +24,3 @@ export async function updateStudent(studentId, studentName, classId) {
     }
 
 }
-
-export async function updateTemplate(JSON, templateId) {
-    const { data, error } = await supabase
-        .from('Template')
-        .update({ JSON: `${JSON}` })
-        .eq('TemplateID', `${templateId}` )
-        .select()
-
-    if (error) {
-        console.log("Error updating template: " + error.message)
-    }
-}
