@@ -178,6 +178,7 @@ export default function TeacherDashboard() {
     const handleStudentEditSubmit = () => {
         // update logic here
         setIsStudentEditOpen(false);
+
     };
 
     const handleClassEdit = () => {
@@ -185,6 +186,7 @@ export default function TeacherDashboard() {
     };
     const handleClassEditSubmit = () => {
         // handle update logic here
+
         setIsClassEditOpen(false);
     };
     //handle files upload
@@ -431,7 +433,7 @@ export default function TeacherDashboard() {
                            </div>
                        )}
 
-                       {/* Modal tạo student */}
+                       {/* Modal for student */}
                        <StudentModal
                            isOpen={isStudentMenuOpen}
                            onClose={() => setIsStudentMenuOpen(false)}
@@ -447,7 +449,7 @@ export default function TeacherDashboard() {
                            studentClass={studentClass}
                        />
 
-                       {/* Modal sửa student */}
+                       {/* Modal for student */}
                        <EditStudentModal
                            isOpen={isStudentEditOpen}
                            onClose={() => setIsStudentEditOpen(false)}
