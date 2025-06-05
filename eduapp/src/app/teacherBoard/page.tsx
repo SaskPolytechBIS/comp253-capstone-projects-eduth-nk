@@ -216,12 +216,16 @@ export default function TeacherDashboard() {
     const handleDelete = async () => {
         if (!selectedClassId) return;
         deleteClass(selectedClassId);
-
+        setIsDeleteModalClassOpen(false);
     };
 
     const handleDeleteStudent = async () => {
         if (!selectedStudentId) return;
         deleteStudent(selectedStudentId);
+        // Reset the selection
+        setSelectedStudentId("");
+        // Close the modal
+        setIsDeleteModalStudentOpen(false);
     };
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
