@@ -581,5 +581,76 @@ export const DeleteStudentModal = ({
     );
 };
 
+//Unit Modal
+// Create Units
+type UnitModalProps = {
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: () => void;
+    unitName: string;
+    setUnitName: (value: string) => void;
+    classId: string;
+    setClassId: (value: string) => void;
+    classes: { ClassID: string; ClassName: string }[];
+};
+
+export const UnitModal = ({
+                              isOpen,
+                              onClose,
+                              onSubmit,
+                              unitName,
+                              setUnitName,
+                              classId,
+                              setClassId,
+                              classes
+                          }: UnitModalProps) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm z-50">
+            <div className="bg-white p-6 rounded shadow-lg w-96">
+                <h2 className="text-xl font-bold mb-4">Create Unit</h2>
+
+                {/* Unit name input */}
+                <input
+                    type="text"
+                    placeholder="Enter unit name"
+                    value={unitName}
+                    onChange={(e) => setUnitName(e.target.value)}
+                    className="w-full p-2 border rounded mb-4"
+                />
+
+                {/* Class selector */}
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Select Class</label>
+                    <select
+                        className="w-full border rounded px-3 py-2"
+                        value={classId}
+                        onChange={(e) => setClassId(e.target.value)}
+                    >
+                        <option value="">Choose a class</option>
+                        {classes.map((classes) => (
+                            <option key={classes.ClassID} value={classes.ClassID}>
+                                {classes.ClassName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex justify-end space-x-2">
+                    <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
+                        Cancel
+                    </button>
+                    <button onClick={onSubmit} className="px-4 py-2 bg-violet-700 text-white rounded disabled:opacity-50" disabled={!unitName || !classId}>
+                        Create
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 
 

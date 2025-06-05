@@ -11,7 +11,7 @@ import { createStudent, createClass } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from "@/lib/select";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
-import { LegendModal, ClassModal,StudentModal,
+import { LegendModal, ClassModal,StudentModal, UnitModal,
     EditStudentModal,ClassModalEdit,ClassModalDelete, DeleteStudentModal} from '@/lib/Modals';
 
 
@@ -218,6 +218,14 @@ export default function TeacherDashboard() {
         setIsClassEditOpen(false);
     };
 
+    //handle unit items
+    const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
+    const [unitName, setUnitName] = useState('')
+    const handleCreateUnit = async () => {
+
+        console.log('Creating unit:', { unitName, classId });
+
+    };
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
     // Attach files
@@ -585,7 +593,19 @@ export default function TeacherDashboard() {
                        )}
 
                        {/* Modal Unit */}
-                       
+
+                       {/* Create Modal Unit */}
+                       <UnitModal
+                           isOpen={isUnitModalOpen}
+                           onClose={() => setIsUnitModalOpen(false)}
+                           onSubmit={handleCreateUnit}
+                           unitName={unitName}
+                           setUnitName={setUnitName}
+                           classId={classId}
+                           setClassId={setClassId}
+                           classes={classes}
+                       />
+
                    </div>
                </div>
 
