@@ -229,8 +229,17 @@ export default function TeacherDashboard() {
     const handleClassEditSubmit = () => {
         // handle update logic here
         updateClass(selectedClassId, className, classTeacherId);
+        // Reset all states
+        setSelectedClassId("");
+        setClassName("");
+        setClassTeacherId("");
+
         setIsClassMenuOpen(false);
     };
+
+
+
+
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
     // Attach files
