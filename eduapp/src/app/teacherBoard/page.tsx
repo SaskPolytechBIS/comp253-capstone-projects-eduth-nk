@@ -9,6 +9,7 @@ import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 import { createStudent, createClass } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from "@/lib/select";
+import { updateClass, updateUnit, updateAssignment, updateStudent } from "@/lib/update";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
 import { LegendModal, ClassModal,StudentModal, UnitModal,
@@ -210,11 +211,13 @@ export default function TeacherDashboard() {
 
     const handleStudentEditSubmit = () => {
         // update logic here
+        updateStudent(selectedStudentId, studentName, studentClass,studentUsername, studentPassword);
         setIsStudentEditOpen(false);
     };
 
     const handleClassEditSubmit = () => {
         // handle update logic here
+        updateClass(selectedClassId, className, classTeacherId);
         setIsClassEditOpen(false);
     };
 
@@ -230,7 +233,6 @@ export default function TeacherDashboard() {
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
     // Attach files
     const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, File[]>>>({});
-
 
     // show Dialog attach image
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -360,11 +362,6 @@ export default function TeacherDashboard() {
             {/* Top Banner */}
             <header className="w-full bg-violet-700 px-6 py-4 flex justify-between items-center ">
                <div className="flex space-x-4">
-                   {/*
-                   <button onClick={handleNewAssignmentClick} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                       + New Assignment
-                   </button>
-                    */}
 
                    <div className="relative inline-block text-left">
                        <button

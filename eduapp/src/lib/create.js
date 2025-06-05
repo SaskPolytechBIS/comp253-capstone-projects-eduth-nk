@@ -53,7 +53,6 @@ export async function createUnit(classId, unitName, students, className, content
             { ClassID: `${classId}`, UnitName: `${unitName}`}
         ])
         .select('UnitID')
-        .single()
 
     if (error) {
         console.log("Error inserting unit: " + error.message);
