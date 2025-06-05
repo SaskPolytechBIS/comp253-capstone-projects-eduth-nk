@@ -48,20 +48,6 @@ export async function createClass(className, teacherId) {
     }
 }
 
-export async function createNavMapTemplate(JSON) {
-
-    const { data, error } = await supabase
-        .from('Template')
-        .insert([
-            { JSON: `${JSON}`},
-        ])
-        .select()
-
-    if (error) {
-        console.log("Error creating template: " + error.message)
-    }
-
-}
 
 export async function createAssignment(studentId, teacherId, templateId, assignmentFolder) {
 
