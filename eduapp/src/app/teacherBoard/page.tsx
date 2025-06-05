@@ -154,14 +154,33 @@ export default function TeacherDashboard() {
         loadTeachers();
     }, []);
 
+    useEffect(() => {
+        // Initialize 5 row
+        const initialEvaluations: Record<number, RowEvaluation> = {};
+        for (let i = 0; i < 5; i++) {
+            initialEvaluations[i] = {
+                Basic: { code: "", note: "" },
+                Intermediate: { code: "", note: "" },
+                Advanced: { code: "", note: "" }
+            };
+        }
+        setEvaluations(initialEvaluations);
+    }, []);
+
     //redirects to login if no teacher cookie
     if (teacherId == undefined) {
         router.push('/login')
     }
 
     const handleSelectChange = (event: { target: { value: any; }; }) => {
-        const selectedClass = event.target.value;
-        setClassId(selectedClass);
+        const selectedClassId = event.target.value;
+
+        setClassId(selectedClassId);
+
+        const selectedClass = classes.find(c => String(c.ClassID) === selectedClassId);
+        if (selectedClass) {
+            setClassName(selectedClass.ClassName);
+        }
     }
 
     const handleClassSubmit = () => {
@@ -229,12 +248,25 @@ export default function TeacherDashboard() {
     // show Dialog attach image
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+    type EvaluationData = {
+        code: string;
+        note: string;
+    };
+
+    type RowEvaluation = {
+        [key in ColumnType]: EvaluationData;
+    };
+
+    const [evaluations, setEvaluations] = useState<Record<number, RowEvaluation>>({});
+
     // Evaluation Cell Component
     const EvaluationCell = React.memo(({
                                 row,
                                 column,
                                 attachedFiles,
                                 setAttachedFiles,
+                                evaluations,
+                                setEvaluations
                             }: {
         row: number;
         column: ColumnType;
@@ -242,6 +274,11 @@ export default function TeacherDashboard() {
         setAttachedFiles: React.Dispatch<
             React.SetStateAction<Record<number, Record<ColumnType, File[]>>>
         >;
+        evaluations: Record<number, RowEvaluation>;
+        setEvaluations: React.Dispatch<
+            React.SetStateAction<Record<number, RowEvaluation>>
+        >;
+
     }) => {
         console.log("EvaluationCell render")
         const fileInputRef = useRef<HTMLInputElement>(null);
@@ -268,17 +305,55 @@ export default function TeacherDashboard() {
             }
         };
 
+        // when select dropdown list Legend
+        const handleCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+            const code = e.target.value;
+            setEvaluations(prev => ({
+                ...prev,
+                [row]: {
+                    ...prev[row],
+                    [column]: {
+                        ...(prev[row]?.[column] || { code: "", note: "" }),
+                        code
+                    }
+                }
+            }));
+        };
+
+        // when input note
+        const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            const note = e.target.value;
+            setEvaluations(prev => ({
+                ...prev,
+                [row]: {
+                    ...prev[row],
+                    [column]: {
+                        ...(prev[row]?.[column] || { code: "", note: "" }),
+                        note
+                    }
+                }
+            }));
+        };
+
         return (
             <td className="border p-3 text-center text-xs align-top">
                 <div className="mb-2">
-                    <select className="w-full border rounded px-2 py-1">
-                        <option></option>
+                    <select className="w-full border rounded px-2 py-1"
+                            value={evaluations[row]?.[column]?.code || ""}
+                            onChange={handleCodeChange}
+                    >
+                        <option value=""></option>
                         {legendItems.map((item, idx) => (
-                            <option key={idx}>{item.code}</option>
+                            <option key={idx} value={item.code}>
+                                {item.code}
+                            </option>
                         ))}
                     </select>
                 </div>
-                <textarea className="w-full border rounded px-2 py-1 mb-2 text-xs" placeholder="Note..." />
+                <textarea className="w-full border rounded px-2 py-1 mb-2 text-xs" placeholder="Note..."
+                          value={evaluations[row]?.[column]?.note || ""}
+                          onChange={handleNoteChange}
+                />
                 <div>
                     <button
                         onClick={() => handleAttachClick()}
@@ -350,8 +425,78 @@ export default function TeacherDashboard() {
     const [isDropdownUnitOpen, setIsDropdownUnitOpen] = useState(false);
     const [isUnitMenuOpen, setIsUnitMenuOpen] = useState(false);
 
+    // collect data in textarea
+    const textAreaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
-    // @ts-ignore
+    const gatherEvaluationData = (): any => {
+        const data = [];
+
+        for (let i = 0; i < textAreaRefs.current.length; i++) {
+            const content = textAreaRefs.current[i]?.value || "";
+
+            const rowEvaluation = evaluations[i] || {
+                Basic: { code: "", note: "" },
+                Intermediate: { code: "", note: "" },
+                Advanced: { code: "", note: "" }
+            };
+
+            const rowEval = {
+                content,
+                evaluations: {
+                    Basic: {
+                        code: rowEvaluation.Basic.code,
+                        note: rowEvaluation.Basic.note,
+                        files: attachedFiles[i]?.["Basic"]?.map((f) => f.name) || [],
+                    },
+                    Intermediate: {
+                        code: rowEvaluation.Intermediate.code,
+                        note: rowEvaluation.Intermediate.note,
+                        files: attachedFiles[i]?.["Intermediate"]?.map((f) => f.name) || [],
+                    },
+                    Advanced: {
+                        code: rowEvaluation.Advanced.code,
+                        note: rowEvaluation.Advanced.note,
+                        files: attachedFiles[i]?.["Advanced"]?.map((f) => f.name) || [],
+                    },
+                },
+            };
+
+            data.push(rowEval);
+        }
+
+        return {
+            teacherId,
+            classId,
+          //pending use when have UnitName unitName,
+            timestamp: new Date().toISOString(),
+            entries: data,
+        };
+    };
+
+    // Save to Json file
+    const uploadJsonFile = async () => {
+        // debug
+        const unitName = "unit1";
+        const mapData = gatherEvaluationData();
+
+        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/assignment.json`;
+        const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: "application/json" });
+
+        // const { error } = await supabase.storage
+        //     .from("assignment")
+        //     .upload(filePath, blob, { upsert: true });
+
+        const { error } = await supabase.storage
+            .from('assignment')
+            .upload(filePath, blob, { upsert: true });
+
+        if (error) {
+            console.error("Failed to upload JSON:", error.message);
+        } else {
+            console.log("✅ Uploaded map.json successfully!");
+        }
+    };
+
     return (
         <div className="flex flex-col min-h-screen ">
             {/* Top Banner */}
@@ -697,6 +842,9 @@ export default function TeacherDashboard() {
                                     <tr key={index} className="hover:bg-gray-50">
                                         <td className="border p-3 whitespace-pre-line text-sm align-top">
                                               <textarea
+                                                  ref={el => {
+                                                      textAreaRefs.current[index] = el;
+                                                  }}
                                                   className="w-full border rounded p-2 my-2 "
                                                   rows={4}
                                                   placeholder={`Click to create assignment #${index + 1}`}
@@ -707,18 +855,24 @@ export default function TeacherDashboard() {
                                             column="Basic"
                                             attachedFiles={attachedFiles}
                                             setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
                                         />
                                         <EvaluationCell
                                             row={index}
                                             column="Intermediate"
                                             attachedFiles={attachedFiles}
                                             setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
                                         />
                                         <EvaluationCell
                                             row={index}
                                             column="Advanced"
                                             attachedFiles={attachedFiles}
                                             setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
                                         />
                                     </tr>
                                 ))}
@@ -727,7 +881,12 @@ export default function TeacherDashboard() {
 
                         <div className="text-right mt-4">
                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                                    onClick={uploadFiles}>
+                                    onClick={uploadFiles}
+                                    onClick={async () => {
+                                       // await uploadFiles();
+                                        await uploadJsonFile();
+                                    }}
+                            >
                                 Update Map
                             </button>
                         </div>
