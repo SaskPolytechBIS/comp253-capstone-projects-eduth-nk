@@ -6,7 +6,7 @@ export async function getTeacherClasses(teacherId) {
         .select('ClassID, ClassName')
         .eq('TeacherID', teacherId);
 
-    if (Class == null) {
+    if (error) {
         return error
     } else {
         return Class
@@ -19,7 +19,7 @@ export async function getStudentsFromClass (classId) {
         .select('StudentID,StudentName')
         .eq('ClassID', classId);
 
-    if (Student == null) {
+    if (error) {
         return error
     } else {
         return Student
@@ -36,6 +36,32 @@ export async function getAllTeachers() {
         console.log("Error retrieving teachers: " + error.message)
     } else {
         return Teacher;
+    }
+}
+
+export async function getUnits(classId) {
+    let { data: Units, error } = await supabase
+        .from('Units')
+        .select('UnitID,UnitName')
+        .eq('ClassID', classId)
+
+    if (error) {
+        console.log("Error retrieving units: " + error.message);
+    } else {
+        return Units
+    }
+}
+
+export async function getAssignment(assignmentId) {
+    let { data: Assignment, error } = await supabase
+        .from('Assignment')
+        .select('StudentID,AssignmentFolder,UnitId, JSON')
+        .eq('AssignmentID', `${assignmentId}`)
+
+    if (error) {
+        console.log("Error retrieving assignments: " + error.message)
+    } else {
+        return Assignment
     }
 
 }
