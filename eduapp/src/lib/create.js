@@ -14,7 +14,6 @@ export async function createStudent(studentName, studentClass, studentUsername, 
     } else {
         await createStudentLogin(data.StudentID, studentUsername, studentPassword)
     }
-
 }
 
 async function createStudentLogin(studentId, studentUsername, studentPassword){
