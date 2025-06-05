@@ -12,7 +12,7 @@ import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from
 import { updateClass, updateUnit, updateAssignment, updateStudent } from "@/lib/update";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
-import { LegendModal, ClassModal,StudentModal,
+import { LegendModal, ClassModal,StudentModal, UnitModal,
     EditStudentModal,ClassModalEdit,ClassModalDelete, DeleteStudentModal} from '@/lib/Modals';
 
 
@@ -36,7 +36,6 @@ export default function TeacherDashboard() {
 
     //handle edit
     const [isStudentEditOpen, setIsStudentEditOpen] = useState(false);
-    const [isClassEditOpen, setIsClassEditOpen] = useState(false);
     const [selectedStudentId, setSelectedStudentId] = useState('');
     const [selectedClassId, setSelectedClassId] = useState('');
     //Delete Class
@@ -172,6 +171,17 @@ export default function TeacherDashboard() {
     if (teacherId == undefined) {
         router.push('/login')
     }
+    //handle create UNITs
+    const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
+    const [unitName, setUnitName] = useState('');
+
+    const handleCreateUnit = async () => {
+        //Write create unit here
+
+        console.log('Creating unit:');
+
+    };
+
 
     const handleSelectChange = (event: { target: { value: any; }; }) => {
         const selectedClass = event.target.value;
@@ -205,7 +215,7 @@ export default function TeacherDashboard() {
         console.log("Assignment Content:", content);
         setAssignmentContent(content);
         setIsModalOpen(false);
-        // TODO: save to DB
+
     };
 
 
@@ -218,7 +228,7 @@ export default function TeacherDashboard() {
     const handleClassEditSubmit = () => {
         // handle update logic here
         updateClass(selectedClassId, className, classTeacherId);
-        setIsClassEditOpen(false);
+        setIsClassMenuOpen(false);
     };
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
@@ -540,7 +550,6 @@ export default function TeacherDashboard() {
                        <button
                            onClick={() => {
                                setIsDropdownUnitOpen((prev) => !prev);
-                               setIsDropdownUnitOpen(false);
                            }}
                            className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
                        >
