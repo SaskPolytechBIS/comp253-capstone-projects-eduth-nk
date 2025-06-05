@@ -12,17 +12,30 @@ export async function updateClass(classId, className, teacherId) {
     }
 }
 
-export async function updateStudent(studentId, studentName, classId) {
+export async function updateStudent(studentId, studentName, classId, studentUsername, studentPassword) {
     const { data, error } = await supabase
         .from('Student')
         .update({ StudentName: `${studentName}`, ClassID: `${classId}` })
         .eq('StudentID', `${studentId}`)
+        .select('StudentID')
+
+    if (error) {
+        console.log("Error updating student: " + error.message);
+    } else {
+        updateStudentLogin(studentId, studentUsername, studentPassword)
+    }
+}
+
+async function updateStudentLogin(studentId, studentUsername, studentPassword) {
+    const { data, error } = await supabase
+        .from('StudentLogin')
+        .update({ Username: `${studentUsername}`, Password: `${studentPassword}`})
+        .eq('StudentID', `${studentId}`)
         .select()
 
     if (error) {
-        console.log("Error updating classes: " + error.message);
+        console.log("Error updating student login: " + error.message)
     }
-
 }
 
 export async function updateUnit(unitId, unitName) {

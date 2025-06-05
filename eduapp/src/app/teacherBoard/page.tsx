@@ -9,6 +9,7 @@ import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 import { createStudent, createClass } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from "@/lib/select";
+import { updateClass, updateUnit, updateAssignment, updateStudent } from "@/lib/update";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
 import { LegendModal, ClassModal,StudentModal,
@@ -197,41 +198,22 @@ export default function TeacherDashboard() {
     const [selectedStudentId, setSelectedStudentId] = useState('');
     const [selectedClassId, setSelectedClassId] = useState('');
 
-    //handle new student and add class & edit
-    const handleNewClass = () => setShowClassModal(true);
-    const handleNewStudent = () => setShowStudentModal(true);
-    const handleStudentEdit = () => {setIsStudentEditOpen(true);};
 
     const handleStudentEditSubmit = () => {
         // update logic here
+        updateStudent(selectedStudentId, studentName, studentClass,studentUsername, studentPassword);
         setIsStudentEditOpen(false);
     };
 
-    const handleClassEdit = () => {
-        setIsClassEditOpen(true);
-    };
     const handleClassEditSubmit = () => {
         // handle update logic here
+        updateClass(selectedClassId, className, classTeacherId);
         setIsClassEditOpen(false);
     };
-    //handle files upload
-    const uploadEvidence = ()=>{
-        console.log("Evidence Upload");
-
-    }
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
     // Attach files
     const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, File[]>>>({});
-
-    // Dummy data
-    const dummyData = [
-        { content: `The project's main goal is to supplement the Building Thinking Classroom framework.` },
-        { content: `This project features a database designed to store files uploaded by teachers and students.` },
-        { content: `Considerations should be made towards the functionality of the application.` },
-        { content: `This fourth dummy record can simulate a collaborative environment.` },
-        { content: `Finally, this record rounds out the demo with full interaction capability.` },
-    ];
 
     // show Dialog attach image
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -347,9 +329,6 @@ export default function TeacherDashboard() {
     // show menu class
     const [isClassMenuOpen, setIsClassMenuOpen] = useState(false);
     const [isDropdownClassOpen, setIsDropdownClassOpen] = useState(false);
-    //delete
-    const [isClassDeleteMenuOpen, setIsClassDeleteMenuOpen] = useState(false);
-    const [isDropdownDeleteClassOpen, setIsDropdownDeleteClassOpen] = useState(false);
     // show menu student
     const [isStudentMenuOpen, setIsStudentMenuOpen] = useState(false);
     const [isDropdownStudentOpen, setIsDropdownStudentOpen] = useState(false);
@@ -360,11 +339,6 @@ export default function TeacherDashboard() {
             {/* Top Banner */}
             <header className="w-full bg-violet-700 px-6 py-4 flex justify-between items-center ">
                <div className="flex space-x-4">
-                   {/*
-                   <button onClick={handleNewAssignmentClick} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                       + New Assignment
-                   </button>
-                    */}
 
                    <div className="relative inline-block text-left">
                        <button
