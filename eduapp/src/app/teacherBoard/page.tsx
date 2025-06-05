@@ -12,7 +12,7 @@ import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from
 import { updateClass, updateUnit, updateAssignment, updateStudent } from "@/lib/update";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
-import { LegendModal, ClassModal,StudentModal, UnitModal,
+import { LegendModal, ClassModal,StudentModal,
     EditStudentModal,ClassModalEdit,ClassModalDelete, DeleteStudentModal} from '@/lib/Modals';
 
 
@@ -219,15 +219,6 @@ export default function TeacherDashboard() {
         // handle update logic here
         updateClass(selectedClassId, className, classTeacherId);
         setIsClassEditOpen(false);
-    };
-
-    //handle unit items
-    const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
-    const [unitName, setUnitName] = useState('')
-    const handleCreateUnit = async () => {
-
-        console.log('Creating unit:', { unitName, classId });
-
     };
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
@@ -590,18 +581,6 @@ export default function TeacherDashboard() {
                        )}
 
                        {/* Modal Unit */}
-
-                       {/* Create Modal Unit */}
-                       <UnitModal
-                           isOpen={isUnitModalOpen}
-                           onClose={() => setIsUnitModalOpen(false)}
-                           onSubmit={handleCreateUnit}
-                           unitName={unitName}
-                           setUnitName={setUnitName}
-                           classId={classId}
-                           setClassId={setClassId}
-                           classes={classes}
-                       />
 
                    </div>
                </div>
