@@ -85,7 +85,7 @@ export default function TeacherDashboard() {
         if (teacherId) {
             loadClasses();
         }
-    }, [teacherId]);
+    });
 
     //update students useEffect. WILL BE STATIC WITHOUT
     useEffect(() => {
