@@ -10,6 +10,7 @@ import Cookies from "js-cookie";
 import { createStudent, createClass } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from "@/lib/select";
 import { updateClass, updateUnit, updateAssignment, updateStudent } from "@/lib/update";
+import { deleteClass, deleteStudent } from "@/lib/delete";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
 import { LegendModal, ClassModal,StudentModal, UnitModal,
@@ -41,31 +42,9 @@ export default function TeacherDashboard() {
     const [selectedClassId, setSelectedClassId] = useState('');
     //Delete Class
     const [isDeleteModalClassOpen, setIsDeleteModalClassOpen] = useState(false);
-    const handleDelete = async () => {
-        if (!selectedClassId) return;
-
-        try {
-            //Add more if needed
-            console.log("Deleted class ID:", selectedClassId);
-
-        } catch (error) {
-            console.error("Failed to delete class:", error);
-        }
-    };
-
     //Delete Student
     const [isDeleteModalStudentOpen, setIsDeleteModalStudentOpen] = useState(false);
-    const handleDeleteStudent = async () => {
-        if (!selectedStudentId) return;
 
-        try {
-            //Add more if needed
-            console.log("Deleted Student Id:", selectedStudentId);
-
-        } catch (error) {
-            console.error("Failed to delete class:", error);
-        }
-    };
     //show pop up for legend
     const [showPopup, setShowPopup] = useState(false);
 
@@ -210,15 +189,12 @@ export default function TeacherDashboard() {
         redirect("/login");// Redirect to login
     };
 
-
-
     const handleModalSave = (content: string) => {
         console.log("Assignment Content:", content);
         setAssignmentContent(content);
         setIsModalOpen(false);
 
     };
-
 
     const handleStudentEditSubmit = () => {
         // update logic here
@@ -237,9 +213,16 @@ export default function TeacherDashboard() {
         setIsClassMenuOpen(false);
     };
 
+    const handleDelete = async () => {
+        if (!selectedClassId) return;
+        deleteClass(selectedClassId);
 
+    };
 
-
+    const handleDeleteStudent = async () => {
+        if (!selectedStudentId) return;
+        deleteStudent(selectedStudentId);
+    };
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
     // Attach files
