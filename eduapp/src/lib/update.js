@@ -25,14 +25,28 @@ export async function updateStudent(studentId, studentName, classId) {
 
 }
 
-export async function updateTemplate(JSON, templateId) {
+export async function updateUnit(unitId, unitName) {
     const { data, error } = await supabase
-        .from('Template')
-        .update({ JSON: `${JSON}` })
-        .eq('TemplateID', `${templateId}` )
+        .from('Units')
+        .update({ UnitName: `${unitName}` })
+        .eq('UnitID', `${unitId}`)
         .select()
 
     if (error) {
-        console.log("Error updating template: " + error.message)
+        console.log("Error updating unit: " + error.message)
     }
+}
+
+export async function updateAssignment (assignmentId, JSON) {
+
+    const { data, error } = await supabase
+        .from('Assignment')
+        .update({ JSON: `${JSON}` })
+        .eq('AssignmentID', `${assignmentId}`)
+        .select()
+
+    if (error) {
+        console.log("Error updating assignment: " + error.message)
+    }
+
 }

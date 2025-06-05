@@ -22,14 +22,13 @@ export async function deleteStudent (studentId) {
     }
 }
 
-export async function deleteNavMap(navMapId) {
-
+export async function deleteUnit (unitId){
     const { error } = await supabase
-        .from('NavigationMap')
+        .from('Units')
         .delete()
-        .eq('NavMapID', `${navMapId}`)
+        .eq('UnitID', `${unitId}`)
 
     if (error) {
-        console.log("Error deleting navigation map: " + error.message)
+        console.log("Error deleting unit: " + error.message)
     }
 }
