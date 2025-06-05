@@ -35,8 +35,6 @@ export default function TeacherDashboard() {
 
     //handle edit
     const [isStudentEditOpen, setIsStudentEditOpen] = useState(false);
-    const [isStudentDeleteOpen, setIsStudentDeleteOpen] = useState(false);
-    const [isDropdownDeleteStudentOpen, setIsDropdownDeleteStudentOpen] = useState(false);
     const [isClassEditOpen, setIsClassEditOpen] = useState(false);
     const [selectedStudentId, setSelectedStudentId] = useState('');
     const [selectedClassId, setSelectedClassId] = useState('');
@@ -200,31 +198,16 @@ export default function TeacherDashboard() {
         setIsStudentEditOpen(false);
     };
 
-    const handleClassEdit = () => {
-        setIsClassEditOpen(true);
-    };
     const handleClassEditSubmit = () => {
         // handle update logic here
         setIsClassEditOpen(false);
     };
-    //handle files upload
-    const uploadEvidence = ()=>{
-        console.log("Evidence Upload");
 
-    }
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
     // Attach files
     const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, File[]>>>({});
 
-    // Dummy data
-    const dummyData = [
-        { content: `The project's main goal is to supplement the Building Thinking Classroom framework.` },
-        { content: `This project features a database designed to store files uploaded by teachers and students.` },
-        { content: `Considerations should be made towards the functionality of the application.` },
-        { content: `This fourth dummy record can simulate a collaborative environment.` },
-        { content: `Finally, this record rounds out the demo with full interaction capability.` },
-    ];
 
     // show Dialog attach image
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -340,9 +323,6 @@ export default function TeacherDashboard() {
     // show menu class
     const [isClassMenuOpen, setIsClassMenuOpen] = useState(false);
     const [isDropdownClassOpen, setIsDropdownClassOpen] = useState(false);
-    //delete
-    const [isClassDeleteMenuOpen, setIsClassDeleteMenuOpen] = useState(false);
-    const [isDropdownDeleteClassOpen, setIsDropdownDeleteClassOpen] = useState(false);
     // show menu student
     const [isStudentMenuOpen, setIsStudentMenuOpen] = useState(false);
     const [isDropdownStudentOpen, setIsDropdownStudentOpen] = useState(false);
