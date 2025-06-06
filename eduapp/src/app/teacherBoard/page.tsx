@@ -254,51 +254,47 @@ export default function TeacherDashboard() {
 
     // Evaluation Cell Component
     const EvaluationCell = React.memo(({
-                                row,
-                                column,
-                                attachedFiles,
-                                setAttachedFiles,
-                                evaluations,
-                                setEvaluations
-                            }: {
+                                           row,
+                                           column,
+                                           attachedFiles,
+                                           setAttachedFiles,
+                                           evaluations,
+                                           setEvaluations
+                                       }: {
         row: number;
         column: ColumnType;
         attachedFiles: Record<number, Record<ColumnType, File[]>>;
-        setAttachedFiles: React.Dispatch<
-            React.SetStateAction<Record<number, Record<ColumnType, File[]>>>
-        >;
+        setAttachedFiles: React.Dispatch<React.SetStateAction<Record<number, Record<ColumnType, File[]>>>>;
         evaluations: Record<number, RowEvaluation>;
-        setEvaluations: React.Dispatch<
-            React.SetStateAction<Record<number, RowEvaluation>>
-        >;
-
+        setEvaluations: React.Dispatch<React.SetStateAction<Record<number, RowEvaluation>>>;
     }) => {
-        console.log("EvaluationCell render")
         const fileInputRef = useRef<HTMLInputElement>(null);
+        const [note, setNote] = useState(evaluations[row]?.[column]?.note || "");
+        const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+        useEffect(() => {
+            // Sync with external evaluations if changed outside
+            setNote(evaluations[row]?.[column]?.note || "");
+        }, [evaluations, row, column]);
 
         const handleAttachClick = () => {
-            console.log("go to handleAttachClick")
             fileInputRef.current?.click();
         };
 
         const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            console.log("go to handleFileChange")
             const file = e.target.files?.[0];
             if (file) {
-                setAttachedFiles((prev) => ({
+                setAttachedFiles(prev => ({
                     ...prev,
                     [row]: {
                         ...prev[row],
-                        [column]: [...(prev[row]?.[column] || []), file],
-                    },
+                        [column]: [...(prev[row]?.[column] || []), file]
+                    }
                 }));
-
-                // Show dialog
-                setIsDialogOpen(true);
+                setIsDialogOpen(true); // Show success dialog
             }
         };
 
-        // when select dropdown list Legend
         const handleCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
             const code = e.target.value;
             setEvaluations(prev => ({
@@ -313,9 +309,11 @@ export default function TeacherDashboard() {
             }));
         };
 
-        // when input note
         const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-            const note = e.target.value;
+            setNote(e.target.value);
+        };
+
+        const handleNoteBlur = () => {
             setEvaluations(prev => ({
                 ...prev,
                 [row]: {
@@ -329,27 +327,31 @@ export default function TeacherDashboard() {
         };
 
         return (
-            <td className="border p-3 text-center text-xs align-top">
+            <td className="border p-3 text-center text-xs align-top relative">
                 <div className="mb-2">
-                    <select className="w-full border rounded px-2 py-1"
-                            value={evaluations[row]?.[column]?.code || ""}
-                            onChange={handleCodeChange}
+                    <select
+                        className="w-full border rounded px-2 py-1"
+                        value={evaluations[row]?.[column]?.code || ""}
+                        onChange={handleCodeChange}
                     >
                         <option value=""></option>
                         {legendItems.map((item, idx) => (
-                            <option key={idx} value={item.code}>
-                                {item.code}
-                            </option>
+                            <option key={idx} value={item.code}>{item.code}</option>
                         ))}
                     </select>
                 </div>
-                <textarea className="w-full border rounded px-2 py-1 mb-2 text-xs" placeholder="Note..."
-                          value={evaluations[row]?.[column]?.note || ""}
-                          onChange={handleNoteChange}
+
+                <textarea
+                    className="w-full border rounded px-2 py-1 mb-2 text-xs"
+                    placeholder="Note..."
+                    value={note}
+                    onChange={handleNoteChange}
+                    onBlur={handleNoteBlur}
                 />
+
                 <div>
                     <button
-                        onClick={() => handleAttachClick()}
+                        onClick={handleAttachClick}
                         className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 text-xs"
                     >
                         Attach
@@ -362,25 +364,24 @@ export default function TeacherDashboard() {
                             ))}
                         </ul>
                     )}
-                    {/* Upload Successful Dialog */}
-                    {isDialogOpen && (
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-                            <div className="bg-white border border-gray-300 p-4 rounded shadow-lg max-w-sm text-center">
-                                <h2 className="text-base font-semibold mb-2">Attach Successful</h2>
-                                <button
-                                    onClick={() => setIsDialogOpen(false)}
-                                    className="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                                >
-                                    OK
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
                 </div>
+
+                {/* Upload Success Dialog */}
+                {isDialogOpen && (
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white border border-gray-300 p-4 rounded shadow-lg text-center">
+                        <h2 className="text-sm font-semibold mb-2">Attach Successful</h2>
+                        <button
+                            onClick={() => setIsDialogOpen(false)}
+                            className="px-4 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                        >
+                            OK
+                        </button>
+                    </div>
+                )}
             </td>
         );
     });
+
 
     // Save image to DB
     const uploadFiles = async () => {
