@@ -236,17 +236,10 @@ export default function TeacherDashboard() {
     // Attach files
     const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, File[]>>>({});
 
-    // Dummy data
-    const dummyData = [
-        { content: `The project's main goal is to supplement the Building Thinking Classroom framework.` },
-        { content: `This project features a database designed to store files uploaded by teachers and students.` },
-        { content: `Considerations should be made towards the functionality of the application.` },
-        { content: `This fourth dummy record can simulate a collaborative environment.` },
-        { content: `Finally, this record rounds out the demo with full interaction capability.` },
-    ];
-
     // show Dialog attach image
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    // show Dialog update successful
+    const [isUploadSuccessDialogOpen, setIsUploadSuccessDialogOpen] = useState(false);
 
     type EvaluationData = {
         code: string;
@@ -481,10 +474,6 @@ export default function TeacherDashboard() {
 
         const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/assignment.json`;
         const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: "application/json" });
-
-        // const { error } = await supabase.storage
-        //     .from("assignment")
-        //     .upload(filePath, blob, { upsert: true });
 
         const { error } = await supabase.storage
             .from('assignment')
@@ -881,10 +870,11 @@ export default function TeacherDashboard() {
 
                         <div className="text-right mt-4">
                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                                    onClick={uploadFiles}
                                     onClick={async () => {
-                                       // await uploadFiles();
+                                        await uploadFiles();
                                         await uploadJsonFile();
+                                        // show dialog
+                                        setIsUploadSuccessDialogOpen(true);
                                     }}
                             >
                                 Update Map
@@ -894,7 +884,20 @@ export default function TeacherDashboard() {
                 </div>
 
             </div>
-
+            {isUploadSuccessDialogOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
+                    <div className="bg-white p-6 rounded shadow-lg max-w-sm text-center">
+                        <h2 className="text-base font-semibold mb-2">Update Successful</h2>
+                        <p className="mb-4 text-sm">Your evaluation data has been saved successfully.</p>
+                        <button
+                            onClick={() => setIsUploadSuccessDialogOpen(false)}
+                            className="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
             {/* Modal Component */}
             <ClientEditorModal
                 isOpen={isModalOpen}
