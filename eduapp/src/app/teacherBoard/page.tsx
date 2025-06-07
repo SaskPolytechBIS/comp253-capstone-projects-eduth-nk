@@ -133,6 +133,10 @@ export default function TeacherDashboard() {
                 }
 
                 setStudents(studentsResult);
+
+                // load data first student
+                setStudentName(studentsResult[0].StudentName);
+                loadEvaluationFromJson(studentsResult[0].StudentName);
             } catch (error) {
                 alert("Unexpected error: " + error);
             }
@@ -172,7 +176,22 @@ export default function TeacherDashboard() {
         router.push('/login')
     }
 
-    const handleSelectChange = (event: { target: { value: any; }; }) => {
+    // reset input
+    const resetEvaluationUI = () => {
+        // Textarea
+        textAreaRefs.current.forEach(ref => {
+            if (ref) ref.value = "";
+        });
+
+        // Reset evaluations
+        setEvaluations({});
+
+        // Reset attached files
+        setAttachedFiles({});
+    };
+
+    // when change dropdown list class
+    const handleSelectClassChange = (event: { target: { value: any; }; }) => {
         const selectedClassId = event.target.value;
 
         setClassId(selectedClassId);
@@ -423,47 +442,41 @@ export default function TeacherDashboard() {
     const textAreaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
     const gatherEvaluationData = (): any => {
-        const data = [];
+        const entries: AssignmentEntry[] = Array.from({ length: 5 }).map((_, index) => {
+            const content = textAreaRefs.current[index]?.value || "";
+            const rowEval = evaluations[index] || {};
 
-        for (let i = 0; i < textAreaRefs.current.length; i++) {
-            const content = textAreaRefs.current[i]?.value || "";
+            const basicEval = rowEval["Basic"] || { code: "", note: "", files: [] };
+            const intermediateEval = rowEval["Intermediate"] || { code: "", note: "", files: [] };
+            const advancedEval = rowEval["Advanced"] || { code: "", note: "", files: [] };
 
-            const rowEvaluation = evaluations[i] || {
-                Basic: { code: "", note: "" },
-                Intermediate: { code: "", note: "" },
-                Advanced: { code: "", note: "" }
-            };
-
-            const rowEval = {
+            return {
                 content,
                 evaluations: {
                     Basic: {
-                        code: rowEvaluation.Basic.code,
-                        note: rowEvaluation.Basic.note,
-                        files: attachedFiles[i]?.["Basic"]?.map((f) => f.name) || [],
+                        code: basicEval.code || "",
+                        note: basicEval.note || "",
+                        files: attachedFiles[index]?.["Basic"]?.map(file => file.name) || [],
                     },
                     Intermediate: {
-                        code: rowEvaluation.Intermediate.code,
-                        note: rowEvaluation.Intermediate.note,
-                        files: attachedFiles[i]?.["Intermediate"]?.map((f) => f.name) || [],
+                        code: intermediateEval.code || "",
+                        note: intermediateEval.note || "",
+                        files: attachedFiles[index]?.["Intermediate"]?.map(file => file.name) || [],
                     },
                     Advanced: {
-                        code: rowEvaluation.Advanced.code,
-                        note: rowEvaluation.Advanced.note,
-                        files: attachedFiles[i]?.["Advanced"]?.map((f) => f.name) || [],
+                        code: advancedEval.code || "",
+                        note: advancedEval.note || "",
+                        files: attachedFiles[index]?.["Advanced"]?.map(file => file.name) || [],
                     },
                 },
             };
-
-            data.push(rowEval);
-        }
+        });
 
         return {
-            teacherId,
-            classId,
-          //pending use when have UnitName unitName,
+            teacherId: Cookies.get("teacherId") || "",
+            classId: classId || "",
             timestamp: new Date().toISOString(),
-            entries: data,
+            entries,
         };
     };
 
@@ -473,7 +486,7 @@ export default function TeacherDashboard() {
         const unitName = "unit1";
         const mapData = gatherEvaluationData();
 
-        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/assignment.json`;
+        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentName}/assignment.json`;
         const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: "application/json" });
 
         const { error } = await supabase.storage
@@ -484,6 +497,63 @@ export default function TeacherDashboard() {
             console.error("Failed to upload JSON:", error.message);
         } else {
             console.log("✅ Uploaded map.json successfully!");
+        }
+    };
+
+    const loadEvaluationFromJson = async (studentName: string) => {
+        const unitName = "unit1";
+        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentName}/assignment.json`;
+
+        const { data, error } = await supabase.storage
+            .from("assignment")
+            .download(filePath);
+
+        if (error) {
+            resetEvaluationUI();
+            return;
+        }
+
+        try {
+            const text = await data.text();
+            const json = JSON.parse(text);
+
+            if (json && json.entries) {
+                for (let i = 0; i < json.entries.length; i++) {
+                    textAreaRefs.current[i]!.value = json.entries[i].content || "";
+                }
+
+                const loadedEvaluations: Record<number, RowEvaluation> = {};
+                const loadedFiles: Record<number, Record<ColumnType, File[]>> = {};
+
+                json.entries.forEach((entry: any, index: number) => {
+                    loadedEvaluations[index] = {
+                        Basic: {
+                            code: entry.evaluations.Basic.code || "",
+                            note: entry.evaluations.Basic.note || "",
+                        },
+                        Intermediate: {
+                            code: entry.evaluations.Intermediate.code || "",
+                            note: entry.evaluations.Intermediate.note || "",
+                        },
+                        Advanced: {
+                            code: entry.evaluations.Advanced.code || "",
+                            note: entry.evaluations.Advanced.note || "",
+                        }
+                    };
+
+                    loadedFiles[index] = {
+                        Basic: (entry.evaluations.Basic.files || []).map((name: string) => new File([], name)),
+                        Intermediate: (entry.evaluations.Intermediate.files || []).map((name: string) => new File([], name)),
+                        Advanced: (entry.evaluations.Advanced.files || []).map((name: string) => new File([], name)),
+                    };
+                });
+
+                setEvaluations(loadedEvaluations);
+                setAttachedFiles(loadedFiles);
+            }
+
+        } catch (parseError) {
+            console.error("Error parsing JSON:", parseError);
         }
     };
 
@@ -762,7 +832,7 @@ export default function TeacherDashboard() {
                             {/*
                             Populates class list with classes
                             */}
-                            <select className="w-full border rounded px-3 py-2" onChange={handleSelectChange} >
+                            <select className="w-full border rounded px-3 py-2" onChange={handleSelectClassChange} >
                                 {classes.map((classes) => (
                                     <option key={classes.ClassID} value={classes.ClassID}>
                                         {classes.ClassName}
@@ -788,7 +858,14 @@ export default function TeacherDashboard() {
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Student</label>
-                            <select className="w-full border rounded px-3 py-2">
+                            <select className="w-full border rounded px-3 py-2"
+                                    onChange={(e) => {
+
+                                        setStudentName(e.target.value);
+                                        const selectedName = e.target.value;
+                                        loadEvaluationFromJson(selectedName);
+                                    }}
+                            >
                                 {students.map((students) => (
                                     <option key={students.StudentID} value={students.StudentName}>
                                         {students.StudentName}
@@ -881,6 +958,7 @@ export default function TeacherDashboard() {
                                 Update Map
                             </button>
                         </div>
+
                     </div>
                 </div>
 
