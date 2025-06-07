@@ -157,9 +157,9 @@ export default function TeacherDashboard() {
 
     const handleCreateUnit = async () => {
         //Write create unit here
-
+        
         console.log('Creating unit:');
-
+        setIsUnitModalOpen(false)
     };
 
 
@@ -179,6 +179,7 @@ export default function TeacherDashboard() {
         console.log("Student:", studentName, "Username:", studentUsername, "Password:", studentPassword, "Class", studentClass);
         setStudentName("");
         setStudentUsername("");
+        setStudentPassword("")
         setShowStudentModal(false);
         createStudent(studentName, studentClass, studentUsername, studentPassword);
     };
@@ -587,7 +588,17 @@ export default function TeacherDashboard() {
                        )}
 
                        {/* Modal Unit */}
-
+                       {/* Create Unit Modal */}
+                       <UnitModal
+                           isOpen={isUnitModalOpen}
+                           onClose={() => setIsUnitModalOpen(false)}
+                           onSubmit={handleCreateUnit}
+                           unitName={unitName}
+                           setUnitName={setUnitName}
+                           classId={classId}
+                           setClassId={setClassId}
+                           classes={classes}
+                       />
                    </div>
                </div>
 
