@@ -38,11 +38,11 @@ async function updateStudentLogin(studentId, studentUsername, studentPassword) {
     }
 }
 
-export async function updateUnit(unitId, unitName) {
+export async function updateUnit(unitId, unitName, classId) {
     const { data, error } = await supabase
         .from('Units')
         .update({ UnitName: `${unitName}` })
-        .eq('UnitID', `${unitId}`)
+        .eq('UnitID', `${unitId}`, 'ClassID', `${classId}`)
         .select()
 
     if (error) {

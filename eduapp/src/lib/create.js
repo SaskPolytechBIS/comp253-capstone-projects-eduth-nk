@@ -125,7 +125,7 @@ export async function createUnit(classId, unitName, students, className, content
     }
 }
 
-export async function createAssignment(unitId, unitName, students, className, JSON) {
+async function createAssignment(unitId, unitName, students, className, JSON) {
 
     for (const StudentID of students) {
 

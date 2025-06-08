@@ -7,10 +7,10 @@ import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
-import { createStudent, createClass } from '@/lib/create';
+import { createStudent, createClass, createUnit } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from "@/lib/select";
 import { updateClass, updateUnit, updateAssignment, updateStudent } from "@/lib/update";
-import { deleteClass, deleteStudent } from "@/lib/delete";
+import { deleteClass, deleteStudent, deleteUnit } from "@/lib/delete";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
 import {
@@ -88,7 +88,7 @@ export default function TeacherDashboard() {
         if (teacherId) {
             loadClasses();
         }
-    });
+    }, []);
 
     //update students useEffect. WILL BE STATIC WITHOUT
     useEffect(() => {
@@ -125,6 +125,10 @@ export default function TeacherDashboard() {
 
         fetchStudents();
 
+        return () => {
+            isCurrent = false;
+        }
+
     }, [classId]);
 
     //update teachers. WILL BE STATIC OTHERWISE
@@ -140,21 +144,7 @@ export default function TeacherDashboard() {
         loadTeachers();
     }, []);
 
-
     //get units
-    useEffect(() => {
-        // Initialize 5 row
-        const initialEvaluations: Record<number, RowEvaluation> = {};
-        for (let i = 0; i < 5; i++) {
-            initialEvaluations[i] = {
-                Basic: { code: "", note: "" },
-                Intermediate: { code: "", note: "" },
-                Advanced: { code: "", note: "" }
-            };
-        }
-        setEvaluations(initialEvaluations);
-    }, []);
-
     useEffect(() => {
         if (!classId) {
             return;
@@ -203,6 +193,7 @@ export default function TeacherDashboard() {
     const handleCreateUnit = () => {
         console.log("Creating unit:", unitName);
         // call API
+        //createUnit()
         setIsUnitModalOpen(false);
         setUnitName('');
     };
@@ -210,6 +201,7 @@ export default function TeacherDashboard() {
     const handleEditUnitSubmit = () => {
         console.log("Editing unit:", selectedUnitId, unitName);
         // call API
+        updateUnit(selectedUnitId, unitName, classId)
         setIsEditUnitOpen(false);
         setSelectedUnitId('');
         setUnitName('');
@@ -218,6 +210,7 @@ export default function TeacherDashboard() {
     const handleDeleteUnit = () => {
         console.log("Deleting unit:", selectedUnitId);
         // call API
+        deleteUnit(selectedUnitId)
         setIsDeleteUnitOpen(false);
         setSelectedUnitId('');
     };
@@ -295,7 +288,7 @@ export default function TeacherDashboard() {
         setIsClassMenuOpen(false);
     };
 
-    const handleDelete = async () => {
+    const handleDeleteClass = async () => {
         if (!selectedClassId) return;
         deleteClass(selectedClassId);
         setIsDeleteModalClassOpen(false);
@@ -567,6 +560,13 @@ export default function TeacherDashboard() {
         const unitName = "unit1";
         const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentId}/assignment.json`;
 
+        console.log(filePath)
+
+        if (Number(studentId) <= 1) {
+            return;
+        }
+
+
         const { data, error } = await supabase.storage
             .from("assignment")
             .download(filePath);
@@ -698,7 +698,7 @@ export default function TeacherDashboard() {
                        <ClassModalDelete
                            isOpen={isDeleteModalClassOpen}
                            onClose={() => setIsDeleteModalClassOpen(false)}
-                           onDelete={handleDelete}
+                           onDelete={handleDeleteClass}
                            selectedClassId={selectedClassId}
                            setSelectedClassId={setSelectedClassId}
                            classes={classes}
