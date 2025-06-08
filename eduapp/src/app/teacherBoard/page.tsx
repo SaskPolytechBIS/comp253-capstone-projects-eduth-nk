@@ -13,8 +13,10 @@ import { updateClass, updateUnit, updateAssignment, updateStudent } from "@/lib/
 import { deleteClass, deleteStudent } from "@/lib/delete";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
-import { LegendModal, ClassModal,StudentModal, UnitModal,
-    EditStudentModal,ClassModalEdit,ClassModalDelete, DeleteStudentModal} from '@/lib/Modals';
+import {
+    LegendModal, ClassModal, StudentModal, UnitModal,
+    EditStudentModal, ClassModalEdit, ClassModalDelete, DeleteStudentModal, UnitModalEdit, UnitModalDelete
+} from '@/lib/Modals';
 
 
 
@@ -30,6 +32,7 @@ export default function TeacherDashboard() {
     const [showStudentModal, setShowStudentModal] = useState(false);
     const [className, setClassName] = useState("");
     const [studentName, setStudentName] = useState("");
+    const [studentId, setStudentId] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
     const [studentClass, setStudentClass] = useState("");
@@ -113,6 +116,7 @@ export default function TeacherDashboard() {
 
                 // load data first student
                 setStudentName(studentsResult[0].StudentName);
+                setStudentId(studentsResult[0].StudentID)
                 loadEvaluationFromJson(studentsResult[0].StudentName);
             } catch (error) {
                 alert("Unexpected error: " + error);
@@ -171,12 +175,30 @@ export default function TeacherDashboard() {
     //handle create UNITs
     const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
     const [unitName, setUnitName] = useState('');
+    const [isEditUnitOpen, setIsEditUnitOpen] = useState(false);
+    const [isDeleteUnitOpen, setIsDeleteUnitOpen] = useState(false);
+    const [selectedUnitId, setSelectedUnitId] = useState('');
 
-    const handleCreateUnit = async () => {
-        //Write create unit here
+    const handleCreateUnit = () => {
+        console.log("Creating unit:", unitName);
+        // call API
+        setIsUnitModalOpen(false);
+        setUnitName('');
+    };
 
-        console.log('Creating unit:');
+    const handleEditUnitSubmit = () => {
+        console.log("Editing unit:", selectedUnitId, unitName);
+        // call API
+        setIsEditUnitOpen(false);
+        setSelectedUnitId('');
+        setUnitName('');
+    };
 
+    const handleDeleteUnit = () => {
+        console.log("Deleting unit:", selectedUnitId);
+        // call API
+        setIsDeleteUnitOpen(false);
+        setSelectedUnitId('');
     };
 
 
@@ -453,6 +475,15 @@ export default function TeacherDashboard() {
     // collect data in textarea
     const textAreaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
+    type AssignmentEntry = {
+        content: string;
+        evaluations: {
+            Basic: EvaluationData;
+            Intermediate: EvaluationData;
+            Advanced: EvaluationData;
+        };
+    };
+
     const gatherEvaluationData = (): any => {
         const entries: AssignmentEntry[] = Array.from({ length: 5 }).map((_, index) => {
             const content = textAreaRefs.current[index]?.value || "";
@@ -498,7 +529,7 @@ export default function TeacherDashboard() {
         const unitName = "unit1";
         const mapData = gatherEvaluationData();
 
-        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentName}/assignment.json`;
+        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentId}/assignment.json`;
         const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: "application/json" });
 
         const { error } = await supabase.storage
@@ -514,7 +545,7 @@ export default function TeacherDashboard() {
 
     const loadEvaluationFromJson = async (studentName: string) => {
         const unitName = "unit1";
-        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentName}/assignment.json`;
+        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentId}/assignment.json`;
 
         const { data, error } = await supabase.storage
             .from("assignment")
@@ -761,6 +792,8 @@ export default function TeacherDashboard() {
                        <button
                            onClick={() => {
                                setIsDropdownUnitOpen((prev) => !prev);
+                               setIsDropdownClassOpen(false);
+                               setIsDropdownStudentOpen(false);
                            }}
                            className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
                        >
@@ -771,7 +804,7 @@ export default function TeacherDashboard() {
                            <div className="absolute z-10 mt-2 w-44 bg-white rounded shadow-md border border-gray-200 text-black">
                                <button
                                    onClick={() => {
-                                       setIsUnitMenuOpen(true);
+                                       setIsUnitModalOpen(true);
                                        setIsDropdownUnitOpen(false);
                                    }}
                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -780,7 +813,7 @@ export default function TeacherDashboard() {
                                </button>
                                <button
                                    onClick={() => {
-                                       setIsUnitMenuOpen(true);
+                                       setIsEditUnitOpen(true);
                                        setIsDropdownUnitOpen(false);
                                    }}
                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -789,19 +822,53 @@ export default function TeacherDashboard() {
                                </button>
                                <button
                                    onClick={() => {
-                                       setIsUnitMenuOpen(true);
+                                       setIsDeleteUnitOpen(true);
                                        setIsDropdownUnitOpen(false);
                                    }}
                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                                >
                                    Delete Unit
                                </button>
-
                            </div>
                        )}
 
-                       {/* Modal Unit */}
+                       {/* Modal Create */}
+                       <UnitModal
+                           isOpen={isUnitModalOpen}
+                           onClose={() => setIsUnitModalOpen(false)}
+                           onSubmit={handleCreateUnit}
+                           unitName={unitName}
+                           setUnitName={setUnitName}
+                       />
 
+                       {/* Modal Edit */}
+                       <UnitModalEdit
+                           isOpen={isEditUnitOpen}
+                           onClose={() => {
+                               setIsEditUnitOpen(false);
+                               setSelectedUnitId('');
+                               setUnitName('');
+                           }}
+                           onSubmit={handleEditUnitSubmit}
+                           selectedUnitId={selectedUnitId}
+                           setSelectedUnitId={setSelectedUnitId}
+                           unitName={unitName}
+                           setUnitName={setUnitName}
+                           units={units}
+                       />
+
+                       {/* Modal Delete */}
+                       <UnitModalDelete
+                           isOpen={isDeleteUnitOpen}
+                           onClose={() => {
+                               setIsDeleteUnitOpen(false);
+                               setSelectedUnitId('');
+                           }}
+                           onDelete={handleDeleteUnit}
+                           selectedUnitId={selectedUnitId}
+                           setSelectedUnitId={setSelectedUnitId}
+                           units={units}
+                       />
                    </div>
                </div>
 
@@ -867,14 +934,13 @@ export default function TeacherDashboard() {
                             <label className="block text-sm font-medium mb-1">Student</label>
                             <select className="w-full border rounded px-3 py-2"
                                     onChange={(e) => {
-
-                                        setStudentName(e.target.value);
+                                        setStudentId(e.target.value);
                                         const selectedName = e.target.value;
                                         loadEvaluationFromJson(selectedName);
                                     }}
                             >
                                 {students.map((students) => (
-                                    <option key={students.StudentID} value={students.StudentName}>
+                                    <option key={students.StudentID} value={students.StudentID}>
                                         {students.StudentName}
                                     </option>
                                 ))}
