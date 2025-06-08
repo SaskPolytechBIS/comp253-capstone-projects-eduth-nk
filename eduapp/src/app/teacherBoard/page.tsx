@@ -70,6 +70,11 @@ export default function TeacherDashboard() {
     const [teachers, setTeachers] = useState([{TeacherID: "0", TeacherName: "Error"}]);
     const [units, setUnits] = useState([{UnitID: "0", UnitName: "Empty"}])
 
+    //redirects to login if no teacher cookie
+    if (teacherId == undefined) {
+        router.push('/login')
+    }
+
     //populates the classes dropdown. WITHOUT THIS IT WILL BE STATIC.
     useEffect(() => {
         const loadClasses = async () => {
@@ -88,7 +93,7 @@ export default function TeacherDashboard() {
         if (teacherId) {
             loadClasses();
         }
-    }, []);
+    }, [teacherId]);
 
     //update students useEffect. WILL BE STATIC WITHOUT
     useEffect(() => {
@@ -114,10 +119,14 @@ export default function TeacherDashboard() {
 
                 setStudents(studentsResult);
 
-                // load data first student
-                setStudentName(studentsResult[0].StudentName);
-                setStudentId(studentsResult[0].StudentID)
-                loadEvaluationFromJson(studentsResult[0].StudentName);
+                const [firstStudent] = studentsResult;
+                if (firstStudent?.StudentName && firstStudent?.StudentID) {
+                    setStudentName(firstStudent.StudentName);
+                    setStudentId(firstStudent.StudentID);
+                    await loadEvaluationFromJson(firstStudent.StudentID);
+                } else {
+                    console.warn("First student record is missing required fields.");
+                }
             } catch (error) {
                 alert("Unexpected error: " + error);
             }
@@ -173,10 +182,6 @@ export default function TeacherDashboard() {
         setEvaluations(initialEvaluations);
     }, []);
 
-    //redirects to login if no teacher cookie
-    if (teacherId == undefined) {
-        router.push('/login')
-    }
     //handle create UNITs
     const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
     const [unitName, setUnitName] = useState('');
@@ -498,33 +503,29 @@ export default function TeacherDashboard() {
     };
 
     const gatherEvaluationData = (): any => {
-        const entries: AssignmentEntry[] = Array.from({ length: 5 }).map((_, index) => {
+        const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
+
+        const entries: AssignmentEntry[] = Array.from({ length: 5 }, (_, index) => {
             const content = textAreaRefs.current[index]?.value || "";
             const rowEval = evaluations[index] || {};
+            const rowFiles = attachedFiles[index] || {};
 
-            const basicEval = rowEval["Basic"] || { code: "", note: "", files: [] };
-            const intermediateEval = rowEval["Intermediate"] || { code: "", note: "", files: [] };
-            const advancedEval = rowEval["Advanced"] || { code: "", note: "", files: [] };
+            const evaluationsByLevel = levels.reduce((acc, level) => {
+                const evalData = rowEval[level] || { code: "", note: "" };
+                const fileNames = rowFiles[level]?.map(file => file.name) || [];
+
+                acc[level] = {
+                    code: evalData.code || "",
+                    note: evalData.note || "",
+                    files: fileNames,
+                };
+
+                return acc;
+            }, {} as Record<ColumnType, { code: string; note: string; files: string[] }>);
 
             return {
                 content,
-                evaluations: {
-                    Basic: {
-                        code: basicEval.code || "",
-                        note: basicEval.note || "",
-                        files: attachedFiles[index]?.["Basic"]?.map(file => file.name) || [],
-                    },
-                    Intermediate: {
-                        code: intermediateEval.code || "",
-                        note: intermediateEval.note || "",
-                        files: attachedFiles[index]?.["Intermediate"]?.map(file => file.name) || [],
-                    },
-                    Advanced: {
-                        code: advancedEval.code || "",
-                        note: advancedEval.note || "",
-                        files: attachedFiles[index]?.["Advanced"]?.map(file => file.name) || [],
-                    },
-                },
+                evaluations: evaluationsByLevel,
             };
         });
 
@@ -556,69 +557,91 @@ export default function TeacherDashboard() {
         }
     };
 
-    const loadEvaluationFromJson = async (studentName: string) => {
+    const loadEvaluationFromJson = async (selectedStudentId: string | undefined) => {
         const unitName = "unit1";
-        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentId}/assignment.json`;
 
-        console.log(filePath)
-
-        if (Number(studentId) <= 1) {
+        if (!studentId || Number(selectedStudentId) <= 1) {
+            console.warn("Invalid or missing student ID. Skipping evaluation load.");
             return;
         }
 
+        const teacherName = Cookies.get("teacherName");
+
+        const filePath = `${teacherName}/${className}/${unitName}/${selectedStudentId}/assignment.json`;
+        console.log("Fetching evaluation from:", filePath);
 
         const { data, error } = await supabase.storage
             .from("assignment")
             .download(filePath);
 
         if (error) {
+            console.error("Supabase download error:", error.message, filePath);
             resetEvaluationUI();
             return;
         }
 
         try {
             const text = await data.text();
-            const json = JSON.parse(text);
+            const json = safeJsonParse<{ entries: any[] }>(text);
 
-            if (json && json.entries) {
-                for (let i = 0; i < json.entries.length; i++) {
-                    textAreaRefs.current[i]!.value = json.entries[i].content || "";
-                }
-
-                const loadedEvaluations: Record<number, RowEvaluation> = {};
-                const loadedFiles: Record<number, Record<ColumnType, File[]>> = {};
-
-                json.entries.forEach((entry: any, index: number) => {
-                    loadedEvaluations[index] = {
-                        Basic: {
-                            code: entry.evaluations.Basic.code || "",
-                            note: entry.evaluations.Basic.note || "",
-                        },
-                        Intermediate: {
-                            code: entry.evaluations.Intermediate.code || "",
-                            note: entry.evaluations.Intermediate.note || "",
-                        },
-                        Advanced: {
-                            code: entry.evaluations.Advanced.code || "",
-                            note: entry.evaluations.Advanced.note || "",
-                        }
-                    };
-
-                    loadedFiles[index] = {
-                        Basic: (entry.evaluations.Basic.files || []).map((name: string) => new File([], name)),
-                        Intermediate: (entry.evaluations.Intermediate.files || []).map((name: string) => new File([], name)),
-                        Advanced: (entry.evaluations.Advanced.files || []).map((name: string) => new File([], name)),
-                    };
-                });
-
-                setEvaluations(loadedEvaluations);
-                setAttachedFiles(loadedFiles);
+            if (!json || !Array.isArray(json.entries)) {
+                console.warn("Invalid or missing entries in JSON.");
+                return;
             }
 
+            const entries = json.entries;
+
+            if (!Array.isArray(textAreaRefs.current) || textAreaRefs.current.length < entries.length) {
+                console.warn("Text area references are missing or insufficient.");
+                return;
+            }
+
+            entries.forEach((entry, i) => {
+                const textArea = textAreaRefs.current[i];
+                if (textArea) {
+                    textArea.value = entry.content || "";
+                }
+            });
+
+            const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
+            const loadedEvaluations: Record<number, RowEvaluation> = {};
+            const loadedFiles: Record<number, Record<ColumnType, File[]>> = {};
+
+            entries.forEach((entry, index) => {
+                const evals = entry.evaluations ?? {};
+                loadedEvaluations[index] = {} as RowEvaluation;
+                loadedFiles[index] = {} as Record<ColumnType, File[]>;
+
+                levels.forEach((level) => {
+                    const levelData = evals[level] || {};
+                    loadedEvaluations[index][level] = {
+                        code: levelData.code || "",
+                        note: levelData.note || ""
+                    };
+
+                    loadedFiles[index][level] = (levelData.files || []).map(
+                        (name: string) => new File([], name)
+                    );
+                });
+            });
+
+            setEvaluations(loadedEvaluations);
+            setAttachedFiles(loadedFiles);
+
         } catch (parseError) {
-            console.error("Error parsing JSON:", parseError);
+            console.error("Error parsing assignment JSON:", parseError);
         }
     };
+
+// Utility function for safer JSON parsing
+    function safeJsonParse<T>(text: string): T | null {
+        try {
+            return JSON.parse(text);
+        } catch (err) {
+            console.error("JSON parse error:", err);
+            return null;
+        }
+    }
 
     return (
         <div className="flex flex-col min-h-screen ">
@@ -972,8 +995,7 @@ export default function TeacherDashboard() {
                             <select className="w-full border rounded px-3 py-2"
                                     onChange={(e) => {
                                         setStudentId(e.target.value);
-                                        const selectedName = e.target.value;
-                                        loadEvaluationFromJson(selectedName);
+                                        loadEvaluationFromJson(e.target.value);
                                     }}
                             >
                                 {students.map((students) => (
