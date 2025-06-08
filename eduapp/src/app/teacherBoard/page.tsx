@@ -88,7 +88,7 @@ export default function TeacherDashboard() {
         if (teacherId) {
             loadClasses();
         }
-    });
+    }, []);
 
     //update students useEffect. WILL BE STATIC WITHOUT
     useEffect(() => {
@@ -124,6 +124,10 @@ export default function TeacherDashboard() {
         };
 
         fetchStudents();
+
+        return () => {
+            isCurrent = false;
+        }
 
     }, [classId]);
 
@@ -549,6 +553,13 @@ export default function TeacherDashboard() {
     const loadEvaluationFromJson = async (studentName: string) => {
         const unitName = "unit1";
         const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentId}/assignment.json`;
+
+        console.log(filePath)
+
+        if (Number(studentId) <= 1) {
+            return;
+        }
+
 
         const { data, error } = await supabase.storage
             .from("assignment")
