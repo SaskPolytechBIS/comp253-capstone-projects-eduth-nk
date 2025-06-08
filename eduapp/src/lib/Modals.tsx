@@ -587,7 +587,16 @@ type Unit = {
     UnitID: string;
     UnitName: string;
 };
-
+type UnitModalProps ={
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: () => void;
+    unitName: string;
+    setUnitName: (value: string) => void;
+    classId: string;
+    setClassId: (value: string) => void;
+    classes: Class[];
+}
 // Create Unit Modal
 export const UnitModal = ({
                               isOpen,
@@ -595,13 +604,10 @@ export const UnitModal = ({
                               onSubmit,
                               unitName,
                               setUnitName,
-                          }: {
-    isOpen: boolean;
-    onClose: () => void;
-    onSubmit: () => void;
-    unitName: string;
-    setUnitName: (value: string) => void;
-}) => {
+                              classId,
+                              setClassId,
+                              classes,
+                          }: UnitModalProps) => {
     if (!isOpen) return null;
 
     return (
@@ -617,6 +623,23 @@ export const UnitModal = ({
                     className="w-full p-2 border rounded mb-4"
                 />
 
+                {/* Class selector */}
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Select Class</label>
+                    <select
+                        className="w-full border rounded px-3 py-2"
+                        value={classId}
+                        onChange={(e) => setClassId(e.target.value)}
+                    >
+                        <option value="">Choose a class</option>
+                        {classes.map((cls) => (
+                            <option key={cls.ClassID} value={cls.ClassID}>
+                                {cls.ClassName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 <div className="flex justify-end space-x-2">
                     <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
                         Cancel
@@ -630,7 +653,6 @@ export const UnitModal = ({
     );
 };
 
-// Edit Unit Modal
 type UnitModalEditProps = {
     isOpen: boolean;
     onClose: () => void;
@@ -639,7 +661,10 @@ type UnitModalEditProps = {
     setUnitName: (value: string) => void;
     selectedUnitId: string;
     setSelectedUnitId: (value: string) => void;
+    classId: string;
+    setClassId: (value: string) => void;
     units: Unit[];
+    classes: Class[];
 };
 
 export const UnitModalEdit = ({
@@ -650,14 +675,24 @@ export const UnitModalEdit = ({
                                   setUnitName,
                                   selectedUnitId,
                                   setSelectedUnitId,
+                                  classId,
+                                  setClassId,
                                   units,
+                                  classes,
                               }: UnitModalEditProps) => {
     if (!isOpen) return null;
 
     const handleUnitSelect = (id: string) => {
-        setSelectedUnitId(id);
         const selectedUnit = units.find((u) => u.UnitID === id);
-        setUnitName(selectedUnit ? selectedUnit.UnitName : "");
+        if (selectedUnit) {
+            setSelectedUnitId(id);
+            setUnitName(selectedUnit.UnitName);
+            setClassId(selectedUnit.ClassID);
+        } else {
+            setSelectedUnitId('');
+            setUnitName('');
+            setClassId('');
+        }
     };
 
     return (
@@ -672,7 +707,7 @@ export const UnitModalEdit = ({
                         onChange={(e) => handleUnitSelect(e.target.value)}
                         className="w-full border rounded px-3 py-2"
                     >
-                        <option value="">Choose a unit!</option>
+                        <option value="">Choose a unit</option>
                         {units.map((unit) => (
                             <option key={unit.UnitID} value={unit.UnitID}>
                                 {unit.UnitName}
@@ -682,19 +717,39 @@ export const UnitModalEdit = ({
                 </div>
 
                 {selectedUnitId && (
-                    <input
-                        type="text"
-                        placeholder="Enter unit name"
-                        value={unitName}
-                        onChange={(e) => setUnitName(e.target.value)}
-                        className="w-full p-2 border rounded mb-4"
-                    />
+                    <>
+                        <input
+                            type="text"
+                            placeholder="Enter unit name"
+                            value={unitName}
+                            onChange={(e) => setUnitName(e.target.value)}
+                            className="w-full p-2 border rounded mb-4"
+                        />
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-1">Select Class</label>
+                            <select
+                                className="w-full border rounded px-3 py-2"
+                                value={classId}
+                                onChange={(e) => setClassId(e.target.value)}
+                            >
+                                <option value="">Choose a class</option>
+                                {classes.map((cls) => (
+                                    <option key={cls.ClassID} value={cls.ClassID}>
+                                        {cls.ClassName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </>
                 )}
 
                 <div className="flex justify-end space-x-2">
                     <button
                         onClick={() => {
-                            setSelectedUnitId("");
+                            setSelectedUnitId('');
+                            setUnitName('');
+                            setClassId('');
                             onClose();
                         }}
                         className="px-4 py-2 bg-gray-300 rounded"

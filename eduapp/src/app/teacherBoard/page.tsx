@@ -839,22 +839,28 @@ export default function TeacherDashboard() {
                            onSubmit={handleCreateUnit}
                            unitName={unitName}
                            setUnitName={setUnitName}
+                           classId={classId}
+                           setClassId={setClassId}
+                           classes={classes}
                        />
 
-                       {/* Modal Edit */}
                        <UnitModalEdit
                            isOpen={isEditUnitOpen}
                            onClose={() => {
                                setIsEditUnitOpen(false);
                                setSelectedUnitId('');
                                setUnitName('');
+                               setClassId('');
                            }}
                            onSubmit={handleEditUnitSubmit}
                            selectedUnitId={selectedUnitId}
                            setSelectedUnitId={setSelectedUnitId}
                            unitName={unitName}
                            setUnitName={setUnitName}
+                           classId={classId}
+                           setClassId={setClassId}
                            units={units}
+                           classes={classes}
                        />
 
                        {/* Modal Delete */}
