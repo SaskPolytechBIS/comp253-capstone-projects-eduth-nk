@@ -135,6 +135,8 @@ export default function TeacherDashboard() {
         };
         loadTeachers();
     }, []);
+
+
     //get units
     useEffect(() => {
         if (!classId) {
@@ -270,7 +272,7 @@ export default function TeacherDashboard() {
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
     // Attach files
     const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, File[]>>>({});
-    
+
     // show Dialog update successful
     const [isUploadSuccessDialogOpen, setIsUploadSuccessDialogOpen] = useState(false);
 
@@ -980,9 +982,9 @@ export default function TeacherDashboard() {
             </div>
             {isUploadSuccessDialogOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
-                    <div className="bg-white p-6 rounded shadow-lg max-w-sm text-center">
-                        <h2 className="text-base font-semibold mb-2">Update Successful</h2>
-                        <p className="mb-4 text-sm">Your evaluation data has been saved successfully.</p>
+                    <div className="bg-white p-6 rounded shadow-lg max-w-sm text-centern text-black">
+                        <h2 className="text-base font-semibold mb-2 text-black">Update Successful</h2>
+                        <p className="mb-4 text-sm text-black">Your evaluation data has been saved successfully.</p>
                         <button
                             onClick={() => setIsUploadSuccessDialogOpen(false)}
                             className="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
