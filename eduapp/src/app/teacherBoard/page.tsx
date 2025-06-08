@@ -73,12 +73,12 @@ export default function TeacherDashboard() {
             try {
                 const classResult = await getTeacherClasses(teacherId!);
                 if (!Array.isArray(classResult)) {
-                    alert("Error with populating classes: " + JSON.stringify(classResult));
+                    console.log("Error with populating classes: " + JSON.stringify(classResult));
                     return;
                 }
                 setClasses(classResult);
             } catch (error) {
-                alert("Unexpected error: " + error);
+                console.log("Unexpected error: " + error);
             }
         };
 
