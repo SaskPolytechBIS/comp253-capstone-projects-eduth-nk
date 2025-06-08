@@ -73,19 +73,19 @@ export default function TeacherDashboard() {
             try {
                 const classResult = await getTeacherClasses(teacherId!);
                 if (!Array.isArray(classResult)) {
-                    alert("Error with populating classes: " + JSON.stringify(classResult));
+                    console.log("Error with populating classes: " + JSON.stringify(classResult));
                     return;
                 }
                 setClasses(classResult);
             } catch (error) {
-                alert("Unexpected error: " + error);
+                console.log("Unexpected error: " + error);
             }
         };
 
         if (teacherId) {
             loadClasses();
         }
-    }, [teacherId]);
+    });
 
     //update students useEffect. WILL BE STATIC WITHOUT
     useEffect(() => {
@@ -138,6 +138,19 @@ export default function TeacherDashboard() {
 
 
     //get units
+    useEffect(() => {
+        // Initialize 5 row
+        const initialEvaluations: Record<number, RowEvaluation> = {};
+        for (let i = 0; i < 5; i++) {
+            initialEvaluations[i] = {
+                Basic: { code: "", note: "" },
+                Intermediate: { code: "", note: "" },
+                Advanced: { code: "", note: "" }
+            };
+        }
+        setEvaluations(initialEvaluations);
+    }, []);
+
     useEffect(() => {
         if (!classId) {
             return;
@@ -850,6 +863,7 @@ export default function TeacherDashboard() {
                             Populates class list with classes
                             */}
                             <select className="w-full border rounded px-3 py-2" onChange={handleSelectClassChange} >
+                                <option value={0}>Choose a class!</option>
                                 {classes.map((classes) => (
                                     <option key={classes.ClassID} value={classes.ClassID}>
                                         {classes.ClassName}
