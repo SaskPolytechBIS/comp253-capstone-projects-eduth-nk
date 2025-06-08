@@ -193,6 +193,12 @@ export default function TeacherDashboard() {
     const [isEditUnitOpen, setIsEditUnitOpen] = useState(false);
     const [isDeleteUnitOpen, setIsDeleteUnitOpen] = useState(false);
     const [selectedUnitId, setSelectedUnitId] = useState('');
+    const [description1, setDescription1] = useState('');
+    const [description2, setDescription2] = useState('');
+    const [description3, setDescription3] = useState('');
+    const [description4, setDescription4] = useState('');
+    const [description5, setDescription5] = useState('');
+
 
     const handleCreateUnit = () => {
         console.log("Creating unit:", unitName);
@@ -856,6 +862,16 @@ export default function TeacherDashboard() {
                            classId={classId}
                            setClassId={setClassId}
                            classes={classes}
+                           content1={description1}
+                           setDescription1={setDescription1}
+                           content2={description2}
+                           setDescription2={setDescription2}
+                           content3={description3}
+                           setDescription3={setDescription3}
+                           content4={description4}
+                           setDescription4={setDescription4}
+                           content5={description5}
+                           setDescription5={setDescription5}
                        />
 
                        <UnitModalEdit

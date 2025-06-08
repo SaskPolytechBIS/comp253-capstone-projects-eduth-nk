@@ -587,7 +587,7 @@ type Unit = {
     UnitID: string;
     UnitName: string;
 };
-type UnitModalProps ={
+type UnitModalProps = {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: () => void;
@@ -596,7 +596,17 @@ type UnitModalProps ={
     classId: string;
     setClassId: (value: string) => void;
     classes: Class[];
-}
+    content1: string;
+    setDescription1: (value: string) => void;
+    content2: string;
+    setDescription2: (value: string) => void;
+    content3: string;
+    setDescription3: (value: string) => void;
+    content4: string;
+    setDescription4: (value: string) => void;
+    content5: string;
+    setDescription5: (value: string) => void;
+};
 // Create Unit Modal
 export const UnitModal = ({
                               isOpen,
@@ -607,6 +617,16 @@ export const UnitModal = ({
                               classId,
                               setClassId,
                               classes,
+                              content1,
+                              setDescription1,
+                              content2,
+                              setDescription2,
+                              content3,
+                              setDescription3,
+                              content4,
+                              setDescription4,
+                              content5,
+                              setDescription5,
                           }: UnitModalProps) => {
     if (!isOpen) return null;
 
@@ -638,6 +658,46 @@ export const UnitModal = ({
                             </option>
                         ))}
                     </select>
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Content 1</label>
+                    <textarea
+                        className="w-full p-2 border rounded"
+                        value={content1}
+                        onChange={(e) => setDescription1(e.target.value)}
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Content 2</label>
+                    <textarea
+                        className="w-full p-2 border rounded"
+                        value={content2}
+                        onChange={(e) => setDescription2(e.target.value)}
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Content 3</label>
+                    <textarea
+                        className="w-full p-2 border rounded"
+                        value={content3}
+                        onChange={(e) => setDescription3(e.target.value)}
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Content 4</label>
+                    <textarea
+                        className="w-full p-2 border rounded"
+                        value={content4}
+                        onChange={(e) => setDescription4(e.target.value)}
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Content 5</label>
+                    <textarea
+                        className="w-full p-2 border rounded"
+                        value={content5}
+                        onChange={(e) => setDescription5(e.target.value)}
+                    />
                 </div>
 
                 <div className="flex justify-end space-x-2">
