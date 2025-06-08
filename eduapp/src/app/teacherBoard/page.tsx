@@ -135,6 +135,21 @@ export default function TeacherDashboard() {
         };
         loadTeachers();
     }, []);
+    //get units
+    useEffect(() => {
+        if (!classId) {
+            return;
+        }
+        const loadUnits = async () => {
+            try {
+                const unitResult = await getUnits(classId);
+                setUnits(unitResult ?? []);
+            } catch (error) {
+                alert("Unexpected error: " + error);
+            }
+        };
+        loadUnits();
+    }, [classId])
 
     useEffect(() => {
         // Initialize 5 row
@@ -255,9 +270,7 @@ export default function TeacherDashboard() {
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
     // Attach files
     const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, File[]>>>({});
-
-    // show Dialog attach image
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    
     // show Dialog update successful
     const [isUploadSuccessDialogOpen, setIsUploadSuccessDialogOpen] = useState(false);
 
