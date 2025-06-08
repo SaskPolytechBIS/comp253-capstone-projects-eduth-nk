@@ -143,6 +143,7 @@ export default function TeacherDashboard() {
 
 
     useEffect(() => {
+<<<<<<< Updated upstream
         // Initialize 5 row
         const initialEvaluations: Record<number, RowEvaluation> = {};
         for (let i = 0; i < 5; i++) {
@@ -157,6 +158,8 @@ export default function TeacherDashboard() {
 
     //get units
     useEffect(() => {
+=======
+>>>>>>> Stashed changes
         if (!classId) {
             return;
         }
