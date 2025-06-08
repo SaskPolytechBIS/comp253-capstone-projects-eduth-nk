@@ -7,10 +7,10 @@ import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
-import { createStudent, createClass } from '@/lib/create';
+import { createStudent, createClass, createUnit } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from "@/lib/select";
 import { updateClass, updateUnit, updateAssignment, updateStudent } from "@/lib/update";
-import { deleteClass, deleteStudent } from "@/lib/delete";
+import { deleteClass, deleteStudent, deleteUnit } from "@/lib/delete";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
 import {
@@ -141,7 +141,7 @@ export default function TeacherDashboard() {
     }, []);
 
 
-    //get units
+
     useEffect(() => {
         // Initialize 5 row
         const initialEvaluations: Record<number, RowEvaluation> = {};
@@ -154,7 +154,8 @@ export default function TeacherDashboard() {
         }
         setEvaluations(initialEvaluations);
     }, []);
-
+    
+    //get units
     useEffect(() => {
         if (!classId) {
             return;
@@ -197,6 +198,7 @@ export default function TeacherDashboard() {
     const handleCreateUnit = () => {
         console.log("Creating unit:", unitName);
         // call API
+        //createUnit()
         setIsUnitModalOpen(false);
         setUnitName('');
     };
@@ -204,6 +206,7 @@ export default function TeacherDashboard() {
     const handleEditUnitSubmit = () => {
         console.log("Editing unit:", selectedUnitId, unitName);
         // call API
+        updateUnit(selectedUnitId, unitName, classId)
         setIsEditUnitOpen(false);
         setSelectedUnitId('');
         setUnitName('');
@@ -212,6 +215,7 @@ export default function TeacherDashboard() {
     const handleDeleteUnit = () => {
         console.log("Deleting unit:", selectedUnitId);
         // call API
+        deleteUnit(selectedUnitId)
         setIsDeleteUnitOpen(false);
         setSelectedUnitId('');
     };
@@ -289,7 +293,7 @@ export default function TeacherDashboard() {
         setIsClassMenuOpen(false);
     };
 
-    const handleDelete = async () => {
+    const handleDeleteClass = async () => {
         if (!selectedClassId) return;
         deleteClass(selectedClassId);
         setIsDeleteModalClassOpen(false);
@@ -692,7 +696,7 @@ export default function TeacherDashboard() {
                        <ClassModalDelete
                            isOpen={isDeleteModalClassOpen}
                            onClose={() => setIsDeleteModalClassOpen(false)}
-                           onDelete={handleDelete}
+                           onDelete={handleDeleteClass}
                            selectedClassId={selectedClassId}
                            setSelectedClassId={setSelectedClassId}
                            classes={classes}
