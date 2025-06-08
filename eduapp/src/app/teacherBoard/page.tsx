@@ -123,7 +123,7 @@ export default function TeacherDashboard() {
                 if (firstStudent?.StudentName && firstStudent?.StudentID) {
                     setStudentName(firstStudent.StudentName);
                     setStudentId(firstStudent.StudentID);
-                    await loadEvaluationFromJson(firstStudent.StudentName);
+                    await loadEvaluationFromJson(firstStudent.StudentID);
                 } else {
                     console.warn("First student record is missing required fields.");
                 }
@@ -551,21 +551,17 @@ export default function TeacherDashboard() {
         }
     };
 
-    const loadEvaluationFromJson = async (studentName: string) => {
+    const loadEvaluationFromJson = async (selectedStudentId: string | undefined) => {
         const unitName = "unit1";
 
-        if (!studentId || Number(studentId) <= 1) {
+        if (!studentId || Number(selectedStudentId) <= 1) {
             console.warn("Invalid or missing student ID. Skipping evaluation load.");
             return;
         }
 
         const teacherName = Cookies.get("teacherName");
-        if (!teacherName || !className) {
-            console.error("Missing teacher name or class name.");
-            return;
-        }
 
-        const filePath = `${teacherName}/${className}/${unitName}/${studentId}/assignment.json`;
+        const filePath = `${teacherName}/${className}/${unitName}/${selectedStudentId}/assignment.json`;
         console.log("Fetching evaluation from:", filePath);
 
         const { data, error } = await supabase.storage
@@ -982,8 +978,7 @@ export default function TeacherDashboard() {
                             <select className="w-full border rounded px-3 py-2"
                                     onChange={(e) => {
                                         setStudentId(e.target.value);
-                                        const selectedName = e.target.value;
-                                        loadEvaluationFromJson(selectedName);
+                                        loadEvaluationFromJson(e.target.value);
                                     }}
                             >
                                 {students.map((students) => (
