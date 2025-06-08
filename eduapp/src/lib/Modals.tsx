@@ -586,6 +586,7 @@ export const DeleteStudentModal = ({
 type Unit = {
     UnitID: string;
     UnitName: string;
+    ClassID?: string;
 };
 type UnitModalProps = {
     isOpen: boolean;
@@ -747,7 +748,9 @@ export const UnitModalEdit = ({
         if (selectedUnit) {
             setSelectedUnitId(id);
             setUnitName(selectedUnit.UnitName);
-            setClassId(selectedUnit.ClassID);
+            if (selectedUnit.ClassID != null) {
+                setClassId(selectedUnit.ClassID);
+            }
         } else {
             setSelectedUnitId('');
             setUnitName('');
@@ -837,6 +840,7 @@ type UnitModalDeleteProps = {
     selectedUnitId: string;
     setSelectedUnitId: (value: string) => void;
     units: Unit[];
+
 };
 
 export const UnitModalDelete = ({
