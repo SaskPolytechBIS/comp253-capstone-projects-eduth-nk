@@ -88,7 +88,7 @@ export default function TeacherDashboard() {
         if (teacherId) {
             loadClasses();
         }
-    }, []);
+    }, [teacherId]);
 
     //update students useEffect. WILL BE STATIC WITHOUT
     useEffect(() => {
@@ -566,6 +566,7 @@ export default function TeacherDashboard() {
             .download(filePath);
 
         if (error) {
+            console.error("Supabase download error:", error.message);
             resetEvaluationUI();
             return;
         }
