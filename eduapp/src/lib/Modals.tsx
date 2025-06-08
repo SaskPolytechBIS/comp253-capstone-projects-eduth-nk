@@ -582,8 +582,12 @@ export const DeleteStudentModal = ({
 };
 
 //Unit Modal
-// Create Units
-type UnitModalProps = {
+// Unit types
+type Unit = {
+    UnitID: string;
+    UnitName: string;
+};
+type UnitModalProps ={
     isOpen: boolean;
     onClose: () => void;
     onSubmit: () => void;
@@ -591,9 +595,9 @@ type UnitModalProps = {
     setUnitName: (value: string) => void;
     classId: string;
     setClassId: (value: string) => void;
-    classes: { ClassID: string; ClassName: string }[];
-};
-
+    classes: Class[];
+}
+// Create Unit Modal
 export const UnitModal = ({
                               isOpen,
                               onClose,
@@ -602,7 +606,7 @@ export const UnitModal = ({
                               setUnitName,
                               classId,
                               setClassId,
-                              classes
+                              classes,
                           }: UnitModalProps) => {
     if (!isOpen) return null;
 
@@ -611,7 +615,6 @@ export const UnitModal = ({
             <div className="bg-white p-6 rounded shadow-lg w-96">
                 <h2 className="text-xl font-bold mb-4">Create Unit</h2>
 
-                {/* Unit name input */}
                 <input
                     type="text"
                     placeholder="Enter unit name"
@@ -629,20 +632,19 @@ export const UnitModal = ({
                         onChange={(e) => setClassId(e.target.value)}
                     >
                         <option value="">Choose a class</option>
-                        {classes.map((classes) => (
-                            <option key={classes.ClassID} value={classes.ClassID}>
-                                {classes.ClassName}
+                        {classes.map((cls) => (
+                            <option key={cls.ClassID} value={cls.ClassID}>
+                                {cls.ClassName}
                             </option>
                         ))}
                     </select>
                 </div>
 
-                {/* Buttons */}
                 <div className="flex justify-end space-x-2">
                     <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
                         Cancel
                     </button>
-                    <button onClick={onSubmit} className="px-4 py-2 bg-violet-700 text-white rounded disabled:opacity-50" disabled={!unitName || !classId}>
+                    <button onClick={onSubmit} className="px-4 py-2 bg-violet-700 text-white rounded">
                         Create
                     </button>
                 </div>
@@ -651,6 +653,182 @@ export const UnitModal = ({
     );
 };
 
+type UnitModalEditProps = {
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: () => void;
+    unitName: string;
+    setUnitName: (value: string) => void;
+    selectedUnitId: string;
+    setSelectedUnitId: (value: string) => void;
+    classId: string;
+    setClassId: (value: string) => void;
+    units: Unit[];
+    classes: Class[];
+};
 
+export const UnitModalEdit = ({
+                                  isOpen,
+                                  onClose,
+                                  onSubmit,
+                                  unitName,
+                                  setUnitName,
+                                  selectedUnitId,
+                                  setSelectedUnitId,
+                                  classId,
+                                  setClassId,
+                                  units,
+                                  classes,
+                              }: UnitModalEditProps) => {
+    if (!isOpen) return null;
 
+    const handleUnitSelect = (id: string) => {
+        const selectedUnit = units.find((u) => u.UnitID === id);
+        if (selectedUnit) {
+            setSelectedUnitId(id);
+            setUnitName(selectedUnit.UnitName);
+            setClassId(selectedUnit.ClassID);
+        } else {
+            setSelectedUnitId('');
+            setUnitName('');
+            setClassId('');
+        }
+    };
 
+    return (
+        <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm z-50">
+            <div className="bg-white p-6 rounded shadow-lg w-96">
+                <h2 className="text-xl font-bold mb-4">Edit Unit</h2>
+
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Select Unit</label>
+                    <select
+                        value={selectedUnitId}
+                        onChange={(e) => handleUnitSelect(e.target.value)}
+                        className="w-full border rounded px-3 py-2"
+                    >
+                        <option value="">Choose a unit</option>
+                        {units.map((unit) => (
+                            <option key={unit.UnitID} value={unit.UnitID}>
+                                {unit.UnitName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {selectedUnitId && (
+                    <>
+                        <input
+                            type="text"
+                            placeholder="Enter unit name"
+                            value={unitName}
+                            onChange={(e) => setUnitName(e.target.value)}
+                            className="w-full p-2 border rounded mb-4"
+                        />
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-1">Select Class</label>
+                            <select
+                                className="w-full border rounded px-3 py-2"
+                                value={classId}
+                                onChange={(e) => setClassId(e.target.value)}
+                            >
+                                <option value="">Choose a class</option>
+                                {classes.map((cls) => (
+                                    <option key={cls.ClassID} value={cls.ClassID}>
+                                        {cls.ClassName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </>
+                )}
+
+                <div className="flex justify-end space-x-2">
+                    <button
+                        onClick={() => {
+                            setSelectedUnitId('');
+                            setUnitName('');
+                            setClassId('');
+                            onClose();
+                        }}
+                        className="px-4 py-2 bg-gray-300 rounded"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onSubmit}
+                        className="px-4 py-2 bg-violet-700 text-white rounded disabled:opacity-50"
+                        disabled={!selectedUnitId}
+                    >
+                        Update
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Delete Unit Modal
+type UnitModalDeleteProps = {
+    isOpen: boolean;
+    onClose: () => void;
+    onDelete: () => void;
+    selectedUnitId: string;
+    setSelectedUnitId: (value: string) => void;
+    units: Unit[];
+};
+
+export const UnitModalDelete = ({
+                                    isOpen,
+                                    onClose,
+                                    onDelete,
+                                    selectedUnitId,
+                                    setSelectedUnitId,
+                                    units,
+                                }: UnitModalDeleteProps) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="text-black fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm z-50">
+            <div className="bg-white p-6 rounded shadow-lg w-96">
+                <h2 className="text-xl font-bold mb-4">Delete Unit</h2>
+
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Select Unit to Delete</label>
+                    <select
+                        value={selectedUnitId}
+                        onChange={(e) => setSelectedUnitId(e.target.value)}
+                        className="w-full border rounded px-3 py-2"
+                    >
+                        <option value="">Choose a unit!</option>
+                        {units.map((unit) => (
+                            <option key={unit.UnitID} value={unit.UnitID}>
+                                {unit.UnitName}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="flex justify-end space-x-2">
+                    <button
+                        onClick={() => {
+                            setSelectedUnitId("");
+                            onClose();
+                        }}
+                        className="px-4 py-2 bg-gray-300 rounded"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onDelete}
+                        className="px-4 py-2 bg-red-600 text-white rounded disabled:opacity-50"
+                        disabled={!selectedUnitId}
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
