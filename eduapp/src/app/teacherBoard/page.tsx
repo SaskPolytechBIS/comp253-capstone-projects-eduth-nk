@@ -211,7 +211,11 @@ export default function TeacherDashboard() {
         setClassName("");
         setClassTeacherId("");
 
+<<<<<<< Updated upstream
         setIsClassMenuOpen(false);
+=======
+        setIsClassEditOpen(false);
+>>>>>>> Stashed changes
     };
 
     const handleDelete = async () => {
