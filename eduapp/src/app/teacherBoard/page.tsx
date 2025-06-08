@@ -110,6 +110,10 @@ export default function TeacherDashboard() {
                 }
 
                 setStudents(studentsResult);
+
+                // load data first student
+                setStudentName(studentsResult[0].StudentName);
+                loadEvaluationFromJson(studentsResult[0].StudentName);
             } catch (error) {
                 alert("Unexpected error: " + error);
             }
@@ -130,6 +134,19 @@ export default function TeacherDashboard() {
             }
         };
         loadTeachers();
+    }, []);
+
+    useEffect(() => {
+        // Initialize 5 row
+        const initialEvaluations: Record<number, RowEvaluation> = {};
+        for (let i = 0; i < 5; i++) {
+            initialEvaluations[i] = {
+                Basic: { code: "", note: "" },
+                Intermediate: { code: "", note: "" },
+                Advanced: { code: "", note: "" }
+            };
+        }
+        setEvaluations(initialEvaluations);
     }, []);
 
     useEffect(() => {
@@ -163,9 +180,30 @@ export default function TeacherDashboard() {
     };
 
 
-    const handleSelectChange = (event: { target: { value: any; }; }) => {
-        const selectedClass = event.target.value;
-        setClassId(selectedClass);
+    // reset input
+    const resetEvaluationUI = () => {
+        // Textarea
+        textAreaRefs.current.forEach(ref => {
+            if (ref) ref.value = "";
+        });
+
+        // Reset evaluations
+        setEvaluations({});
+
+        // Reset attached files
+        setAttachedFiles({});
+    };
+
+    // when change dropdown list class
+    const handleSelectClassChange = (event: { target: { value: any; }; }) => {
+        const selectedClassId = event.target.value;
+
+        setClassId(selectedClassId);
+
+        const selectedClass = classes.find(c => String(c.ClassID) === selectedClassId);
+        if (selectedClass) {
+            setClassName(selectedClass.ClassName);
+        }
     }
 
     const handleClassSubmit = () => {
@@ -234,60 +272,120 @@ export default function TeacherDashboard() {
 
     // show Dialog attach image
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    // show Dialog update successful
+    const [isUploadSuccessDialogOpen, setIsUploadSuccessDialogOpen] = useState(false);
+
+    type EvaluationData = {
+        code: string;
+        note: string;
+    };
+
+    type RowEvaluation = {
+        [key in ColumnType]: EvaluationData;
+    };
+
+    const [evaluations, setEvaluations] = useState<Record<number, RowEvaluation>>({});
 
     // Evaluation Cell Component
     const EvaluationCell = React.memo(({
-                                row,
-                                column,
-                                attachedFiles,
-                                setAttachedFiles,
-                            }: {
+                                           row,
+                                           column,
+                                           attachedFiles,
+                                           setAttachedFiles,
+                                           evaluations,
+                                           setEvaluations
+                                       }: {
         row: number;
         column: ColumnType;
         attachedFiles: Record<number, Record<ColumnType, File[]>>;
-        setAttachedFiles: React.Dispatch<
-            React.SetStateAction<Record<number, Record<ColumnType, File[]>>>
-        >;
+        setAttachedFiles: React.Dispatch<React.SetStateAction<Record<number, Record<ColumnType, File[]>>>>;
+        evaluations: Record<number, RowEvaluation>;
+        setEvaluations: React.Dispatch<React.SetStateAction<Record<number, RowEvaluation>>>;
     }) => {
-        console.log("EvaluationCell render")
         const fileInputRef = useRef<HTMLInputElement>(null);
+        const [note, setNote] = useState(evaluations[row]?.[column]?.note || "");
+        const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+        useEffect(() => {
+            // Sync with external evaluations if changed outside
+            setNote(evaluations[row]?.[column]?.note || "");
+        }, [evaluations, row, column]);
 
         const handleAttachClick = () => {
-            console.log("go to handleAttachClick")
             fileInputRef.current?.click();
         };
 
         const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            console.log("go to handleFileChange")
             const file = e.target.files?.[0];
             if (file) {
-                setAttachedFiles((prev) => ({
+                setAttachedFiles(prev => ({
                     ...prev,
                     [row]: {
                         ...prev[row],
-                        [column]: [...(prev[row]?.[column] || []), file],
-                    },
+                        [column]: [...(prev[row]?.[column] || []), file]
+                    }
                 }));
-
-                // Show dialog
-                setIsDialogOpen(true);
+                setIsDialogOpen(true); // Show success dialog
             }
         };
 
+        const handleCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+            const code = e.target.value;
+            setEvaluations(prev => ({
+                ...prev,
+                [row]: {
+                    ...prev[row],
+                    [column]: {
+                        ...(prev[row]?.[column] || { code: "", note: "" }),
+                        code
+                    }
+                }
+            }));
+        };
+
+        const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            setNote(e.target.value);
+        };
+
+        const handleNoteBlur = () => {
+            setEvaluations(prev => ({
+                ...prev,
+                [row]: {
+                    ...prev[row],
+                    [column]: {
+                        ...(prev[row]?.[column] || { code: "", note: "" }),
+                        note
+                    }
+                }
+            }));
+        };
+
         return (
-            <td className="border p-3 text-center text-xs align-top">
+            <td className="border p-3 text-center text-xs align-top relative">
                 <div className="mb-2">
-                    <select className="w-full border rounded px-2 py-1">
-                        <option></option>
+                    <select
+                        className="w-full border rounded px-2 py-1"
+                        value={evaluations[row]?.[column]?.code || ""}
+                        onChange={handleCodeChange}
+                    >
+                        <option value=""></option>
                         {legendItems.map((item, idx) => (
-                            <option key={idx}>{item.code}</option>
+                            <option key={idx} value={item.code}>{item.code}</option>
                         ))}
                     </select>
                 </div>
-                <textarea className="w-full border rounded px-2 py-1 mb-2 text-xs" placeholder="Note..." />
+
+                <textarea
+                    className="w-full border rounded px-2 py-1 mb-2 text-xs"
+                    placeholder="Note..."
+                    value={note}
+                    onChange={handleNoteChange}
+                    onBlur={handleNoteBlur}
+                />
+
                 <div>
                     <button
-                        onClick={() => handleAttachClick()}
+                        onClick={handleAttachClick}
                         className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 text-xs"
                     >
                         Attach
@@ -300,25 +398,24 @@ export default function TeacherDashboard() {
                             ))}
                         </ul>
                     )}
-                    {/* Upload Successful Dialog */}
-                    {isDialogOpen && (
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-                            <div className="bg-white border border-gray-300 p-4 rounded shadow-lg max-w-sm text-center">
-                                <h2 className="text-base font-semibold mb-2">Attach Successful</h2>
-                                <button
-                                    onClick={() => setIsDialogOpen(false)}
-                                    className="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                                >
-                                    OK
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
                 </div>
+
+                {/* Upload Success Dialog */}
+                {isDialogOpen && (
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white border border-gray-300 p-4 rounded shadow-lg text-center">
+                        <h2 className="text-sm font-semibold mb-2">Attach Successful</h2>
+                        <button
+                            onClick={() => setIsDialogOpen(false)}
+                            className="px-4 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                        >
+                            OK
+                        </button>
+                    </div>
+                )}
             </td>
         );
     });
+
 
     // Save image to DB
     const uploadFiles = async () => {
@@ -353,8 +450,125 @@ export default function TeacherDashboard() {
     const [isDropdownUnitOpen, setIsDropdownUnitOpen] = useState(false);
     const [isUnitMenuOpen, setIsUnitMenuOpen] = useState(false);
 
+    // collect data in textarea
+    const textAreaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
-    // @ts-ignore
+    const gatherEvaluationData = (): any => {
+        const entries: AssignmentEntry[] = Array.from({ length: 5 }).map((_, index) => {
+            const content = textAreaRefs.current[index]?.value || "";
+            const rowEval = evaluations[index] || {};
+
+            const basicEval = rowEval["Basic"] || { code: "", note: "", files: [] };
+            const intermediateEval = rowEval["Intermediate"] || { code: "", note: "", files: [] };
+            const advancedEval = rowEval["Advanced"] || { code: "", note: "", files: [] };
+
+            return {
+                content,
+                evaluations: {
+                    Basic: {
+                        code: basicEval.code || "",
+                        note: basicEval.note || "",
+                        files: attachedFiles[index]?.["Basic"]?.map(file => file.name) || [],
+                    },
+                    Intermediate: {
+                        code: intermediateEval.code || "",
+                        note: intermediateEval.note || "",
+                        files: attachedFiles[index]?.["Intermediate"]?.map(file => file.name) || [],
+                    },
+                    Advanced: {
+                        code: advancedEval.code || "",
+                        note: advancedEval.note || "",
+                        files: attachedFiles[index]?.["Advanced"]?.map(file => file.name) || [],
+                    },
+                },
+            };
+        });
+
+        return {
+            teacherId: Cookies.get("teacherId") || "",
+            classId: classId || "",
+            timestamp: new Date().toISOString(),
+            entries,
+        };
+    };
+
+    // Save to Json file
+    const uploadJsonFile = async () => {
+        // debug
+        const unitName = "unit1";
+        const mapData = gatherEvaluationData();
+
+        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentName}/assignment.json`;
+        const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: "application/json" });
+
+        const { error } = await supabase.storage
+            .from('assignment')
+            .upload(filePath, blob, { upsert: true });
+
+        if (error) {
+            console.error("Failed to upload JSON:", error.message);
+        } else {
+            console.log("✅ Uploaded map.json successfully!");
+        }
+    };
+
+    const loadEvaluationFromJson = async (studentName: string) => {
+        const unitName = "unit1";
+        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentName}/assignment.json`;
+
+        const { data, error } = await supabase.storage
+            .from("assignment")
+            .download(filePath);
+
+        if (error) {
+            resetEvaluationUI();
+            return;
+        }
+
+        try {
+            const text = await data.text();
+            const json = JSON.parse(text);
+
+            if (json && json.entries) {
+                for (let i = 0; i < json.entries.length; i++) {
+                    textAreaRefs.current[i]!.value = json.entries[i].content || "";
+                }
+
+                const loadedEvaluations: Record<number, RowEvaluation> = {};
+                const loadedFiles: Record<number, Record<ColumnType, File[]>> = {};
+
+                json.entries.forEach((entry: any, index: number) => {
+                    loadedEvaluations[index] = {
+                        Basic: {
+                            code: entry.evaluations.Basic.code || "",
+                            note: entry.evaluations.Basic.note || "",
+                        },
+                        Intermediate: {
+                            code: entry.evaluations.Intermediate.code || "",
+                            note: entry.evaluations.Intermediate.note || "",
+                        },
+                        Advanced: {
+                            code: entry.evaluations.Advanced.code || "",
+                            note: entry.evaluations.Advanced.note || "",
+                        }
+                    };
+
+                    loadedFiles[index] = {
+                        Basic: (entry.evaluations.Basic.files || []).map((name: string) => new File([], name)),
+                        Intermediate: (entry.evaluations.Intermediate.files || []).map((name: string) => new File([], name)),
+                        Advanced: (entry.evaluations.Advanced.files || []).map((name: string) => new File([], name)),
+                    };
+                });
+
+                setEvaluations(loadedEvaluations);
+                setAttachedFiles(loadedFiles);
+            }
+
+        } catch (parseError) {
+            console.error("Error parsing JSON:", parseError);
+        }
+    };
+
     return (
         <div className="flex flex-col min-h-screen ">
             {/* Top Banner */}
@@ -624,7 +838,7 @@ export default function TeacherDashboard() {
                             {/*
                             Populates class list with classes
                             */}
-                            <select className="w-full border rounded px-3 py-2" onChange={handleSelectChange} >
+                            <select className="w-full border rounded px-3 py-2" onChange={handleSelectClassChange} >
                                 <option value={0}>Choose a class!</option>
                                 {classes.map((classes) => (
                                     <option key={classes.ClassID} value={classes.ClassID}>
@@ -651,7 +865,14 @@ export default function TeacherDashboard() {
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Student</label>
-                            <select className="w-full border rounded px-3 py-2">
+                            <select className="w-full border rounded px-3 py-2"
+                                    onChange={(e) => {
+
+                                        setStudentName(e.target.value);
+                                        const selectedName = e.target.value;
+                                        loadEvaluationFromJson(selectedName);
+                                    }}
+                            >
                                 {students.map((students) => (
                                     <option key={students.StudentID} value={students.StudentName}>
                                         {students.StudentName}
@@ -695,6 +916,9 @@ export default function TeacherDashboard() {
                                     <tr key={index} className="hover:bg-gray-50">
                                         <td className="border p-3 whitespace-pre-line text-sm align-top">
                                               <textarea
+                                                  ref={el => {
+                                                      textAreaRefs.current[index] = el;
+                                                  }}
                                                   className="w-full border rounded p-2 my-2 "
                                                   rows={4}
                                                   placeholder={`Click to create assignment #${index + 1}`}
@@ -705,18 +929,24 @@ export default function TeacherDashboard() {
                                             column="Basic"
                                             attachedFiles={attachedFiles}
                                             setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
                                         />
                                         <EvaluationCell
                                             row={index}
                                             column="Intermediate"
                                             attachedFiles={attachedFiles}
                                             setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
                                         />
                                         <EvaluationCell
                                             row={index}
                                             column="Advanced"
                                             attachedFiles={attachedFiles}
                                             setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
                                         />
                                     </tr>
                                 ))}
@@ -725,15 +955,35 @@ export default function TeacherDashboard() {
 
                         <div className="text-right mt-4">
                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                                    onClick={uploadFiles}>
+                                    onClick={async () => {
+                                        await uploadFiles();
+                                        await uploadJsonFile();
+                                        // show dialog
+                                        setIsUploadSuccessDialogOpen(true);
+                                    }}
+                            >
                                 Update Map
                             </button>
                         </div>
+
                     </div>
                 </div>
 
             </div>
-
+            {isUploadSuccessDialogOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
+                    <div className="bg-white p-6 rounded shadow-lg max-w-sm text-center">
+                        <h2 className="text-base font-semibold mb-2">Update Successful</h2>
+                        <p className="mb-4 text-sm">Your evaluation data has been saved successfully.</p>
+                        <button
+                            onClick={() => setIsUploadSuccessDialogOpen(false)}
+                            className="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
             {/* Modal Component */}
             <ClientEditorModal
                 isOpen={isModalOpen}
