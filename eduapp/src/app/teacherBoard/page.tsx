@@ -140,26 +140,8 @@ export default function TeacherDashboard() {
         loadTeachers();
     }, []);
 
-
-
-    useEffect(() => {
-<<<<<<< Updated upstream
-        // Initialize 5 row
-        const initialEvaluations: Record<number, RowEvaluation> = {};
-        for (let i = 0; i < 5; i++) {
-            initialEvaluations[i] = {
-                Basic: { code: "", note: "" },
-                Intermediate: { code: "", note: "" },
-                Advanced: { code: "", note: "" }
-            };
-        }
-        setEvaluations(initialEvaluations);
-    }, []);
-
     //get units
     useEffect(() => {
-=======
->>>>>>> Stashed changes
         if (!classId) {
             return;
         }
