@@ -154,7 +154,7 @@ export default function TeacherDashboard() {
         }
         setEvaluations(initialEvaluations);
     }, []);
-    
+
     //get units
     useEffect(() => {
         if (!classId) {
