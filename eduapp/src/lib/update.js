@@ -12,27 +12,54 @@ export async function updateClass(classId, className, teacherId) {
     }
 }
 
-export async function updateStudent(studentId, studentName, classId) {
+export async function updateStudent(studentId, studentName, classId, studentUsername, studentPassword) {
     const { data, error } = await supabase
         .from('Student')
         .update({ StudentName: `${studentName}`, ClassID: `${classId}` })
         .eq('StudentID', `${studentId}`)
-        .select()
+        .select('StudentID')
 
     if (error) {
-        console.log("Error updating classes: " + error.message);
+        console.log("Error updating student: " + error.message);
+    } else {
+        updateStudentLogin(studentId, studentUsername, studentPassword)
     }
-
 }
 
-export async function updateTemplate(JSON, templateId) {
+async function updateStudentLogin(studentId, studentUsername, studentPassword) {
     const { data, error } = await supabase
-        .from('Template')
-        .update({ JSON: `${JSON}` })
-        .eq('TemplateID', `${templateId}` )
+        .from('StudentLogin')
+        .update({ Username: `${studentUsername}`, Password: `${studentPassword}`})
+        .eq('StudentID', `${studentId}`)
         .select()
 
     if (error) {
-        console.log("Error updating template: " + error.message)
+        console.log("Error updating student login: " + error.message)
     }
+}
+
+export async function updateUnit(unitId, unitName, classId) {
+    const { data, error } = await supabase
+        .from('Units')
+        .update({ UnitName: `${unitName}` })
+        .eq('UnitID', `${unitId}`, 'ClassID', `${classId}`)
+        .select()
+
+    if (error) {
+        console.log("Error updating unit: " + error.message)
+    }
+}
+
+export async function updateAssignment (assignmentId, JSON) {
+
+    const { data, error } = await supabase
+        .from('Assignment')
+        .update({ JSON: `${JSON}` })
+        .eq('AssignmentID', `${assignmentId}`)
+        .select()
+
+    if (error) {
+        console.log("Error updating assignment: " + error.message)
+    }
+
 }

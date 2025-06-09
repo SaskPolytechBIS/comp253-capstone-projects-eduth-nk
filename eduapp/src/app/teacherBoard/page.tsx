@@ -7,12 +7,16 @@ import { VscAccount } from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
-import { createStudent, createClass } from '@/lib/create';
-import { getStudentsFromClass, getTeacherClasses, getAllTeachers} from "@/lib/select";
+import { createStudent, createClass, createUnit } from '@/lib/create';
+import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from "@/lib/select";
+import { updateClass, updateUnit, updateAssignment, updateStudent } from "@/lib/update";
+import { deleteClass, deleteStudent, deleteUnit } from "@/lib/delete";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
-import { LegendModal, ClassModal,StudentModal,
-    EditStudentModal,ClassModalEdit,ClassModalDelete} from '@/lib/Modals';
+import {
+    LegendModal, ClassModal, StudentModal, UnitModal,
+    EditStudentModal, ClassModalEdit, ClassModalDelete, DeleteStudentModal, UnitModalEdit, UnitModalDelete
+} from '@/lib/Modals';
 
 
 
@@ -28,28 +32,24 @@ export default function TeacherDashboard() {
     const [showStudentModal, setShowStudentModal] = useState(false);
     const [className, setClassName] = useState("");
     const [studentName, setStudentName] = useState("");
+    const [studentId, setStudentId] = useState("");
     const [studentUsername, setStudentUsername] = useState("");
     const [studentPassword, setStudentPassword] = useState("");
     const [studentClass, setStudentClass] = useState("");
     const [classTeacherId, setClassTeacherId] = useState("");
 
+    //handle edit
+    const [isStudentEditOpen, setIsStudentEditOpen] = useState(false);
+
+    const [selectedStudentId, setSelectedStudentId] = useState('');
+    const [selectedClassId, setSelectedClassId] = useState('');
     //Delete Class
     const [isDeleteModalClassOpen, setIsDeleteModalClassOpen] = useState(false);
-    const handleDelete = async () => {
-        if (!selectedClassId) return;
-
-        try {
-            //Add more if needed
-            console.log("Deleted class ID:", selectedClassId);
-
-        } catch (error) {
-            console.error("Failed to delete class:", error);
-        }
-    };
+    //Delete Student
+    const [isDeleteModalStudentOpen, setIsDeleteModalStudentOpen] = useState(false);
 
     //show pop up for legend
     const [showPopup, setShowPopup] = useState(false);
-
 
     // Show legendItems
     const legendItems = [
@@ -63,34 +63,39 @@ export default function TeacherDashboard() {
         { code: "C", description: "Used when knowledge has been demonstrated individually, seen through a conversation" },
     ];
 
-
-
     //populations
     const [classId, setClassId] = useState("");
     const [classes, setClasses] = useState([{ClassID: "0", ClassName: "Error"}]);
-    const [students, setStudents] = useState([{StudentID: "0", StudentName: "Error"}]);
+    const [students, setStudents] = useState([{StudentID: "0", StudentName: "Empty"}]);
     const [teachers, setTeachers] = useState([{TeacherID: "0", TeacherName: "Error"}]);
+    const [units, setUnits] = useState([{UnitID: "0", UnitName: "Empty"}])
 
-    //populates the dropdown menu. WITHOUT THIS IT WILL BE STATIC.
+    //redirects to login if no teacher cookie
+    if (teacherId == undefined) {
+        router.push('/login')
+    }
+
+    //populates the classes dropdown. WITHOUT THIS IT WILL BE STATIC.
     useEffect(() => {
-        const loadClasses = async () => {
-            try {
-                const classResult = await getTeacherClasses(teacherId!);
-                if (!Array.isArray(classResult)) {
-                    alert("Error with populating classes: " + JSON.stringify(classResult));
-                    return;
-                }
-                setClasses(classResult);
-            } catch (error) {
-                alert("Unexpected error: " + error);
-            }
-        };
-
         if (teacherId) {
             loadClasses();
         }
     }, [teacherId]);
 
+    const loadClasses = async () => {
+        try {
+            const classResult = await getTeacherClasses(teacherId!);
+            if (!Array.isArray(classResult)) {
+                console.log("Error with populating classes: " + JSON.stringify(classResult));
+                return;
+            }
+            setClasses(classResult);
+        } catch (error) {
+            console.log("Unexpected error: " + error);
+        }
+    };
+
+    //update students useEffect. WILL BE STATIC WITHOUT
     useEffect(() => {
         if (!classId) return;
 
@@ -113,6 +118,15 @@ export default function TeacherDashboard() {
                 }
 
                 setStudents(studentsResult);
+
+                const [firstStudent] = studentsResult;
+                if (firstStudent?.StudentName && firstStudent?.StudentID) {
+                    setStudentName(firstStudent.StudentName);
+                    setStudentId(firstStudent.StudentID);
+                    await loadEvaluationFromJson(firstStudent.StudentID);
+                } else {
+                    console.warn("First student record is missing required fields.");
+                }
             } catch (error) {
                 alert("Unexpected error: " + error);
             }
@@ -120,8 +134,13 @@ export default function TeacherDashboard() {
 
         fetchStudents();
 
+        return () => {
+            isCurrent = false;
+        }
+
     }, [classId]);
 
+    //update teachers. WILL BE STATIC OTHERWISE
     useEffect(() => {
         const loadTeachers = async () => {
             try {
@@ -134,29 +153,118 @@ export default function TeacherDashboard() {
         loadTeachers();
     }, []);
 
-    //redirects to login if no teacher cookie
-    if (teacherId == undefined) {
-        router.push('/login')
+    //get units
+    useEffect(() => {
+        if (!classId) {
+            return;
+        }
+        const loadUnits = async () => {
+            try {
+                const unitResult = await getUnits(classId);
+                setUnits(unitResult ?? []);
+            } catch (error) {
+                alert("Unexpected error: " + error);
+            }
+        };
+        loadUnits();
+    }, [classId])
+
+    useEffect(() => {
+        // Initialize 5 row
+        const initialEvaluations: Record<number, RowEvaluation> = {};
+        for (let i = 0; i < 5; i++) {
+            initialEvaluations[i] = {
+                Basic: { code: "", note: "" },
+                Intermediate: { code: "", note: "" },
+                Advanced: { code: "", note: "" }
+            };
+        }
+        setEvaluations(initialEvaluations);
+    }, []);
+
+
+
+    //handle create UNITs
+    const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
+    const [unitName, setUnitName] = useState('');
+    const [isEditUnitOpen, setIsEditUnitOpen] = useState(false);
+    const [isDeleteUnitOpen, setIsDeleteUnitOpen] = useState(false);
+    const [selectedUnitId, setSelectedUnitId] = useState('');
+    const [description1, setDescription1] = useState('');
+    const [description2, setDescription2] = useState('');
+    const [description3, setDescription3] = useState('');
+    const [description4, setDescription4] = useState('');
+    const [description5, setDescription5] = useState('');
+
+
+    const handleCreateUnit = () => {
+        console.log("Creating unit:", unitName);
+        // call API
+        //createUnit()
+        setIsUnitModalOpen(false);
+        setUnitName('');
+    };
+
+    const handleEditUnitSubmit = async () => {
+        console.log("Editing unit:", selectedUnitId, unitName);
+        // call API
+        await updateUnit(selectedUnitId, unitName, classId)
+        setIsEditUnitOpen(false);
+        setSelectedUnitId('');
+        setUnitName('');
+    };
+
+    const handleDeleteUnit = async () => {
+        console.log("Deleting unit:", selectedUnitId);
+        // call API
+        await deleteUnit(selectedUnitId)
+        setIsDeleteUnitOpen(false);
+        setSelectedUnitId('');
+    };
+
+
+    // reset input
+    const resetEvaluationUI = () => {
+        // Textarea
+        textAreaRefs.current.forEach(ref => {
+            if (ref) ref.value = "";
+        });
+
+        // Reset evaluations
+        setEvaluations({});
+
+        // Reset attached files
+        setAttachedFiles({});
+    };
+
+    // when change dropdown list class
+    const handleSelectClassChange = (event: { target: { value: any; }; }) => {
+        const selectedClassId = event.target.value;
+
+        setClassId(selectedClassId);
+
+        const selectedClass = classes.find(c => String(c.ClassID) === selectedClassId);
+        if (selectedClass) {
+            setClassName(selectedClass.ClassName);
+        }
     }
 
-    const handleSelectChange = (event: { target: { value: any; }; }) => {
-        const selectedClass = event.target.value;
-        setClassId(selectedClass);
-    }
-
-    const handleClassSubmit = () => {
+    const handleClassSubmit = async () => {
         console.log("Class:", className, "TeacherId:", classTeacherId);
         setClassName("");
         setShowClassModal(false);
-        createClass(className, classTeacherId);
+        await createClass(className, classTeacherId)
+        await loadClasses();
+
     };
 
-    const handleStudentSubmit = () => {
+    const handleStudentSubmit = async () => {
         console.log("Student:", studentName, "Username:", studentUsername, "Password:", studentPassword, "Class", studentClass);
         setStudentName("");
         setStudentUsername("");
+        setStudentPassword("")
         setShowStudentModal(false);
-        createStudent(studentName, studentClass, studentUsername, studentPassword);
+        await createStudent(studentName, studentClass, studentUsername, studentPassword);
     };
 
     // Handle logout
@@ -165,115 +273,163 @@ export default function TeacherDashboard() {
         redirect("/login");// Redirect to login
     };
 
-
-
     const handleModalSave = (content: string) => {
         console.log("Assignment Content:", content);
         setAssignmentContent(content);
         setIsModalOpen(false);
-        // TODO: save to DB
+
     };
-
-    //handle edit
-    const [isStudentEditOpen, setIsStudentEditOpen] = useState(false);
-    const [isStudentDeleteOpen, setIsStudentDeleteOpen] = useState(false);
-    const [isDropdownDeleteStudentOpen, setIsDropdownDeleteStudentOpen] = useState(false);
-    const [isClassEditOpen, setIsClassEditOpen] = useState(false);
-    const [selectedStudentId, setSelectedStudentId] = useState('');
-    const [selectedClassId, setSelectedClassId] = useState('');
-
-    //handle new student and add class & edit
-    const handleNewClass = () => setShowClassModal(true);
-    const handleNewStudent = () => setShowStudentModal(true);
-    const handleStudentEdit = () => {setIsStudentEditOpen(true);};
 
     const handleStudentEditSubmit = () => {
         // update logic here
+        updateStudent(selectedStudentId, studentName, studentClass,studentUsername, studentPassword);
         setIsStudentEditOpen(false);
     };
 
-    const handleClassEdit = () => {
-        setIsClassEditOpen(true);
-    };
     const handleClassEditSubmit = () => {
         // handle update logic here
-        setIsClassEditOpen(false);
-    };
-    //handle files upload
-    const uploadEvidence = ()=>{
-        console.log("Evidence Upload");
+        updateClass(selectedClassId, className, classTeacherId);
+        // Reset all states
+        setSelectedClassId("");
+        setClassName("");
+        setClassTeacherId("");
 
-    }
+        setIsClassMenuOpen(false);
+    };
+
+    const handleDeleteClass = async () => {
+        if (!selectedClassId) return;
+        deleteClass(selectedClassId);
+        setIsDeleteModalClassOpen(false);
+    };
+
+    const handleDeleteStudent = async () => {
+        if (!selectedStudentId) return;
+        deleteStudent(selectedStudentId);
+        // Reset the selection
+        setSelectedStudentId("");
+        // Close the modal
+        setIsDeleteModalStudentOpen(false);
+    };
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
     // Attach files
     const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, File[]>>>({});
 
-    // Dummy data
-    const dummyData = [
-        { content: `The project's main goal is to supplement the Building Thinking Classroom framework.` },
-        { content: `This project features a database designed to store files uploaded by teachers and students.` },
-        { content: `Considerations should be made towards the functionality of the application.` },
-        { content: `This fourth dummy record can simulate a collaborative environment.` },
-        { content: `Finally, this record rounds out the demo with full interaction capability.` },
-    ];
+    // show Dialog update successful
+    const [isUploadSuccessDialogOpen, setIsUploadSuccessDialogOpen] = useState(false);
 
-    // show Dialog attach image
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    type EvaluationData = {
+        code: string;
+        note: string;
+    };
+
+    type RowEvaluation = {
+        [key in ColumnType]: EvaluationData;
+    };
+
+    const [evaluations, setEvaluations] = useState<Record<number, RowEvaluation>>({});
 
     // Evaluation Cell Component
     const EvaluationCell = React.memo(({
-                                row,
-                                column,
-                                attachedFiles,
-                                setAttachedFiles,
-                            }: {
+                                           row,
+                                           column,
+                                           attachedFiles,
+                                           setAttachedFiles,
+                                           evaluations,
+                                           setEvaluations
+                                       }: {
         row: number;
         column: ColumnType;
         attachedFiles: Record<number, Record<ColumnType, File[]>>;
-        setAttachedFiles: React.Dispatch<
-            React.SetStateAction<Record<number, Record<ColumnType, File[]>>>
-        >;
+        setAttachedFiles: React.Dispatch<React.SetStateAction<Record<number, Record<ColumnType, File[]>>>>;
+        evaluations: Record<number, RowEvaluation>;
+        setEvaluations: React.Dispatch<React.SetStateAction<Record<number, RowEvaluation>>>;
     }) => {
-        console.log("EvaluationCell render")
         const fileInputRef = useRef<HTMLInputElement>(null);
+        const [note, setNote] = useState(evaluations[row]?.[column]?.note || "");
+        const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+        useEffect(() => {
+            // Sync with external evaluations if changed outside
+            setNote(evaluations[row]?.[column]?.note || "");
+        }, [evaluations, row, column]);
 
         const handleAttachClick = () => {
-            console.log("go to handleAttachClick")
             fileInputRef.current?.click();
         };
 
         const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            console.log("go to handleFileChange")
             const file = e.target.files?.[0];
             if (file) {
-                setAttachedFiles((prev) => ({
+                setAttachedFiles(prev => ({
                     ...prev,
                     [row]: {
                         ...prev[row],
-                        [column]: [...(prev[row]?.[column] || []), file],
-                    },
+                        [column]: [...(prev[row]?.[column] || []), file]
+                    }
                 }));
-
-                // Show dialog
-                setIsDialogOpen(true);
+                setIsDialogOpen(true); // Show success dialog
             }
         };
 
+        const handleCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+            const code = e.target.value;
+            setEvaluations(prev => ({
+                ...prev,
+                [row]: {
+                    ...prev[row],
+                    [column]: {
+                        ...(prev[row]?.[column] || { code: "", note: "" }),
+                        code
+                    }
+                }
+            }));
+        };
+
+        const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            setNote(e.target.value);
+        };
+
+        const handleNoteBlur = () => {
+            setEvaluations(prev => ({
+                ...prev,
+                [row]: {
+                    ...prev[row],
+                    [column]: {
+                        ...(prev[row]?.[column] || { code: "", note: "" }),
+                        note
+                    }
+                }
+            }));
+        };
+
         return (
-            <td className="border p-3 text-center text-xs align-top">
+            <td className="border p-3 text-center text-xs align-top relative">
                 <div className="mb-2">
-                    <select className="w-full border rounded px-2 py-1">
-                        <option></option>
+                    <select
+                        className="w-full border rounded px-2 py-1"
+                        value={evaluations[row]?.[column]?.code || ""}
+                        onChange={handleCodeChange}
+                    >
+                        <option value=""></option>
                         {legendItems.map((item, idx) => (
-                            <option key={idx}>{item.code}</option>
+                            <option key={idx} value={item.code}>{item.code}</option>
                         ))}
                     </select>
                 </div>
-                <textarea className="w-full border rounded px-2 py-1 mb-2 text-xs" placeholder="Note..." />
+
+                <textarea
+                    className="w-full border rounded px-2 py-1 mb-2 text-xs"
+                    placeholder="Note..."
+                    value={note}
+                    onChange={handleNoteChange}
+                    onBlur={handleNoteBlur}
+                />
+
                 <div>
                     <button
-                        onClick={() => handleAttachClick()}
+                        onClick={handleAttachClick}
                         className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 text-xs"
                     >
                         Attach
@@ -286,25 +442,24 @@ export default function TeacherDashboard() {
                             ))}
                         </ul>
                     )}
-                    {/* Upload Successful Dialog */}
-                    {isDialogOpen && (
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-                            <div className="bg-white border border-gray-300 p-4 rounded shadow-lg max-w-sm text-center">
-                                <h2 className="text-base font-semibold mb-2">Upload Successful</h2>
-                                <button
-                                    onClick={() => setIsDialogOpen(false)}
-                                    className="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                                >
-                                    OK
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
                 </div>
+
+                {/* Upload Success Dialog */}
+                {isDialogOpen && (
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white border border-gray-300 p-4 rounded shadow-lg text-center">
+                        <h2 className="text-sm font-semibold mb-2">Attach Successful</h2>
+                        <button
+                            onClick={() => setIsDialogOpen(false)}
+                            className="px-4 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                        >
+                            OK
+                        </button>
+                    </div>
+                )}
             </td>
         );
     });
+
 
     // Save image to DB
     const uploadFiles = async () => {
@@ -332,24 +487,171 @@ export default function TeacherDashboard() {
     // show menu class
     const [isClassMenuOpen, setIsClassMenuOpen] = useState(false);
     const [isDropdownClassOpen, setIsDropdownClassOpen] = useState(false);
-    //delete
-    const [isClassDeleteMenuOpen, setIsClassDeleteMenuOpen] = useState(false);
-    const [isDropdownDeleteClassOpen, setIsDropdownDeleteClassOpen] = useState(false);
     // show menu student
     const [isStudentMenuOpen, setIsStudentMenuOpen] = useState(false);
     const [isDropdownStudentOpen, setIsDropdownStudentOpen] = useState(false);
+    //show unit
+    const [isDropdownUnitOpen, setIsDropdownUnitOpen] = useState(false);
+    const [isUnitMenuOpen, setIsUnitMenuOpen] = useState(false);
 
+    // collect data in textarea
+    const textAreaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
+
+    type AssignmentEntry = {
+        content: string;
+        evaluations: {
+            Basic: EvaluationData;
+            Intermediate: EvaluationData;
+            Advanced: EvaluationData;
+        };
+    };
+
+    const gatherEvaluationData = (): any => {
+        const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
+
+        const entries: AssignmentEntry[] = Array.from({ length: 5 }, (_, index) => {
+            const content = textAreaRefs.current[index]?.value || "";
+            const rowEval = evaluations[index] || {};
+            const rowFiles = attachedFiles[index] || {};
+
+            const evaluationsByLevel = levels.reduce((acc, level) => {
+                const evalData = rowEval[level] || { code: "", note: "" };
+                const fileNames = rowFiles[level]?.map(file => file.name) || [];
+
+                acc[level] = {
+                    code: evalData.code || "",
+                    note: evalData.note || "",
+                    files: fileNames,
+                };
+
+                return acc;
+            }, {} as Record<ColumnType, { code: string; note: string; files: string[] }>);
+
+            return {
+                content,
+                evaluations: evaluationsByLevel,
+            };
+        });
+
+        return {
+            teacherId: Cookies.get("teacherId") || "",
+            classId: classId || "",
+            timestamp: new Date().toISOString(),
+            entries,
+        };
+    };
+
+    // Save to Json file
+    const uploadJsonFile = async () => {
+        // debug
+        const unitName = "unit1";
+        const mapData = gatherEvaluationData();
+
+        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentId}/assignment.json`;
+        const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: "application/json" });
+
+        const { error } = await supabase.storage
+            .from('assignment')
+            .upload(filePath, blob, { upsert: true });
+
+        if (error) {
+            console.error("Failed to upload JSON:", error.message);
+        } else {
+            console.log("✅ Uploaded map.json successfully!");
+        }
+    };
+
+    const loadEvaluationFromJson = async (selectedStudentId: string | undefined) => {
+        const unitName = "unit1";
+
+        if (!selectedStudentId || Number(selectedStudentId) <= 1) {
+            console.warn("Invalid or missing student ID. Skipping evaluation load.");
+            return;
+        }
+
+        const teacherName = Cookies.get("teacherName");
+
+        const filePath = `${teacherName}/${className}/${unitName}/${selectedStudentId}/assignment.json`;
+        console.log("Fetching evaluation from:", filePath);
+
+        const { data, error } = await supabase.storage
+            .from("assignment")
+            .download(filePath);
+
+        if (error) {
+            console.error("Supabase download error:", error.message, filePath);
+            resetEvaluationUI();
+            return;
+        }
+
+        try {
+            const text = await data.text();
+            const json = safeJsonParse<{ entries: any[] }>(text);
+
+            if (!json || !Array.isArray(json.entries)) {
+                console.warn("Invalid or missing entries in JSON.");
+                return;
+            }
+
+            const entries = json.entries;
+
+            if (!Array.isArray(textAreaRefs.current) || textAreaRefs.current.length < entries.length) {
+                console.warn("Text area references are missing or insufficient.");
+                return;
+            }
+
+            entries.forEach((entry, i) => {
+                const textArea = textAreaRefs.current[i];
+                if (textArea) {
+                    textArea.value = entry.content || "";
+                }
+            });
+
+            const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
+            const loadedEvaluations: Record<number, RowEvaluation> = {};
+            const loadedFiles: Record<number, Record<ColumnType, File[]>> = {};
+
+            entries.forEach((entry, index) => {
+                const evals = entry.evaluations ?? {};
+                loadedEvaluations[index] = {} as RowEvaluation;
+                loadedFiles[index] = {} as Record<ColumnType, File[]>;
+
+                levels.forEach((level) => {
+                    const levelData = evals[level] || {};
+                    loadedEvaluations[index][level] = {
+                        code: levelData.code || "",
+                        note: levelData.note || ""
+                    };
+
+                    loadedFiles[index][level] = (levelData.files || []).map(
+                        (name: string) => new File([], name)
+                    );
+                });
+            });
+
+            setEvaluations(loadedEvaluations);
+            setAttachedFiles(loadedFiles);
+
+        } catch (parseError) {
+            console.error("Error parsing assignment JSON:", parseError);
+        }
+    };
+
+// Utility function for safer JSON parsing
+    function safeJsonParse<T>(text: string): T | null {
+        try {
+            return JSON.parse(text);
+        } catch (err) {
+            console.error("JSON parse error:", err);
+            return null;
+        }
+    }
 
     return (
         <div className="flex flex-col min-h-screen ">
             {/* Top Banner */}
             <header className="w-full bg-violet-700 px-6 py-4 flex justify-between items-center ">
                <div className="flex space-x-4">
-                   {/*
-                   <button onClick={handleNewAssignmentClick} className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700">
-                       + New Assignment
-                   </button>
-                    */}
 
                    <div className="relative inline-block text-left">
                        <button
@@ -423,7 +725,7 @@ export default function TeacherDashboard() {
                        <ClassModalDelete
                            isOpen={isDeleteModalClassOpen}
                            onClose={() => setIsDeleteModalClassOpen(false)}
-                           onDelete={handleDelete}
+                           onDelete={handleDeleteClass}
                            selectedClassId={selectedClassId}
                            setSelectedClassId={setSelectedClassId}
                            classes={classes}
@@ -463,13 +765,14 @@ export default function TeacherDashboard() {
                                </button>
                                <button
                                    onClick={() => {
-                                       setIsStudentDeleteOpen(true); //
-                                       setIsDropdownDeleteStudentOpen(false);
+                                       setIsDeleteModalStudentOpen(true);
+                                       setIsDropdownStudentOpen(false);
                                    }}
                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                                >
                                    Delete Student
                                </button>
+
                            </div>
                        )}
 
@@ -513,6 +816,123 @@ export default function TeacherDashboard() {
                            setStudentClass={setStudentClass}
                            classes={classes}
                        />
+
+                       {/* Modal Delete student */}
+                       <DeleteStudentModal
+                           isOpen={isDeleteModalStudentOpen}
+                           onClose={() => setIsDeleteModalStudentOpen(false)}
+                           onDelete={handleDeleteStudent}
+                           selectedStudentId={selectedStudentId}
+                           setSelectedStudentId={setSelectedStudentId}
+                           students={students.map((s) => ({
+                               id: s.StudentID,
+                               name: s.StudentName,
+                               username: s.StudentName,
+                               password: "",
+                               classId: "",
+                           }))}
+                       />
+                   </div>
+
+
+                   <div className="relative inline-block text-left">
+                       <button
+                           onClick={() => {
+                               setIsDropdownUnitOpen((prev) => !prev);
+                               setIsDropdownClassOpen(false);
+                               setIsDropdownStudentOpen(false);
+                           }}
+                           className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
+                       >
+                           Unit
+                       </button>
+
+                       {isDropdownUnitOpen && (
+                           <div className="absolute z-10 mt-2 w-44 bg-white rounded shadow-md border border-gray-200 text-black">
+                               <button
+                                   onClick={() => {
+                                       setIsUnitModalOpen(true);
+                                       setIsDropdownUnitOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Create Unit
+                               </button>
+                               <button
+                                   onClick={() => {
+                                       setIsEditUnitOpen(true);
+                                       setIsDropdownUnitOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Edit Unit
+                               </button>
+                               <button
+                                   onClick={() => {
+                                       setIsDeleteUnitOpen(true);
+                                       setIsDropdownUnitOpen(false);
+                                   }}
+                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                               >
+                                   Delete Unit
+                               </button>
+                           </div>
+                       )}
+
+                       {/* Modal Create */}
+                       <UnitModal
+                           isOpen={isUnitModalOpen}
+                           onClose={() => setIsUnitModalOpen(false)}
+                           onSubmit={handleCreateUnit}
+                           unitName={unitName}
+                           setUnitName={setUnitName}
+                           classId={classId}
+                           setClassId={setClassId}
+                           classes={classes}
+                           content1={description1}
+                           setDescription1={setDescription1}
+                           content2={description2}
+                           setDescription2={setDescription2}
+                           content3={description3}
+                           setDescription3={setDescription3}
+                           content4={description4}
+                           setDescription4={setDescription4}
+                           content5={description5}
+                           setDescription5={setDescription5}
+                       />
+
+                       <UnitModalEdit
+                           isOpen={isEditUnitOpen}
+                           onClose={() => {
+                               setIsEditUnitOpen(false);
+                               setSelectedUnitId('');
+                               setUnitName('');
+                               setClassId('');
+                           }}
+                           onSubmit={handleEditUnitSubmit}
+                           selectedUnitId={selectedUnitId}
+                           setSelectedUnitId={setSelectedUnitId}
+                           unitName={unitName}
+                           setUnitName={setUnitName}
+                           classId={classId}
+                           setClassId={setClassId}
+                           units={units}
+                           classes={classes}
+                       />
+
+                       {/* Modal Delete */}
+                       <UnitModalDelete
+                           isOpen={isDeleteUnitOpen}
+                           onClose={() => {
+                               setIsDeleteUnitOpen(false);
+                               setSelectedUnitId('');
+                           }}
+                           onDelete={handleDeleteUnit}
+                           selectedUnitId={selectedUnitId}
+                           setSelectedUnitId={setSelectedUnitId}
+                           units={units}
+
+                       />
                    </div>
                </div>
 
@@ -549,7 +969,8 @@ export default function TeacherDashboard() {
                             {/*
                             Populates class list with classes
                             */}
-                            <select className="w-full border rounded px-3 py-2" onChange={handleSelectChange} >
+                            <select className="w-full border rounded px-3 py-2" onChange={handleSelectClassChange} >
+                                <option value={0}>Choose a class!</option>
                                 {classes.map((classes) => (
                                     <option key={classes.ClassID} value={classes.ClassID}>
                                         {classes.ClassName}
@@ -561,11 +982,11 @@ export default function TeacherDashboard() {
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Unit</label>
                             <select className="w-full border rounded px-3 py-2">
-                                <option>Area and Perimeter</option>
-                                <option>Unit 1</option>
-                                <option>Unit 2</option>
-                                <option>Unit 3</option>
-                                <option>Unit 4</option>
+                                {units.map((units) => (
+                                    <option key={units.UnitID} value={units.UnitID}>
+                                        {units.UnitName}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -575,9 +996,14 @@ export default function TeacherDashboard() {
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Student</label>
-                            <select className="w-full border rounded px-3 py-2">
+                            <select className="w-full border rounded px-3 py-2"
+                                    onChange={(e) => {
+                                        setStudentId(e.target.value);
+                                        loadEvaluationFromJson(e.target.value);
+                                    }}
+                            >
                                 {students.map((students) => (
-                                    <option key={students.StudentID} value={students.StudentName}>
+                                    <option key={students.StudentID} value={students.StudentID}>
                                         {students.StudentName}
                                     </option>
                                 ))}
@@ -619,6 +1045,9 @@ export default function TeacherDashboard() {
                                     <tr key={index} className="hover:bg-gray-50">
                                         <td className="border p-3 whitespace-pre-line text-sm align-top">
                                               <textarea
+                                                  ref={el => {
+                                                      textAreaRefs.current[index] = el;
+                                                  }}
                                                   className="w-full border rounded p-2 my-2 "
                                                   rows={4}
                                                   placeholder={`Click to create assignment #${index + 1}`}
@@ -629,18 +1058,24 @@ export default function TeacherDashboard() {
                                             column="Basic"
                                             attachedFiles={attachedFiles}
                                             setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
                                         />
                                         <EvaluationCell
                                             row={index}
                                             column="Intermediate"
                                             attachedFiles={attachedFiles}
                                             setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
                                         />
                                         <EvaluationCell
                                             row={index}
                                             column="Advanced"
                                             attachedFiles={attachedFiles}
                                             setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
                                         />
                                     </tr>
                                 ))}
@@ -649,15 +1084,35 @@ export default function TeacherDashboard() {
 
                         <div className="text-right mt-4">
                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                                    onClick={uploadFiles}>
+                                    onClick={async () => {
+                                        await uploadFiles();
+                                        await uploadJsonFile();
+                                        // show dialog
+                                        setIsUploadSuccessDialogOpen(true);
+                                    }}
+                            >
                                 Update Map
                             </button>
                         </div>
+
                     </div>
                 </div>
 
             </div>
-
+            {isUploadSuccessDialogOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
+                    <div className="bg-white p-6 rounded shadow-lg max-w-sm text-centern text-black">
+                        <h2 className="text-base font-semibold mb-2 text-black">Update Successful</h2>
+                        <p className="mb-4 text-sm text-black">Your evaluation data has been saved successfully.</p>
+                        <button
+                            onClick={() => setIsUploadSuccessDialogOpen(false)}
+                            className="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
             {/* Modal Component */}
             <ClientEditorModal
                 isOpen={isModalOpen}

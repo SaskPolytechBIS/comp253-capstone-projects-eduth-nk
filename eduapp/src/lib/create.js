@@ -9,13 +9,11 @@ export async function createStudent(studentName, studentClass, studentUsername, 
         .select('StudentID')
         .single()
 
-    console.log(data)
     if (error) {
         console.log("Error inserting student: " + error.message);
     } else {
         await createStudentLogin(data.StudentID, studentUsername, studentPassword)
     }
-
 }
 
 async function createStudentLogin(studentId, studentUsername, studentPassword){
@@ -48,32 +46,101 @@ export async function createClass(className, teacherId) {
     }
 }
 
-export async function createNavMapTemplate(JSON) {
-
+export async function createUnit(classId, unitName, students, className, content1, content2, content3, content4, content5){
     const { data, error } = await supabase
-        .from('Template')
+        .from('Units')
         .insert([
-            { JSON: `${JSON}`},
+            { ClassID: `${classId}`, UnitName: `${unitName}`}
         ])
-        .select()
+        .select('UnitID')
 
     if (error) {
-        console.log("Error creating template: " + error.message)
-    }
+        console.log("Error inserting unit: " + error.message);
+    } else {
 
+        const jsonCreate = JSON.parse({
+            "1": {
+                "content": `${content1}`,
+                "basicLink": "null",
+                "basicNote": "null",
+                "basicGrade": "null",
+                "advancedLink": "null",
+                "advancedNote": "null",
+                "advancedGrade": "null",
+                "intermediateLink": "null",
+                "intermediateNote": "null",
+                "intermediateGrade": "null"
+            },
+            "2": {
+                "content": `${content2}`,
+                "basicLink": "null",
+                "basicNote": "null",
+                "basicGrade": "null",
+                "advancedLink": "null",
+                "advancedNote": "null",
+                "advancedGrade": "null",
+                "intermediateLink": "null",
+                "intermediateNote": "null",
+                "intermediateGrade": "null"
+            },
+            "3": {
+                "content": `${content3}`,
+                "basicLink": "null",
+                "basicNote": "null",
+                "basicGrade": "null",
+                "advancedLink": "null",
+                "advancedNote": "null",
+                "advancedGrade": "null",
+                "intermediateLink": "null",
+                "intermediateNote": "null",
+                "intermediateGrade": "null"
+            },
+            "4": {
+                "content": `${content4}`,
+                "basicLink": "null",
+                "basicNote": "null",
+                "basicGrade": "null",
+                "advancedLink": "null",
+                "advancedNote": "null",
+                "advancedGrade": "null",
+                "intermediateLink": "null",
+                "intermediateNote": "null",
+                "intermediateGrade": "null"
+            },
+            "5": {
+                "content": `${content5}`,
+                "basicLink": "null",
+                "basicNote": "null",
+                "basicGrade": "null",
+                "advancedLink": "null",
+                "advancedNote": "null",
+                "advancedGrade": "null",
+                "intermediateLink": "null",
+                "intermediateNote": "null",
+                "intermediateGrade": "null"
+            }
+        });
+
+        await createAssignment(data.UnitID, unitName, students, className, jsonCreate);
+    }
 }
 
-export async function createAssignment(studentId, teacherId, templateId, assignmentFolder) {
+async function createAssignment(unitId, unitName, students, className, JSON) {
 
-    const { data, error } = await supabase
-        .from('Assignment')
-        .insert([
-            { StudentID: `${studentId}`, TeacherID: `${teacherId}`, TemplateID: `${templateId}`, AssignmentFolder: `${assignmentFolder}` },
-        ])
-        .select()
+    for (const StudentID of students) {
 
-    if (error) {
-        console.log("Error creating assignment: " + error.message)
+        let assignmentString = "assignment/" + className + "/" + unitName + "/" + students.StudentName
+
+        const { data, error } = await supabase
+            .from('Assignment')
+            .insert([
+                { UnitID: `${unitId}`, StudentID: `${StudentID}`, AssignmentFolder: `${assignmentString}`, JSON: `${JSON}`},
+            ])
+            .select()
+
+        if (error) {
+            console.log("Error creating assignment: " + error.message)
+        }
     }
 
 }
