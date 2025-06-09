@@ -77,23 +77,23 @@ export default function TeacherDashboard() {
 
     //populates the classes dropdown. WITHOUT THIS IT WILL BE STATIC.
     useEffect(() => {
-        const loadClasses = async () => {
-            try {
-                const classResult = await getTeacherClasses(teacherId!);
-                if (!Array.isArray(classResult)) {
-                    console.log("Error with populating classes: " + JSON.stringify(classResult));
-                    return;
-                }
-                setClasses(classResult);
-            } catch (error) {
-                console.log("Unexpected error: " + error);
-            }
-        };
-
         if (teacherId) {
             loadClasses();
         }
     }, [teacherId]);
+
+    const loadClasses = async () => {
+        try {
+            const classResult = await getTeacherClasses(teacherId!);
+            if (!Array.isArray(classResult)) {
+                console.log("Error with populating classes: " + JSON.stringify(classResult));
+                return;
+            }
+            setClasses(classResult);
+        } catch (error) {
+            console.log("Unexpected error: " + error);
+        }
+    };
 
     //update students useEffect. WILL BE STATIC WITHOUT
     useEffect(() => {
@@ -182,6 +182,8 @@ export default function TeacherDashboard() {
         setEvaluations(initialEvaluations);
     }, []);
 
+
+
     //handle create UNITs
     const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
     const [unitName, setUnitName] = useState('');
@@ -203,19 +205,19 @@ export default function TeacherDashboard() {
         setUnitName('');
     };
 
-    const handleEditUnitSubmit = () => {
+    const handleEditUnitSubmit = async () => {
         console.log("Editing unit:", selectedUnitId, unitName);
         // call API
-        updateUnit(selectedUnitId, unitName, classId)
+        await updateUnit(selectedUnitId, unitName, classId)
         setIsEditUnitOpen(false);
         setSelectedUnitId('');
         setUnitName('');
     };
 
-    const handleDeleteUnit = () => {
+    const handleDeleteUnit = async () => {
         console.log("Deleting unit:", selectedUnitId);
         // call API
-        deleteUnit(selectedUnitId)
+        await deleteUnit(selectedUnitId)
         setIsDeleteUnitOpen(false);
         setSelectedUnitId('');
     };
@@ -247,20 +249,22 @@ export default function TeacherDashboard() {
         }
     }
 
-    const handleClassSubmit = () => {
+    const handleClassSubmit = async () => {
         console.log("Class:", className, "TeacherId:", classTeacherId);
         setClassName("");
         setShowClassModal(false);
-        createClass(className, classTeacherId);
+        await createClass(className, classTeacherId)
+        await loadClasses();
+
     };
 
-    const handleStudentSubmit = () => {
+    const handleStudentSubmit = async () => {
         console.log("Student:", studentName, "Username:", studentUsername, "Password:", studentPassword, "Class", studentClass);
         setStudentName("");
         setStudentUsername("");
         setStudentPassword("")
         setShowStudentModal(false);
-        createStudent(studentName, studentClass, studentUsername, studentPassword);
+        await createStudent(studentName, studentClass, studentUsername, studentPassword);
     };
 
     // Handle logout
@@ -560,7 +564,7 @@ export default function TeacherDashboard() {
     const loadEvaluationFromJson = async (selectedStudentId: string | undefined) => {
         const unitName = "unit1";
 
-        if (!studentId || Number(selectedStudentId) <= 1) {
+        if (!selectedStudentId || Number(selectedStudentId) <= 1) {
             console.warn("Invalid or missing student ID. Skipping evaluation load.");
             return;
         }
