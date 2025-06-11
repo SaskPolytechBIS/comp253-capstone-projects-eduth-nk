@@ -1,19 +1,49 @@
 "use client";
 
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { Bell } from "lucide-react";
 import { VscAccount } from "react-icons/vsc";
 import { redirect, useRouter } from "next/navigation";
+import { getUnits, getClassFromStudent } from "@/lib/select"
 import Cookies from "js-cookie";
 import { LegendModal } from "@/lib/Modals";
+import {any} from "prop-types";
 
 export default function StudentDashboard() {
     const [userName, setUserName] = useState("sample");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
     const [showPopup, setShowPopup] = useState(false);
+    const [studentClass, setStudentClass] = useState([{ClassID: "0"}]);
+    const [units, setUnits] = useState ([{UnitID: "0", UnitName: "Error"}])
+    const studentId = Cookies.get("studentId");
 
-    if (Cookies.get("studentId") == undefined) {
+    useEffect(() => {
+        const fetchClass = async () => {
+
+            const classResult = await getClassFromStudent(studentId)
+            if (!Array.isArray(classResult)) {
+                alert("Error with getting class: " + JSON.stringify(classResult));
+                return;
+            }
+
+            setStudentClass(classResult);
+        }
+        fetchClass();
+
+        const fetchUnits = async () => {
+            const unitsResult = await getUnits(studentClass)
+            if (!Array.isArray(unitsResult)) {
+                alert("Error with getting units: " + JSON.stringify(unitsResult));
+                return;
+            }
+            setUnits(unitsResult);
+        }
+        fetchUnits()
+    }, [])
+
+
+    if (studentId == undefined) {
         redirect("/login");
     }
 
@@ -72,22 +102,14 @@ export default function StudentDashboard() {
                     <div className="w-full md:w-1/4 bg-white p-6 rounded-xl shadow">
                         <h2 className="text-2xl font-semibold mb-6">Hello Student</h2>
                         <div className="mb-4">
-                            <label className="block mb-1 font-medium">Class</label>
-                            <select className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option>HilsenDager6/7</option>
-                                <option>Math</option>
-                                <option>IT</option>
-                                <option>ACC</option>
-                            </select>
-                        </div>
-                        <div className="mb-4">
                             <label className="block mb-1 font-medium">Unit</label>
                             <select className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option>Area and Perimeter</option>
-                                <option>Unit 1</option>
-                                <option>Unit 2</option>
-                                <option>Unit 3</option>
-                                <option>Unit 4</option>
+                                <option>Choose a unit!</option>
+                                {units.map((units) => (
+                                    <option key={units.UnitID} value={units.UnitID}>
+                                        {units.UnitName}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>

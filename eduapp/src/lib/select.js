@@ -26,6 +26,19 @@ export async function getStudentsFromClass (classId) {
     }
 }
 
+export async function getClassFromStudent (studentId) {
+    let { data: Class, error } = await supabase
+        .from('Student')
+        .select('ClassID')
+        .eq('StudentID', studentId)
+
+    if (error) {
+        console.error("Error retrieving class: " + error.message)
+    } else {
+        return Class;
+    }
+}
+
 export async function getAllTeachers() {
 
     let { data: Teacher, error } = await supabase
