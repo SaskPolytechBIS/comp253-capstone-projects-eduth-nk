@@ -34,9 +34,16 @@ export default function Home() {
               Login Now
             </a>
           </div>
+          <div className="text-black text-sm-center" >
+            <ol className="text-sm leading-6 font-[family-name:var(--font-geist-mono)] space-y-4">
+              <li className="text-violet-800" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)' }}>EduTh!nk Members:</li>
+              <li style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)' }}>Nhu Le, Reese Bohn, Duong Le, Nathan Kelly, Saif Waseem, Yuan Fang</li>
+            </ol>
+          </div>
+
 
           <footer className="text-sm text-gray-500 pt-8">
-            ©2025 EduTh!nk. All rights reserved.
+            ©2025 EduTh!nk.
           </footer>
         </main>
       </div>
