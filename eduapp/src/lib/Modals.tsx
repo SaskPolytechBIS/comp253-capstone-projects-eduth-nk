@@ -729,30 +729,31 @@ type UnitModalEditProps = {
 };
 
 export const UnitModalEdit = ({
-                                  isOpen,
-                                  onClose,
-                                  onSubmit,
-                                  unitName,
-                                  setUnitName,
-                                  selectedUnitId,
-                                  setSelectedUnitId,
-                                  classId,
-                                  setClassId,
-                                  units,
-                                  classes,
-                              }: UnitModalEditProps) => {
+    isOpen,
+    onClose,
+    onSubmit,
+    unitName,
+    setUnitName,
+    selectedUnitId,
+    setSelectedUnitId,
+    classId,
+    setClassId,
+    units,
+    classes,
+}: UnitModalEditProps) => {
     if (!isOpen) return null;
 
+    // Fixed handleUnitSelect function
     const handleUnitSelect = (id: string) => {
-        const selectedUnit = units.find((u) => u.UnitID === id);
+        setSelectedUnitId(id);
+        const selectedUnit = units.find((unit) => unit.UnitID === id);
         if (selectedUnit) {
-            setSelectedUnitId(id);
             setUnitName(selectedUnit.UnitName);
-            if (selectedUnit.ClassID != null) {
-                setClassId(selectedUnit.ClassID);
-            }
+            setClassId(selectedUnit.ClassID || '');
+            // Optional: Add console.log to debug
+            console.log('Selected Unit:', selectedUnit);
+            console.log('Setting ClassID to:', selectedUnit.ClassID);
         } else {
-            setSelectedUnitId('');
             setUnitName('');
             setClassId('');
         }

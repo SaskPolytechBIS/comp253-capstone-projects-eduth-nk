@@ -536,7 +536,7 @@ export default function TeacherDashboard() {
     const [isDropdownStudentOpen, setIsDropdownStudentOpen] = useState(false);
     //show unit
     const [isDropdownUnitOpen, setIsDropdownUnitOpen] = useState(false);
-    const [isUnitMenuOpen, setIsUnitMenuOpen] = useState(false);
+
 
     // collect data in textarea
     const textAreaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
