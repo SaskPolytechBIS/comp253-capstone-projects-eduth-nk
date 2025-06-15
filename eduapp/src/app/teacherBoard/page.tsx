@@ -476,14 +476,19 @@ export default function TeacherDashboard() {
         );
     });
 
-
+    type AttachedFile = File | { name: string; fullPath: string };
     // Save image to DB
-    const uploadFiles = async () => {
+    const uploadFiles = async (
+        attachedFiles: Record<number, Record<ColumnType, AttachedFile[]>>
+    ): Promise<Record<number, Record<ColumnType, string[]>>> => {
+
         const uploadedPaths: Record<number, Record<ColumnType, string[]>> = {};
 
-        for (const row in attachedFiles) {
-            const columns = attachedFiles[parseInt(row)];
+        for (const rowStr in attachedFiles) {
+            const row = parseInt(rowStr);
+            const columns = attachedFiles[row];
 
+            // Khởi tạo đầy đủ 3 cấp độ cho mỗi dòng
             uploadedPaths[row] = {
                 Basic: [],
                 Intermediate: [],
@@ -491,20 +496,29 @@ export default function TeacherDashboard() {
             };
 
             for (const column in columns) {
-                const files = columns[column as ColumnType];
+                const colKey = column as ColumnType;
+                const files = columns[colKey];
+
                 for (const file of files) {
-                    const filePath = `teacher/${Date.now()}-${file.name}`;
-                    const { error } = await supabase.storage
-                        .from('developing')
-                        .upload(filePath, file);
+                    if (file instanceof File) {
+                        // if new attach file
+                        const filePath = `teacher/${Date.now()}-${file.name}`;
 
-                    if (error) {
-                        console.error(`Upload failed: ${file.name}`, error.message);
+                        const { error } = await supabase.storage
+                            .from("developing")
+                            .upload(filePath, file, { upsert: true });
+
+                        if (error) {
+                            console.error(` Upload failed: ${file.name}`, error.message);
+                        } else {
+                            console.log(`Uploaded: ${file.name} → ${filePath}`);
+                            uploadedPaths[row][colKey].push(filePath);
+                        }
+                    } else if ("fullPath" in file && typeof file.fullPath === "string") {
+                        // if attached file
+                        uploadedPaths[row][colKey].push(file.fullPath);
                     } else {
-                        console.log(`Uploaded: ${file.name} as ${filePath}`);
-
-                        // Get public URL
-                        uploadedPaths[row][column as ColumnType].push(filePath);
+                        console.warn("Unknown file type", file);
                     }
                 }
             }
@@ -512,6 +526,7 @@ export default function TeacherDashboard() {
 
         return uploadedPaths;
     };
+
 
     // show menu class
     const [isClassMenuOpen, setIsClassMenuOpen] = useState(false);
@@ -574,7 +589,7 @@ export default function TeacherDashboard() {
         // debug
         const unitName = "unit1";
 
-        const uploadedPaths = await uploadFiles();
+        const uploadedPaths = await uploadFiles(attachedFiles);
 
         const mapData = gatherEvaluationData(uploadedPaths);
 
@@ -1123,7 +1138,7 @@ export default function TeacherDashboard() {
                         <div className="text-right mt-4">
                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                                     onClick={async () => {
-                                        await uploadFiles();
+                                        await uploadFiles(attachedFiles);
                                         await uploadJsonFile();
                                         // show dialog
                                         setIsUploadSuccessDialogOpen(true);
