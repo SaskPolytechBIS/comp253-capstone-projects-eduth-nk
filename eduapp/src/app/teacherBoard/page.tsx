@@ -242,7 +242,7 @@ export default function TeacherDashboard() {
                 classId,
                 unitName,
                 studentsResult,
-                selectedClass.ClassName,
+                selectedClass.ClassID,
                 description1 || '',
                 description2 || '',
                 description3 || '',
