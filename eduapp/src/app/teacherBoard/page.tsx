@@ -198,53 +198,74 @@ export default function TeacherDashboard() {
 
 
     const handleCreateUnit = async () => {
-        if (!unitName || !classId) {
-            alert("Please fill in unit name and select a class");
+        if (!unitName.trim()) {
+            alert("Please enter a unit name");
+            return;
+        }
+
+        if (!classId) {
+            alert("Please select a class");
             return;
         }
 
         try {
-            // Get students for the selected class
-            const studentsResult = await getStudentsFromClass(classId);
-            const selectedClass = classes.find(c => c.ClassID === classId);
+            // Debug logs
+            console.log("Current classId:", classId);
+            console.log("Available classes:", classes);
+
+            // Try both strict and loose comparison as ClassID might be different types
+            const selectedClass = classes.find(c =>
+                String(c.ClassID) === String(classId)
+            );
 
             if (!selectedClass) {
-                throw new Error("Selected class not found");
+                alert(`No class found with ID: ${classId}`);
+                return;
             }
 
-            // Call createUnit with all required parameters
+            // Get students for the selected class
+            const studentsResult = await getStudentsFromClass(classId);
+
+            if (!Array.isArray(studentsResult) || studentsResult.length === 0) {
+                alert("No students found in the selected class");
+                return;
+            }
+
+            // Create the unit
             await createUnit(
                 classId,
                 unitName,
                 studentsResult,
                 selectedClass.ClassName,
-                description1,
-                description2,
-                description3,
-                description4,
-                description5
+                description1 || '',
+                description2 || '',
+                description3 || '',
+                description4 || '',
+                description5 || ''
             );
 
-            // Reset form
+            // Reset form and refresh data
             setUnitName('');
             setDescription1('');
             setDescription2('');
             setDescription3('');
             setDescription4('');
             setDescription5('');
-
-            // Close modal
             setIsUnitModalOpen(false);
 
             // Refresh units list
             const unitResult = await getUnits(classId);
             setUnits(unitResult ?? []);
 
+            alert("Unit created successfully!");
+
         } catch (error) {
             console.error("Error creating unit:", error);
-            alert("Failed to create unit");
+            alert(`Failed to create unit: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
+
+
 
 
 
@@ -283,14 +304,18 @@ export default function TeacherDashboard() {
     // when change dropdown list class
     const handleSelectClassChange = (event: { target: { value: any; }; }) => {
         const selectedClassId = event.target.value;
+        console.log("Selected class ID:", selectedClassId);
+        console.log("Available classes:", classes);
+        console.log("Matching class:", classes.find(c => String(c.ClassID) === String(selectedClassId)));
 
         setClassId(selectedClassId);
 
-        const selectedClass = classes.find(c => String(c.ClassID) === selectedClassId);
+        const selectedClass = classes.find(c => String(c.ClassID) === String(selectedClassId));
         if (selectedClass) {
             setClassName(selectedClass.ClassName);
         }
     }
+
 
     const handleClassSubmit = async () => {
         console.log("Class:", className, "TeacherId:", classTeacherId);

@@ -46,101 +46,111 @@ export async function createClass(className, teacherId) {
     }
 }
 
-export async function createUnit(classId, unitName, students, className, content1, content2, content3, content4, content5){
+export async function createUnit(classId, unitName, students, className, content1, content2, content3, content4, content5) {
     const { data, error } = await supabase
         .from('Units')
         .insert([
-            { ClassID: `${classId}`, UnitName: `${unitName}`}
+            { ClassID: classId, UnitName: unitName }
         ])
-        .select('UnitID')
+        .select('UnitID');
 
     if (error) {
         console.log("Error inserting unit: " + error.message);
-    } else {
-
-        const jsonCreate = JSON.parse({
-            "1": {
-                "content": `${content1}`,
-                "basicLink": "null",
-                "basicNote": "null",
-                "basicGrade": "null",
-                "advancedLink": "null",
-                "advancedNote": "null",
-                "advancedGrade": "null",
-                "intermediateLink": "null",
-                "intermediateNote": "null",
-                "intermediateGrade": "null"
-            },
-            "2": {
-                "content": `${content2}`,
-                "basicLink": "null",
-                "basicNote": "null",
-                "basicGrade": "null",
-                "advancedLink": "null",
-                "advancedNote": "null",
-                "advancedGrade": "null",
-                "intermediateLink": "null",
-                "intermediateNote": "null",
-                "intermediateGrade": "null"
-            },
-            "3": {
-                "content": `${content3}`,
-                "basicLink": "null",
-                "basicNote": "null",
-                "basicGrade": "null",
-                "advancedLink": "null",
-                "advancedNote": "null",
-                "advancedGrade": "null",
-                "intermediateLink": "null",
-                "intermediateNote": "null",
-                "intermediateGrade": "null"
-            },
-            "4": {
-                "content": `${content4}`,
-                "basicLink": "null",
-                "basicNote": "null",
-                "basicGrade": "null",
-                "advancedLink": "null",
-                "advancedNote": "null",
-                "advancedGrade": "null",
-                "intermediateLink": "null",
-                "intermediateNote": "null",
-                "intermediateGrade": "null"
-            },
-            "5": {
-                "content": `${content5}`,
-                "basicLink": "null",
-                "basicNote": "null",
-                "basicGrade": "null",
-                "advancedLink": "null",
-                "advancedNote": "null",
-                "advancedGrade": "null",
-                "intermediateLink": "null",
-                "intermediateNote": "null",
-                "intermediateGrade": "null"
-            }
-        });
-
-        await createAssignment(data.UnitID, unitName, students, className, jsonCreate);
+        return;
     }
+
+    const unitId = data[0]?.UnitID;
+    if (!unitId) {
+        console.error("No UnitID returned from insert.");
+        return;
+    }
+
+    const jsonCreate = {
+        "1": {
+            "content": content1,
+            "basicLink": "null",
+            "basicNote": "null",
+            "basicGrade": "null",
+            "advancedLink": "null",
+            "advancedNote": "null",
+            "advancedGrade": "null",
+            "intermediateLink": "null",
+            "intermediateNote": "null",
+            "intermediateGrade": "null"
+        },
+        "2": {
+            "content": content2,
+            "basicLink": "null",
+            "basicNote": "null",
+            "basicGrade": "null",
+            "advancedLink": "null",
+            "advancedNote": "null",
+            "advancedGrade": "null",
+            "intermediateLink": "null",
+            "intermediateNote": "null",
+            "intermediateGrade": "null"
+        },
+        "3": {
+            "content": content3,
+            "basicLink": "null",
+            "basicNote": "null",
+            "basicGrade": "null",
+            "advancedLink": "null",
+            "advancedNote": "null",
+            "advancedGrade": "null",
+            "intermediateLink": "null",
+            "intermediateNote": "null",
+            "intermediateGrade": "null"
+        },
+        "4": {
+            "content": content4,
+            "basicLink": "null",
+            "basicNote": "null",
+            "basicGrade": "null",
+            "advancedLink": "null",
+            "advancedNote": "null",
+            "advancedGrade": "null",
+            "intermediateLink": "null",
+            "intermediateNote": "null",
+            "intermediateGrade": "null"
+        },
+        "5": {
+            "content": content5,
+            "basicLink": "null",
+            "basicNote": "null",
+            "basicGrade": "null",
+            "advancedLink": "null",
+            "advancedNote": "null",
+            "advancedGrade": "null",
+            "intermediateLink": "null",
+            "intermediateNote": "null",
+            "intermediateGrade": "null"
+        }
+    };
+
+    await createAssignment(unitId, unitName, students, className, jsonCreate);
 }
 
-async function createAssignment(unitId, unitName, students, className, JSON) {
+async function createAssignment(unitId, unitName, students, className, jsonData) {
+    for (const student of students) {
+        const studentId = student.StudentID;
+        const studentName = student.StudentName;
 
-    for (const StudentID of students) {
-
-        let assignmentString = "assignment/" + className + "/" + unitName + "/" + students.StudentName
+        const assignmentString = `assignment/${className}/${unitName}/${studentName}`;
 
         const { data, error } = await supabase
             .from('Assignment')
             .insert([
-                { UnitID: `${unitId}`, StudentID: `${StudentID}`, AssignmentFolder: `${assignmentString}`, JSON: `${JSON}`},
-            ])
-            .select()
+                {
+                    UnitID: unitId,
+                    StudentID: studentId,
+                    AssignmentFolder: assignmentString,
+                    JSON: jsonData
+                }
+            ]);
 
         if (error) {
-            console.log("Error creating assignment: " + error.message)
+            console.log("Error creating assignment for student ID", studentId, ":", error.message);
         }
     }
-
 }
