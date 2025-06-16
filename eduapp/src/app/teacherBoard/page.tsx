@@ -37,6 +37,7 @@ export default function TeacherDashboard() {
     const [studentPassword, setStudentPassword] = useState("");
     const [studentClass, setStudentClass] = useState("");
     const [classTeacherId, setClassTeacherId] = useState("");
+    const [jsonUnitId, setJsonUnitId] = useState("");
 
     //handle edit
     const [isStudentEditOpen, setIsStudentEditOpen] = useState(false);
@@ -123,7 +124,7 @@ export default function TeacherDashboard() {
                 if (firstStudent?.StudentName && firstStudent?.StudentID) {
                     setStudentName(firstStudent.StudentName);
                     setStudentId(firstStudent.StudentID);
-                    await loadEvaluationFromJson(firstStudent.StudentID);
+                    await loadEvaluationFromJson();
                 } else {
                     console.warn("First student record is missing required fields.");
                 }
@@ -182,6 +183,11 @@ export default function TeacherDashboard() {
         setEvaluations(initialEvaluations);
     }, []);
 
+    useEffect(() => {
+        if (studentId && jsonUnitId) {
+            loadEvaluationFromJson()
+        }
+    }, [studentId, jsonUnitId]);
 
 
     //handle create UNITs
@@ -655,13 +661,13 @@ export default function TeacherDashboard() {
     // Save to Json file
     const uploadJsonFile = async () => {
         // debug
-        const unitName = "unit1";
 
         const uploadedPaths = await uploadFiles(attachedFiles);
 
         const mapData = gatherEvaluationData(uploadedPaths);
 
-        const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentId}/assignment.json`;
+        const filePath = `${Cookies.get("teacherName")}/${className}/${jsonUnitId}/${studentId}/assignment.json`;
+        console.log(filePath);
         const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: "application/json" });
 
         const { error } = await supabase.storage
@@ -675,17 +681,23 @@ export default function TeacherDashboard() {
         }
     };
 
-    const loadEvaluationFromJson = async (selectedStudentId: string | undefined) => {
-        const unitName = "unit1";
+    const loadEvaluationFromJson = async () => {
 
-        if (!selectedStudentId || Number(selectedStudentId) <= 1) {
+        console.log(studentId, jsonUnitId)
+
+        if (!studentId || Number(studentId) <= 1) {
             console.warn("Invalid or missing student ID. Skipping evaluation load.");
+            return;
+        }
+
+        if (!jsonUnitId || Number(jsonUnitId) <= 1 ) {
+            console.warn("Invalid or missing unit ID. Skipping evaluation load.");
             return;
         }
 
         const teacherName = Cookies.get("teacherName");
 
-        const filePath = `${teacherName}/${className}/${unitName}/${selectedStudentId}/assignment.json`;
+        const filePath = `${teacherName}/${className}/${jsonUnitId}/${studentId}/assignment.json`;
         console.log("Fetching evaluation from:", filePath);
 
         const { data, error } = await supabase.storage
@@ -1102,7 +1114,8 @@ export default function TeacherDashboard() {
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Unit</label>
-                            <select className="w-full border rounded px-3 py-2">
+                            <select className="w-full border rounded px-3 py-2" onChange={(e) => {
+                                setJsonUnitId(e.target.value)}}>
                                 {units.map((units) => (
                                     <option key={units.UnitID} value={units.UnitID}>
                                         {units.UnitName}
@@ -1119,9 +1132,7 @@ export default function TeacherDashboard() {
                             <label className="block text-sm font-medium mb-1">Student</label>
                             <select className="w-full border rounded px-3 py-2"
                                     onChange={(e) => {
-                                        setStudentId(e.target.value);
-                                        loadEvaluationFromJson(e.target.value);
-                                    }}
+                                        setStudentId(e.target.value);}}
                             >
                                 {students.map((students) => (
                                     <option key={students.StudentID} value={students.StudentID}>
