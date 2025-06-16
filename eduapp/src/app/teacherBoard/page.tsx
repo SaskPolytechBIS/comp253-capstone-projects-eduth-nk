@@ -183,6 +183,11 @@ export default function TeacherDashboard() {
         setEvaluations(initialEvaluations);
     }, []);
 
+    useEffect(() => {
+        if (studentId && jsonUnitId) {
+            loadEvaluationFromJson()
+        }
+    }, [studentId, jsonUnitId]);
 
 
     //handle create UNITs
@@ -655,14 +660,19 @@ export default function TeacherDashboard() {
 
         console.log(studentId, jsonUnitId)
 
-        if (!studentId || Number(selectedStudentId) <= 1) {
+        if (!studentId || Number(studentId) <= 1) {
             console.warn("Invalid or missing student ID. Skipping evaluation load.");
+            return;
+        }
+
+        if (!jsonUnitId || Number(jsonUnitId) <= 1 ) {
+            console.warn("Invalid or missing unit ID. Skipping evaluation load.");
             return;
         }
 
         const teacherName = Cookies.get("teacherName");
 
-        const filePath = `${teacherName}/${className}/${jsonUnitId}/${selectedStudentId}/assignment.json`;
+        const filePath = `${teacherName}/${className}/${jsonUnitId}/${studentId}/assignment.json`;
         console.log("Fetching evaluation from:", filePath);
 
         const { data, error } = await supabase.storage
@@ -1080,8 +1090,7 @@ export default function TeacherDashboard() {
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Unit</label>
                             <select className="w-full border rounded px-3 py-2" onChange={(e) => {
-                                setJsonUnitId(e.target.value)
-                                loadEvaluationFromJson();}}>
+                                setJsonUnitId(e.target.value)}}>
                                 {units.map((units) => (
                                     <option key={units.UnitID} value={units.UnitID}>
                                         {units.UnitName}
@@ -1098,9 +1107,7 @@ export default function TeacherDashboard() {
                             <label className="block text-sm font-medium mb-1">Student</label>
                             <select className="w-full border rounded px-3 py-2"
                                     onChange={(e) => {
-                                        setStudentId(e.target.value);
-                                        loadEvaluationFromJson();
-                                    }}
+                                        setStudentId(e.target.value);}}
                             >
                                 {students.map((students) => (
                                     <option key={students.StudentID} value={students.StudentID}>
