@@ -185,10 +185,21 @@ export default function TeacherDashboard() {
 
     useEffect(() => {
         if (studentId && jsonUnitId) {
-            loadEvaluationFromJson()
+            loadEvaluationFromJson();
+            loadUnitContent();
         }
     }, [studentId, jsonUnitId]);
 
+    useEffect(() => {
+        // when change classId → reset content (clear textarea)
+        textAreaRefs.current.forEach(ref => {
+            if (ref) ref.value = "";
+        });
+
+        setJsonUnitId("");
+        setEvaluations({});
+        setAttachedFiles({});
+    }, [classId]);
 
     //handle create UNITs
     const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
@@ -212,14 +223,11 @@ export default function TeacherDashboard() {
         try {
             // Get students for the selected class
             const studentsResult = await getStudentsFromClass(classId);
-            const selectedClass = classes.find(c => c.ClassID === classId);
-
-            if (!selectedClass) {
-                throw new Error("Selected class not found");
-            }
-
-            // Call createUnit with all required parameters
-            await createUnit(
+            const selectedClass = classes.find(c => String(c.ClassID) === String(classId))
+            if (!selectedClass) throw new Error("Selected class not found");
+            setClassName(selectedClass.ClassName);
+            // 1. Create Unit in DB
+            const newUnitId = await createUnit(
                 classId,
                 unitName,
                 studentsResult,
@@ -231,7 +239,45 @@ export default function TeacherDashboard() {
                 description5
             );
 
-            // Reset form
+            if (!newUnitId) {
+                alert("Failed to create unit");
+                return;
+            }
+
+            // 2. Save content to Supabase Storage
+            const contentData = {
+                unitId: newUnitId,
+                unitName,
+                descriptions: [
+                    description1,
+                    description2,
+                    description3,
+                    description4,
+                    description5
+                ]
+            };
+
+            const contentBlob = new Blob(
+                [JSON.stringify(contentData, null, 2)],
+                { type: "application/json" }
+            );
+
+            const teacherName = Cookies.get("teacherName");
+            const contentPath = `${teacherName}/${selectedClass.ClassName}/${newUnitId}/unit_content.json`;
+
+            const { error: contentError } = await supabase.storage
+                .from('assignment')
+                .upload(contentPath, contentBlob, { upsert: true });
+
+            if (contentError) {
+                console.error("Failed to upload unit content JSON:", contentError.message);
+                alert("Unit created but failed to save content.");
+                return;
+            }
+
+            console.log("✅ Uploaded unit_content.json");
+
+            // 3. Reset form
             setUnitName('');
             setDescription1('');
             setDescription2('');
@@ -239,12 +285,15 @@ export default function TeacherDashboard() {
             setDescription4('');
             setDescription5('');
 
-            // Close modal
+            // 4. Close modal
             setIsUnitModalOpen(false);
 
-            // Refresh units list
+            // 5. Refresh units
             const unitResult = await getUnits(classId);
             setUnits(unitResult ?? []);
+
+            // 6. Set new unit ID to dislay content
+            setJsonUnitId(newUnitId);
 
         } catch (error) {
             console.error("Error creating unit:", error);
@@ -252,7 +301,45 @@ export default function TeacherDashboard() {
         }
     };
 
+    const loadUnitContent = async () => {
+        if (!jsonUnitId || !className) return;
 
+        const teacherName = Cookies.get("teacherName");
+        const contentPath = `${teacherName}/${className}/${jsonUnitId}/unit_content.json`;
+
+        const { data, error } = await supabase.storage
+            .from("assignment")
+            .download(contentPath);
+
+        if (error) {
+            console.error("Failed to load unit content:", error.message);
+            // If file not exits, clear textarea content
+            textAreaRefs.current.forEach((ref) => {
+                if (ref) ref.value = "";
+            });
+            return;
+        }
+
+        try {
+            const text = await data.text();
+            const json = JSON.parse(text);
+
+            const descriptions = json.descriptions || [];
+
+            // textAreaRefs.current.forEach(ref => {
+            //     if (ref) ref.value = "";
+            // });
+
+            descriptions.forEach((desc: string, i: number) => {
+                const textArea = textAreaRefs.current[i];
+                if (textArea) {
+                    textArea.value = desc;
+                }
+            });
+        } catch (err) {
+            console.error("Failed to parse unit content JSON:", err);
+        }
+    };
 
     const handleEditUnitSubmit = async () => {
         console.log("Editing unit:", selectedUnitId, unitName);
@@ -275,10 +362,10 @@ export default function TeacherDashboard() {
     // reset input
     const resetEvaluationUI = () => {
         // Textarea
-        textAreaRefs.current.forEach(ref => {
-            if (ref) ref.value = "";
-        });
-
+        //textAreaRefs.current.forEach(ref => {
+        //    if (ref) ref.value = "";
+        //});
+//
         // Reset evaluations
         setEvaluations({});
 
@@ -591,7 +678,7 @@ export default function TeacherDashboard() {
     const textAreaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
     type AssignmentEntry = {
-        content: string;
+        //content: string;
         evaluations: {
             Basic: EvaluationData;
             Intermediate: EvaluationData;
@@ -603,7 +690,7 @@ export default function TeacherDashboard() {
         const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
 
         const entries: AssignmentEntry[] = Array.from({ length: 5 }, (_, index) => {
-            const content = textAreaRefs.current[index]?.value || "";
+            //const content = textAreaRefs.current[index]?.value || "";
             const rowEval = evaluations[index] || {};
 
             const evaluationsByLevel = levels.reduce((acc, level) => {
@@ -620,7 +707,7 @@ export default function TeacherDashboard() {
             }, {} as Record<ColumnType, { code: string; note: string; files: string[] }>);
 
             return {
-                content,
+                //content,
                 evaluations: evaluationsByLevel,
             };
         });
@@ -696,17 +783,17 @@ export default function TeacherDashboard() {
 
             const entries = json.entries;
 
-            if (!Array.isArray(textAreaRefs.current) || textAreaRefs.current.length < entries.length) {
-                console.warn("Text area references are missing or insufficient.");
-                return;
-            }
-
-            entries.forEach((entry, i) => {
-                const textArea = textAreaRefs.current[i];
-                if (textArea) {
-                    textArea.value = entry.content || "";
-                }
-            });
+            // if (!Array.isArray(textAreaRefs.current) || textAreaRefs.current.length < entries.length) {
+            //     console.warn("Text area references are missing or insufficient.");
+            //     return;
+            // }
+            //
+            // entries.forEach((entry, i) => {
+            //     const textArea = textAreaRefs.current[i];
+            //     if (textArea) {
+            //         textArea.value = entry.content || "";
+            //     }
+            // });
 
             const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
             const loadedEvaluations: Record<number, RowEvaluation> = {};
