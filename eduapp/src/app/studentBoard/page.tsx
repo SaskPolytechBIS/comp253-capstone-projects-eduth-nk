@@ -1,51 +1,119 @@
 "use client";
 
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import { Bell } from "lucide-react";
 import { VscAccount } from "react-icons/vsc";
 import { redirect, useRouter } from "next/navigation";
-import { getUnits, getClassFromStudent } from "@/lib/select"
+import { getUnits, getClassFromStudent, getTeacherName } from "@/lib/select"
 import Cookies from "js-cookie";
 import { LegendModal } from "@/lib/Modals";
-import {any} from "prop-types";
+import {supabase} from "@/lib/supabase";
+import Table from "react-bootstrap/Table";
 
 export default function StudentDashboard() {
     const [userName, setUserName] = useState("sample");
     const [menuOpen, setMenuOpen] = useState(false);
     const router = useRouter();
     const [showPopup, setShowPopup] = useState(false);
-    const [studentClass, setStudentClass] = useState([{ClassID: "0"}]);
+    const [studentClass, setStudentClass] = useState([{ClassID: "0", ClassName: "Error", TeacherID: "0"}]);
+    const [teacherName, setTeacherName] = useState ([{TeacherName: "Error"}])
     const [units, setUnits] = useState ([{UnitID: "0", UnitName: "Error"}])
     const studentId = Cookies.get("studentId");
+
+    useEffect(() => {
+        if (!studentId) {
+            router.push("/login");
+        }
+    }, [studentId]);
 
     useEffect(() => {
         const fetchClass = async () => {
 
             const classResult = await getClassFromStudent(studentId)
             if (!Array.isArray(classResult)) {
-                alert("Error with getting class: " + JSON.stringify(classResult));
+                console.error("Error with getting class: " + JSON.stringify(classResult));
                 return;
             }
 
             setStudentClass(classResult);
         }
         fetchClass();
+    }, [])
 
+    useEffect(() => {
         const fetchUnits = async () => {
-            const unitsResult = await getUnits(studentClass)
+            const unitsResult = await getUnits(studentClass[0].ClassID)
             if (!Array.isArray(unitsResult)) {
-                alert("Error with getting units: " + JSON.stringify(unitsResult));
+                console.error("Error with getting units: " + JSON.stringify(unitsResult));
                 return;
             }
             setUnits(unitsResult);
         }
         fetchUnits()
-    }, [])
+    }, [studentClass])
 
+    useEffect(() => {
+        const fetchTeacherName = async() => {
+            const teacherResult = await getTeacherName(studentClass[0].TeacherID)
+            if (!Array.isArray(teacherResult)) {
+                console.error("Error with getting teacher name: " + JSON.stringify(teacherResult));
+                return;
+            }
+            console.log(teacherResult)
+            setTeacherName(teacherResult)
+        }
+        fetchTeacherName()
+    }, [studentClass])
 
-    if (studentId == undefined) {
-        redirect("/login");
-    }
+    useEffect(() => {
+        if (
+            studentClass[0].ClassID !== "0" &&
+            teacherName.length > 0 && teacherName[0].TeacherName !== "Error" &&
+            studentId
+        ) {
+            loadEvaluationFromJson();
+        }
+    }, [studentClass, teacherName, studentId]);
+
+    const [evaluations, setEvaluations] = useState<Record<number, RowEvaluation>>({});
+
+    const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, File[]>>>({});
+
+    // reset input
+    const resetEvaluationUI = () => {
+        // Textarea
+        textAreaRefs.current.forEach(ref => {
+            if (ref) ref.value = "";
+        });
+
+        // Reset evaluations
+        setEvaluations({});
+
+        // Reset attached files
+        setAttachedFiles({});
+    };
+
+    const textAreaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
+
+    type AssignmentEntry = {
+        content: string;
+        evaluations: {
+            Basic: EvaluationData;
+            Intermediate: EvaluationData;
+            Advanced: EvaluationData;
+        };
+    };
+
+    type EvaluationData = {
+        code: string;
+        note: string;
+    };
+
+    type RowEvaluation = {
+        [key in ColumnType]: EvaluationData;
+    };
+
+    type ColumnType = "Basic" | "Intermediate" | "Advanced";
 
     const handleLogout = () => {
         Cookies.remove("studentId");
@@ -63,12 +131,165 @@ export default function StudentDashboard() {
         { code: "C", description: "Used when knowledge has been demonstrated individually, seen through a conversation" },
     ];
 
-    const tableData = [
-        "Programming Skills: Enhancing our programming skills by expanding our programming library through utilizing Next.js for the front-end + back-end development and deploying Supabase for the application database.",
-        "Time Management: This project will challenge our ability to plan effectively and deliver results under deadlines set by both our team and stakeholders.",
-        "Adaptability: As requirements evolve or unexpected challenges arise, we will need to remain flexible—reassessing priorities, adjusting timelines, and refining strategies to stay aligned with project goals",
-        "Team Coordination: Working in a team environment like this will teach us how to delegate responsibility, balance workloads, and to communicate through conflicts all while maintaining a shared vision.."
-    ];
+    const EvaluationCell = React.memo(({
+                                           row,
+                                           column,
+                                           attachedFiles,
+                                           setAttachedFiles,
+                                           evaluations,
+                                           setEvaluations
+                                       }: {
+        row: number;
+        column: ColumnType;
+        attachedFiles: Record<number, Record<ColumnType, File[]>>;
+        setAttachedFiles: React.Dispatch<React.SetStateAction<Record<number, Record<ColumnType, File[]>>>>;
+        evaluations: Record<number, RowEvaluation>;
+        setEvaluations: React.Dispatch<React.SetStateAction<Record<number, RowEvaluation>>>;
+    }) => {
+        const fileInputRef = useRef<HTMLInputElement>(null);
+        const [note, setNote] = useState(evaluations[row]?.[column]?.note || "");
+        const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+        useEffect(() => {
+            setNote(evaluations[row]?.[column]?.note || "");
+        }, [evaluations, row, column]);
+
+        const handleAttachClick = () => {
+            fileInputRef.current?.click();
+        };
+
+        const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (file) {
+                setAttachedFiles(prev => ({
+                    ...prev,
+                    [row]: {
+                        ...prev[row],
+                        [column]: [...(prev[row]?.[column] || []), file]
+                    }
+                }));
+                setIsDialogOpen(true);
+            }
+        };
+
+        return (
+            <td className="border p-2 text-center align-top">
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileChange}
+                />
+                <button
+                    onClick={handleAttachClick}
+                    className="text-blue-600 hover:underline mb-2 block"
+                >
+                    Attach File
+                </button>
+                <textarea
+                    value={note}
+                    onChange={(e) => {
+                        const newNote = e.target.value;
+                        setNote(newNote);
+                        setEvaluations(prev => ({
+                            ...prev,
+                            [row]: {
+                                ...prev[row],
+                                [column]: {
+                                    ...prev[row]?.[column],
+                                    note: newNote,
+                                    code: prev[row]?.[column]?.code || ""
+                                }
+                            }
+                        }));
+                    }}
+                    className="w-full border rounded p-1 text-sm"
+                    rows={3}
+                    placeholder="Notes..."
+                />
+            </td>
+        );
+    });
+
+    const loadEvaluationFromJson = async () => {
+        const unitName = "unit1";
+
+        //const filePath = `${teacherName[0].TeacherName}/${studentClass[0].ClassName}/${unitName}/${studentId}/assignment.json`;
+        const filePath = `taylor/${studentClass[0].ClassName}/${unitName}/${studentId}/assignment.json`;
+        console.log("Fetching evaluation from:", filePath);
+
+        const { data, error } = await supabase.storage
+            .from("assignment")
+            .download(filePath);
+
+        if (error) {
+            console.error("Supabase download error:", error.message, filePath);
+            resetEvaluationUI();
+            return;
+        }
+
+        try {
+            const text = await data.text();
+            const json = safeJsonParse<{ entries: any[] }>(text);
+
+            if (!json || !Array.isArray(json.entries)) {
+                console.warn("Invalid or missing entries in JSON.");
+                return;
+            }
+
+            const entries = json.entries;
+
+            if (!Array.isArray(textAreaRefs.current) || textAreaRefs.current.length < entries.length) {
+                console.warn("Text area references are missing or insufficient.");
+                return;
+            }
+
+            entries.forEach((entry, i) => {
+                const textArea = textAreaRefs.current[i];
+                if (textArea) {
+                    textArea.value = entry.content || "";
+                }
+            });
+
+            const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
+            const loadedEvaluations: Record<number, RowEvaluation> = {};
+            const loadedFiles: Record<number, Record<ColumnType, File[]>> = {};
+
+            entries.forEach((entry, index) => {
+                const evals = entry.evaluations ?? {};
+                loadedEvaluations[index] = {} as RowEvaluation;
+                loadedFiles[index] = {} as Record<ColumnType, File[]>;
+
+                levels.forEach((level) => {
+                    const levelData = evals[level] || {};
+                    loadedEvaluations[index][level] = {
+                        code: levelData.code || "",
+                        note: levelData.note || ""
+                    };
+
+                    loadedFiles[index][level] = (levelData.files || []).map(
+                        (name: string) => new File([], name)
+                    );
+                });
+            });
+
+            setEvaluations(loadedEvaluations);
+            setAttachedFiles(loadedFiles);
+
+        } catch (parseError) {
+            console.error("Error parsing assignment JSON:", parseError);
+        }
+    };
+
+// Utility function for safer JSON parsing
+    function safeJsonParse<T>(text: string): T | null {
+        try {
+            return JSON.parse(text);
+        } catch (err) {
+            console.error("JSON parse error:", err);
+            return null;
+        }
+    }
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -132,42 +353,56 @@ export default function StudentDashboard() {
 
                         {/* Table-Like Layout with Titles */}
                         <div className="overflow-x-auto">
-                            <table className="w-full border border-collapse text-sm">
-                                <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="border px-4 py-2">Content</th>
-                                    <th className="border px-4 py-2">Basic</th>
-                                    <th className="border px-4 py-2">Intermediate</th>
-                                    <th className="border px-4 py-2">Advanced</th>
+                            <Table className="w-full table-auto border-collapse">
+                                <thead>
+                                <tr className="bg-gray-100">
+                                    <th className="border p-2 text-left">Content</th>
+                                    <th className="border p-2 text-center">Basic</th>
+                                    <th className="border p-2 text-center">Intermediate</th>
+                                    <th className="border p-2 text-center">Advanced</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {tableData.map((text, idx) => (
-                                    <tr key={idx}>
-                                        <td className="border p-2 align-top">
-                                                <textarea
-                                                    defaultValue={text}
-                                                    className="w-full h-24 border rounded p-2 resize-none bg-gray-100 text-sm"
-                                                    readOnly
-                                                />
+                                {Array.from({ length: 5 }).map((_, index) => (
+                                    <tr key={index} className="hover:bg-gray-50">
+                                        <td className="border p-3 whitespace-pre-line text-sm align-top">
+                                              <textarea
+                                                  ref={el => {
+                                                      textAreaRefs.current[index] = el;
+                                                  }}
+                                                  className="w-full border rounded p-2 my-2 "
+                                                  rows={4}
+                                                  placeholder={`Click to create assignment #${index + 1}`}
+                                              />
                                         </td>
-                                        {[...Array(3)].map((_, colIdx) => (
-                                            <td key={colIdx} className="border p-2 align-top">
-                                                <div className="text-black font-medium mb-2 text-center text-lg">✓</div>
-                                                <div className="w-full border rounded p-2 text-left text-gray-500 text-sm bg-gray-50">
-                                                    Note: visible only
-                                                </div>
-                                            </td>
-                                        ))}
+                                        <EvaluationCell
+                                            row={index}
+                                            column="Basic"
+                                            attachedFiles={attachedFiles}
+                                            setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
+                                        />
+                                        <EvaluationCell
+                                            row={index}
+                                            column="Intermediate"
+                                            attachedFiles={attachedFiles}
+                                            setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
+                                        />
+                                        <EvaluationCell
+                                            row={index}
+                                            column="Advanced"
+                                            attachedFiles={attachedFiles}
+                                            setAttachedFiles={setAttachedFiles}
+                                            evaluations={evaluations}
+                                            setEvaluations={setEvaluations}
+                                        />
                                     </tr>
                                 ))}
                                 </tbody>
-                            </table>
-                        </div>
-
-                        {/* Update Button */}
-                        <div className="flex justify-end gap-2 mt-6">
-                            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Update Map</button>
+                            </Table>
                         </div>
                     </div>
                 </div>
