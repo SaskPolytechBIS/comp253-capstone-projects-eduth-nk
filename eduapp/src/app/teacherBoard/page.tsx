@@ -437,9 +437,25 @@ export default function TeacherDashboard() {
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} hidden />
                     {attachedFiles[row]?.[column]?.length > 0 && (
                         <ul className="text-xs mt-1 list-disc list-inside">
-                            {attachedFiles[row][column].map((f, idx) => (
-                                <li key={idx}>{f.name}</li>
-                            ))}
+                            {attachedFiles[row]?.[column]?.map((f: any, idx: number) => {
+                                const fileName = (f.name).replace(/^(\d+-)+/, "");
+                                const filePath = f.fullPath || f.path || "";
+                                const url = `https://teihpfddelngadtkdtaz.supabase.co/storage/v1/object/public/developing/${filePath}`;
+
+                                return (
+                                    <li key={idx}>
+                                        <a
+                                            href={url}
+                                            download={fileName}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 underline"
+                                        >
+                                            {fileName}
+                                        </a>
+                                    </li>
+                                );
+                            })}
                         </ul>
                     )}
                 </div>
@@ -460,29 +476,57 @@ export default function TeacherDashboard() {
         );
     });
 
-
+    type AttachedFile = File | { name: string; fullPath: string };
     // Save image to DB
-    const uploadFiles = async () => {
-        for (const row in attachedFiles) {
-            const columns = attachedFiles[parseInt(row)];
+    const uploadFiles = async (
+        attachedFiles: Record<number, Record<ColumnType, AttachedFile[]>>
+    ): Promise<Record<number, Record<ColumnType, string[]>>> => {
+
+        const uploadedPaths: Record<number, Record<ColumnType, string[]>> = {};
+
+        for (const rowStr in attachedFiles) {
+            const row = parseInt(rowStr);
+            const columns = attachedFiles[row];
+
+            // Khởi tạo đầy đủ 3 cấp độ cho mỗi dòng
+            uploadedPaths[row] = {
+                Basic: [],
+                Intermediate: [],
+                Advanced: [],
+            };
+
             for (const column in columns) {
-                const files = columns[column as ColumnType];
+                const colKey = column as ColumnType;
+                const files = columns[colKey];
+
                 for (const file of files) {
-                    const filePath = `teacher/${Date.now()}-${file.name}`;
-                    const { error } = await supabase.storage
-                        .from('developing')
-                        .upload(filePath, file);
+                    if (file instanceof File) {
+                        // if new attach file
+                        const filePath = `teacher/${Date.now()}-${file.name}`;
 
-                    if (error) {
-                        console.error(`Upload failed: ${file.name}`, error.message);
+                        const { error } = await supabase.storage
+                            .from("developing")
+                            .upload(filePath, file, { upsert: true });
+
+                        if (error) {
+                            console.error(` Upload failed: ${file.name}`, error.message);
+                        } else {
+                            console.log(`Uploaded: ${file.name} → ${filePath}`);
+                            uploadedPaths[row][colKey].push(filePath);
+                        }
+                    } else if ("fullPath" in file && typeof file.fullPath === "string") {
+                        // if attached file
+                        uploadedPaths[row][colKey].push(file.fullPath);
                     } else {
-                        console.log(`Uploaded: ${file.name} as ${filePath}`);
-
+                        console.warn("Unknown file type", file);
                     }
                 }
             }
         }
+
+        return uploadedPaths;
     };
+
 
     // show menu class
     const [isClassMenuOpen, setIsClassMenuOpen] = useState(false);
@@ -506,22 +550,21 @@ export default function TeacherDashboard() {
         };
     };
 
-    const gatherEvaluationData = (): any => {
+    const gatherEvaluationData = (uploadedPaths: Record<number, Record<ColumnType, string[]>>): any => {
         const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
 
         const entries: AssignmentEntry[] = Array.from({ length: 5 }, (_, index) => {
             const content = textAreaRefs.current[index]?.value || "";
             const rowEval = evaluations[index] || {};
-            const rowFiles = attachedFiles[index] || {};
 
             const evaluationsByLevel = levels.reduce((acc, level) => {
                 const evalData = rowEval[level] || { code: "", note: "" };
-                const fileNames = rowFiles[level]?.map(file => file.name) || [];
+                const files = uploadedPaths?.[index]?.[level] || [];
 
                 acc[level] = {
                     code: evalData.code || "",
                     note: evalData.note || "",
-                    files: fileNames,
+                    files
                 };
 
                 return acc;
@@ -545,7 +588,10 @@ export default function TeacherDashboard() {
     const uploadJsonFile = async () => {
         // debug
         const unitName = "unit1";
-        const mapData = gatherEvaluationData();
+
+        const uploadedPaths = await uploadFiles(attachedFiles);
+
+        const mapData = gatherEvaluationData(uploadedPaths);
 
         const filePath = `${Cookies.get("teacherName")}/${className}/${unitName}/${studentId}/assignment.json`;
         const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: "application/json" });
@@ -623,9 +669,16 @@ export default function TeacherDashboard() {
                         note: levelData.note || ""
                     };
 
-                    loadedFiles[index][level] = (levelData.files || []).map(
-                        (name: string) => new File([], name)
-                    );
+                    loadedFiles[index][level] = (levelData.files || []).map((path: string) => {
+                        // Extract file name for display
+                        const parts = path.split("/");
+                        const fileName = parts[parts.length - 1];
+
+                        return {
+                            name: fileName,
+                            fullPath: path
+                        } as any;
+                    });
                 });
             });
 
@@ -1085,7 +1138,7 @@ export default function TeacherDashboard() {
                         <div className="text-right mt-4">
                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                                     onClick={async () => {
-                                        await uploadFiles();
+                                        await uploadFiles(attachedFiles);
                                         await uploadJsonFile();
                                         // show dialog
                                         setIsUploadSuccessDialogOpen(true);
