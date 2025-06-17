@@ -119,5 +119,5 @@ async function createAssignment(unitId, unitName, students, className, JSON) {
         if (error) {
             console.log("Error creating assignment for student ID", studentId, ":", error.message);
         }
-    }
 }
+
