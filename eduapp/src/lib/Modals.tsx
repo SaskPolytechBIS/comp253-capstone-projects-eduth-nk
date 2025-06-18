@@ -76,6 +76,7 @@ export const ClassModal = ({
                 <div className="mb-4">
                     <label className="block text-sm font-medium mb-1">Teacher</label>
                     <select className="w-full border rounded px-3 py-2" value={teacherId} onChange={(e) => setTeacherId(e.target.value)}>
+                        <option value="">Choose teacher!</option>
                         {teachers.map((teachers) => (
                             <option key={teachers.TeacherID} value={teachers.TeacherID}>
                                 {teachers.TeacherName}
