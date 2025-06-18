@@ -633,7 +633,7 @@ export default function TeacherDashboard() {
             const row = parseInt(rowStr);
             const columns = attachedFiles[row];
 
-            // Khởi tạo đầy đủ 3 cấp độ cho mỗi dòng
+            // create 3 rows for each evaluation
             uploadedPaths[row] = {
                 Basic: [],
                 Intermediate: [],
@@ -1217,10 +1217,12 @@ export default function TeacherDashboard() {
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Unit</label>
                             <select className="w-full border rounded px-3 py-2" onChange={(e) => {
-                                setJsonUnitId(e.target.value)}}>
-                                {units.map((units) => (
-                                    <option key={units.UnitID} value={units.UnitID}>
-                                        {units.UnitName}
+                                setJsonUnitId(e.target.value)
+                            }}>
+                                <option value="" disabled selected>Please select</option>
+                                {units.map((unit) => (
+                                    <option key={unit.UnitID} value={unit.UnitID}>
+                                        {unit.UnitName}
                                     </option>
                                 ))}
                             </select>
