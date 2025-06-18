@@ -159,16 +159,17 @@ export default function TeacherDashboard() {
         if (!classId) {
             return;
         }
-        const loadUnits = async () => {
-            try {
-                const unitResult = await getUnits(classId);
-                setUnits(unitResult ?? []);
-            } catch (error) {
-                alert("Unexpected error: " + error);
-            }
-        };
-        loadUnits();
+        fetchUnits()
     }, [classId])
+
+    async function fetchUnits() {
+        try {
+            const unitResult = await getUnits(classId);
+            setUnits(unitResult ?? []);
+        } catch (error) {
+            alert("Unexpected error: " + error);
+        }
+    }
 
     useEffect(() => {
         // Initialize 5 row
@@ -356,6 +357,7 @@ export default function TeacherDashboard() {
         await deleteUnit(selectedUnitId)
         setIsDeleteUnitOpen(false);
         setSelectedUnitId('');
+        fetchUnits();
     };
 
 
