@@ -1219,7 +1219,7 @@ export default function TeacherDashboard() {
                             <select className="w-full border rounded px-3 py-2" onChange={(e) => {
                                 setJsonUnitId(e.target.value)
                             }}>
-                                <option value="" disabled selected>Please select</option>
+                                <option value="" disabled>Please select</option>
                                 {units.map((unit) => (
                                     <option key={unit.UnitID} value={unit.UnitID}>
                                         {unit.UnitName}
