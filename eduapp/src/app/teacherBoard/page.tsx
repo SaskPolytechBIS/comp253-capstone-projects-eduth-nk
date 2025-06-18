@@ -580,15 +580,13 @@ export default function TeacherDashboard() {
 
                                 return (
                                     <li key={idx}>
-                                        <a
-                                            href={url}
-                                            download={fileName}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 underline"
+                                        <span
+                                            onClick={() => setPreviewUrl(url)}
+                                            className="text-blue-600 underline cursor-pointer hover:text-blue-800"
+                                            title="Click to view"
                                         >
                                             {fileName}
-                                        </a>
+                                        </span>
                                     </li>
                                 );
                             })}
@@ -729,6 +727,8 @@ export default function TeacherDashboard() {
         const mapData = gatherEvaluationData(uploadedPaths);
 
         const filePath = `${Cookies.get("teacherName")}/${className}/${jsonUnitId}/${studentId}/assignment.json`;
+        const contentPath = `${Cookies.get("teacherName")}/${className}/${jsonUnitId}/unit_content.json`;
+
         console.log(filePath);
         const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: "application/json" });
 
@@ -739,8 +739,35 @@ export default function TeacherDashboard() {
         if (error) {
             console.error("Failed to upload JSON:", error.message);
         } else {
-            console.log("✅ Uploaded map.json successfully!");
+            console.log("Uploaded map.json successfully!");
         }
+
+        // Update Content Json File
+        const contentDescriptions: string[] = textAreaRefs.current.map((ref) =>
+            ref?.value?.trim() || ""
+        );
+
+        const contentData = {
+            unitId: jsonUnitId,
+            unitName,
+            descriptions: contentDescriptions,
+        };
+
+        const contentBlob = new Blob([JSON.stringify(contentData, null, 2)], {
+            type: "application/json",
+        });
+
+        const { error: contentError } = await supabase.storage
+            .from("assignment")
+            .upload(contentPath, contentBlob, { upsert: true });
+
+        if (contentError) {
+            console.error("Failed to update unit_content.json:", contentError.message);
+        } else {
+            console.log("Updated unit_content.json with new content");
+        }
+
+        setIsUploadSuccessDialogOpen(true);
     };
 
     const loadEvaluationFromJson = async () => {
@@ -841,6 +868,8 @@ export default function TeacherDashboard() {
             return null;
         }
     }
+
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     return (
         <div className="flex flex-col min-h-screen ">
@@ -1279,10 +1308,10 @@ export default function TeacherDashboard() {
                         <div className="text-right mt-4">
                             <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                                     onClick={async () => {
-                                        await uploadFiles(attachedFiles);
                                         await uploadJsonFile();
                                         // show dialog
                                         setIsUploadSuccessDialogOpen(true);
+                                        location.reload();
                                     }}
                             >
                                 Update Map
@@ -1304,6 +1333,24 @@ export default function TeacherDashboard() {
                         >
                             OK
                         </button>
+                    </div>
+                </div>
+            )}
+            {previewUrl && (
+                <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
+                    <div className="bg-white w-[80%] h-[80%] relative rounded-lg overflow-hidden shadow-lg">
+                        <button
+                            onClick={() => setPreviewUrl(null)}
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded px-3 py-1"
+                        >
+                            Close
+                        </button>
+                        <iframe
+                            src={previewUrl}
+                            width="100%"
+                            height="100%"
+                            className="border-none"
+                        ></iframe>
                     </div>
                 </div>
             )}
