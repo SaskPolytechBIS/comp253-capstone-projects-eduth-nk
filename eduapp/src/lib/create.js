@@ -61,7 +61,7 @@ export async function createUnit(classId, unitName, students, className, content
     }
 
     const unitId = data.UnitID;
-
+/*
     const jsonCreate = {
         "1": {
             content: content1,
@@ -94,8 +94,9 @@ export async function createUnit(classId, unitName, students, className, content
             intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
         }
     };
+    */
 
-    await createAssignment(unitId, unitName, students, className, jsonCreate);
+    await createAssignment(unitId, unitName, students, className);
 
     return unitId;
 }

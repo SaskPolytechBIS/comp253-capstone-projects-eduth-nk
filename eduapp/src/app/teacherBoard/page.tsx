@@ -367,9 +367,10 @@ export default function TeacherDashboard() {
         console.log("Deleting unit:", selectedUnitId);
         // call API
         await deleteUnit(selectedUnitId)
+        await fetchUnits();  // refresh the units
         setIsDeleteUnitOpen(false);
         setSelectedUnitId('');
-        fetchUnits();
+        
     };
 
 
@@ -594,7 +595,7 @@ export default function TeacherDashboard() {
                             {attachedFiles[row]?.[column]?.map((f: any, idx: number) => {
                                 const fileName = (f.name).replace(/^(\d+-)+/, "");
                                 const filePath = f.fullPath || f.path || "";
-                                const url = `https://teihpfddelngadtkdtaz.supabase.co/storage/v1/object/public/developing/${filePath}`;
+                                const url = `https://odrybkhmbqqpetshcupz.supabase.co/storage/v1/object/public/developing/${filePath}`;
 
                                 return (
                                     <li key={idx}>
