@@ -159,16 +159,17 @@ export default function TeacherDashboard() {
         if (!classId) {
             return;
         }
-        const loadUnits = async () => {
-            try {
-                const unitResult = await getUnits(classId);
-                setUnits(unitResult ?? []);
-            } catch (error) {
-                alert("Unexpected error: " + error);
-            }
-        };
-        loadUnits();
+        fetchUnits()
     }, [classId])
+
+    async function fetchUnits() {
+        try {
+            const unitResult = await getUnits(classId);
+            setUnits(unitResult ?? []);
+        } catch (error) {
+            alert("Unexpected error: " + error);
+        }
+    }
 
     useEffect(() => {
         // Initialize 5 row
@@ -363,6 +364,7 @@ export default function TeacherDashboard() {
         await deleteUnit(selectedUnitId)
         setIsDeleteUnitOpen(false);
         setSelectedUnitId('');
+        fetchUnits();
     };
 
 
@@ -1219,7 +1221,7 @@ export default function TeacherDashboard() {
                             <select className="w-full border rounded px-3 py-2" onChange={(e) => {
                                 setJsonUnitId(e.target.value)
                             }}>
-                                <option value="" disabled selected>Please select</option>
+                                <option value="" disabled>Please select</option>
                                 {units.map((unit) => (
                                     <option key={unit.UnitID} value={unit.UnitID}>
                                         {unit.UnitName}
