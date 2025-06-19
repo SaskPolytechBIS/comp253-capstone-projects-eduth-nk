@@ -418,32 +418,34 @@ export default function TeacherDashboard() {
 
     };
 
-    const handleStudentEditSubmit = () => {
+    const handleStudentEditSubmit = async () => {
         // update logic here
-        updateStudent(selectedStudentId, studentName, studentClass,studentUsername, studentPassword);
+        await updateStudent(selectedStudentId, studentName, studentClass,studentUsername, studentPassword);
         setIsStudentEditOpen(false);
     };
 
-    const handleClassEditSubmit = () => {
+    const handleClassEditSubmit = async () => {
         // handle update logic here
-        updateClass(selectedClassId, className, classTeacherId);
+        await updateClass(selectedClassId, className, classTeacherId);
         // Reset all states
         setSelectedClassId("");
         setClassName("");
         setClassTeacherId("");
+        await loadClasses();
 
         setIsClassMenuOpen(false);
     };
 
     const handleDeleteClass = async () => {
         if (!selectedClassId) return;
-        deleteClass(selectedClassId);
+        await deleteClass(selectedClassId);
         setIsDeleteModalClassOpen(false);
+        await loadClasses();
     };
 
     const handleDeleteStudent = async () => {
         if (!selectedStudentId) return;
-        deleteStudent(selectedStudentId);
+        await deleteStudent(selectedStudentId);
         // Reset the selection
         setSelectedStudentId("");
         // Close the modal
