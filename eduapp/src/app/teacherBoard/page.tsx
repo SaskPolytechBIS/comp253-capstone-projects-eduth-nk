@@ -232,12 +232,13 @@ export default function TeacherDashboard() {
             const selectedClass = classes.find(c => String(c.ClassID) === String(classId))
             if (!selectedClass) throw new Error("Selected class not found");
             setClassName(selectedClass.ClassName);
+
             // 1. Create Unit in DB
             const newUnitId = await createUnit(
                 classId,
                 unitName,
                 studentsResult,
-                selectedClass.ClassID,
+                selectedClass.ClassName,
                 description1 || '',
                 description2 || '',
                 description3 || '',
@@ -294,18 +295,22 @@ export default function TeacherDashboard() {
             // 4. Close modal
             setIsUnitModalOpen(false);
 
-            // 5. Refresh units
+            // 5. Refresh units and select the new unit
             const unitResult = await getUnits(classId);
             setUnits(unitResult ?? []);
 
-            // 6. Set new unit ID to dislay content
+            // 6. Set new unit ID to display content - moved this after units refresh
             setJsonUnitId(newUnitId);
+
+            // 7. Load the unit content immediately
+            await loadUnitContent();
 
         } catch (error) {
             console.error("Error creating unit:", error);
             alert(`Failed to create unit: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
+
 
     const loadUnitContent = async () => {
         if (!jsonUnitId || !className) return;
@@ -1218,9 +1223,13 @@ export default function TeacherDashboard() {
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Unit</label>
-                            <select className="w-full border rounded px-3 py-2" onChange={(e) => {
-                                setJsonUnitId(e.target.value)
-                            }}>
+                            <select
+                                className="w-full border rounded px-3 py-2"
+                                value={jsonUnitId}
+                                onChange={(e) => {
+                                    setJsonUnitId(e.target.value)
+                                }}
+                            >
                                 <option value="" disabled>Please select</option>
                                 {units.map((unit) => (
                                     <option key={unit.UnitID} value={unit.UnitID}>
@@ -1229,6 +1238,7 @@ export default function TeacherDashboard() {
                                 ))}
                             </select>
                         </div>
+
 
                         <button className="w-full mb-4 bg-blue-600 text-white rounded px-3 py-2 hover:bg-blue-700">
                             Show Map
