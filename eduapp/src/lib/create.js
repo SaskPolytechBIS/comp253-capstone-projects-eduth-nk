@@ -62,38 +62,38 @@ export async function createUnit(classId, unitName, students, className, content
 
     const unitId = data.UnitID;
 
-    const jsonCreate = {
-        "1": {
-            content: content1,
-            basicLink: "null", basicNote: "null", basicGrade: "null",
-            advancedLink: "null", advancedNote: "null", advancedGrade: "null",
-            intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
-        },
-        "2": {
-            content: content2,
-            basicLink: "null", basicNote: "null", basicGrade: "null",
-            advancedLink: "null", advancedNote: "null", advancedGrade: "null",
-            intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
-        },
-        "3": {
-            content: content3,
-            basicLink: "null", basicNote: "null", basicGrade: "null",
-            advancedLink: "null", advancedNote: "null", advancedGrade: "null",
-            intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
-        },
-        "4": {
-            content: content4,
-            basicLink: "null", basicNote: "null", basicGrade: "null",
-            advancedLink: "null", advancedNote: "null", advancedGrade: "null",
-            intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
-        },
-        "5": {
-            content: content5,
-            basicLink: "null", basicNote: "null", basicGrade: "null",
-            advancedLink: "null", advancedNote: "null", advancedGrade: "null",
-            intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
-        }
-    };
+   // const jsonCreate = {
+     //   "1": {
+      //      content: content1,
+      //      basicLink: "null", basicNote: "null", basicGrade: "null",
+      //      advancedLink: "null", advancedNote: "null", advancedGrade: "null",
+     //       intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
+      //  },
+      //  "2": {
+      //      content: content2,
+     //       basicLink: "null", basicNote: "null", basicGrade: "null",
+     //       advancedLink: "null", advancedNote: "null", advancedGrade: "null",
+     //       intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
+     //   },
+     //   "3": {
+     //       content: content3,
+     //       basicLink: "null", basicNote: "null", basicGrade: "null",
+     //       advancedLink: "null", advancedNote: "null", advancedGrade: "null",
+     //       intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
+     //   },
+     //   "4": {
+     //       content: content4,
+     //       basicLink: "null", basicNote: "null", basicGrade: "null",
+     //       advancedLink: "null", advancedNote: "null", advancedGrade: "null",
+     //       intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
+      //  },
+      //  "5": {
+      //      content: content5,
+      //      basicLink: "null", basicNote: "null", basicGrade: "null",
+      //      advancedLink: "null", advancedNote: "null", advancedGrade: "null",
+      //      intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
+      //  }
+    //};
 
     await createAssignment(unitId, unitName, students, className, jsonCreate);
 
