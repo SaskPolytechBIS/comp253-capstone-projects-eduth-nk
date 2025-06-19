@@ -172,43 +172,34 @@ export default function StudentDashboard() {
             }
         };
 
+
         return (
             <td className="border p-2 text-center align-top">
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    className="hidden"
-                    onChange={handleFileChange}
-                />
-                <button
-                    onClick={handleAttachClick}
-                    className="text-blue-600 hover:underline mb-2 block"
+                {/* File display section - if you want to show attached files */}
+                    <a
+                        //href={evaluations[row]?.[column]?.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline mb-2 block"
+                    >
+                        View Attachment
+                    </a>
+
+
+                {/* Read-only code display */}
+                <div className="w-full border rounded px-2 py-1 bg-gray-50 mb-2">
+                    {evaluations[row]?.[column]?.code || "No evaluation"}
+                </div>
+
+                {/* Read-only notes display */}
+                <div
+                    className="w-full border rounded p-1 text-sm min-h-[4.5rem] bg-gray-50 text-left whitespace-pre-wrap"
                 >
-                    Attach File
-                </button>
-                <textarea
-                    value={note}
-                    onChange={(e) => {
-                        const newNote = e.target.value;
-                        setNote(newNote);
-                        setEvaluations(prev => ({
-                            ...prev,
-                            [row]: {
-                                ...prev[row],
-                                [column]: {
-                                    ...prev[row]?.[column],
-                                    note: newNote,
-                                    code: prev[row]?.[column]?.code || ""
-                                }
-                            }
-                        }));
-                    }}
-                    className="w-full border rounded p-1 text-sm"
-                    rows={3}
-                    placeholder="Notes..."
-                />
+                    {evaluations[row]?.[column]?.note || "No notes"}
+                </div>
             </td>
         );
+
     });
 
     const loadEvaluationFromJson = async () => {
@@ -370,10 +361,12 @@ export default function StudentDashboard() {
                                                   ref={el => {
                                                       textAreaRefs.current[index] = el;
                                                   }}
-                                                  className="w-full border rounded p-2 my-2 "
+                                                  className="w-full border rounded p-2 my-2 bg-gray-50"
                                                   rows={4}
-                                                  placeholder={`Click to create assignment #${index + 1}`}
+                                                  placeholder={`assignment #${index + 1}`}
+                                                  readOnly
                                               />
+
                                         </td>
                                         <EvaluationCell
                                             row={index}
