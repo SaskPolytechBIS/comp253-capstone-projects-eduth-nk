@@ -369,11 +369,7 @@ export default function TeacherDashboard() {
 
     // reset input
     const resetEvaluationUI = () => {
-        // Textarea
-        //textAreaRefs.current.forEach(ref => {
-        //    if (ref) ref.value = "";
-        //});
-//
+
         // Reset evaluations
         setEvaluations({});
 
@@ -814,7 +810,7 @@ export default function TeacherDashboard() {
 
         if (error) {
             resetEvaluationUI();
-            console.log(error.message);
+            console.log("Supabase download error:", error.message, filePath);
             return;
         }
 
