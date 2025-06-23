@@ -61,7 +61,7 @@ export async function createUnit(classId, unitName, students, className, content
     }
 
     const unitId = data.UnitID;
-
+/*
     const jsonCreate = {
         "1": {
             content: content1,
@@ -94,29 +94,33 @@ export async function createUnit(classId, unitName, students, className, content
             intermediateLink: "null", intermediateNote: "null", intermediateGrade: "null"
         }
     };
+    */
 
-    await createAssignment(unitId, unitName, students, className, jsonCreate);
+    await createAssignment(unitId, unitName, students, className);
 
     return unitId;
 }
 
 
-async function createAssignment(unitId, unitName, students, className, JSON) {
-
-    for (const StudentID of students) {
-
-        let assignmentString = "assignment/" + className + "/" + unitName + "/" + students.StudentName
+async function createAssignment(unitId, unitName, students, className, jsonData) {
+    for (const student of students) {
+        const assignmentString = `assignment/${className}/${unitName}/${student.StudentName}`;
 
         const { data, error } = await supabase
             .from('Assignment')
             .insert([
-                { UnitID: `${unitId}`, StudentID: `${StudentID}`, AssignmentFolder: `${assignmentString}`, JSON: `${JSON}`},
-            ])
-            .select()
+                {
+                    UnitID: unitId,
+                    StudentID: student.StudentID,
+                    AssignmentFolder: assignmentString,
+                    JSON: jsonData
+                }
+            ]);
 
         if (error) {
-            console.log("Error creating assignment: " + error.message)
+            console.log("Error creating assignment for student ID", student.StudentID, ":", error.message);
         }
     }
-
 }
+
+

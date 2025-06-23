@@ -40,6 +40,7 @@ export default function LoginPage() {
                 })
             } else {
                 Cookies.set("studentId", studentId[0].StudentID)
+                Cookies.set("studentName", username)
                 router.push('/studentBoard');
             }
         })

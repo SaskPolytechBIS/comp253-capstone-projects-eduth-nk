@@ -216,8 +216,13 @@ export default function TeacherDashboard() {
 
 
     const handleCreateUnit = async () => {
-        if (!unitName || !classId) {
-            alert("Please fill in unit name and select a class");
+        if (!unitName.trim()) {
+            alert("Please enter a unit name");
+            return;
+        }
+
+        if (!classId) {
+            alert("Please select a class");
             return;
         }
 
@@ -227,17 +232,18 @@ export default function TeacherDashboard() {
             const selectedClass = classes.find(c => String(c.ClassID) === String(classId))
             if (!selectedClass) throw new Error("Selected class not found");
             setClassName(selectedClass.ClassName);
+
             // 1. Create Unit in DB
             const newUnitId = await createUnit(
                 classId,
                 unitName,
                 studentsResult,
                 selectedClass.ClassName,
-                description1,
-                description2,
-                description3,
-                description4,
-                description5
+                description1 || '',
+                description2 || '',
+                description3 || '',
+                description4 || '',
+                description5 || ''
             );
 
             if (!newUnitId) {
@@ -289,18 +295,22 @@ export default function TeacherDashboard() {
             // 4. Close modal
             setIsUnitModalOpen(false);
 
-            // 5. Refresh units
+            // 5. Refresh units and select the new unit
             const unitResult = await getUnits(classId);
             setUnits(unitResult ?? []);
 
-            // 6. Set new unit ID to dislay content
+            // 6. Set new unit ID to display content - moved this after units refresh
             setJsonUnitId(newUnitId);
+
+            // 7. Load the unit content immediately
+            await loadUnitContent();
 
         } catch (error) {
             console.error("Error creating unit:", error);
-            alert("Failed to create unit");
+            alert(`Failed to create unit: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
+
 
     const loadUnitContent = async () => {
         if (!jsonUnitId || !className) return;
@@ -342,6 +352,8 @@ export default function TeacherDashboard() {
         }
     };
 
+
+
     const handleEditUnitSubmit = async () => {
         console.log("Editing unit:", selectedUnitId, unitName);
         // call API
@@ -355,9 +367,10 @@ export default function TeacherDashboard() {
         console.log("Deleting unit:", selectedUnitId);
         // call API
         await deleteUnit(selectedUnitId)
+        await fetchUnits();  // refresh the units
         setIsDeleteUnitOpen(false);
         setSelectedUnitId('');
-        fetchUnits();
+        
     };
 
 
@@ -378,14 +391,18 @@ export default function TeacherDashboard() {
     // when change dropdown list class
     const handleSelectClassChange = (event: { target: { value: any; }; }) => {
         const selectedClassId = event.target.value;
+        console.log("Selected class ID:", selectedClassId);
+        console.log("Available classes:", classes);
+        console.log("Matching class:", classes.find(c => String(c.ClassID) === String(selectedClassId)));
 
         setClassId(selectedClassId);
 
-        const selectedClass = classes.find(c => String(c.ClassID) === selectedClassId);
+        const selectedClass = classes.find(c => String(c.ClassID) === String(selectedClassId));
         if (selectedClass) {
             setClassName(selectedClass.ClassName);
         }
     }
+
 
     const handleClassSubmit = async () => {
         console.log("Class:", className, "TeacherId:", classTeacherId);
@@ -580,7 +597,7 @@ export default function TeacherDashboard() {
                             {attachedFiles[row]?.[column]?.map((f: any, idx: number) => {
                                 const fileName = (f.name).replace(/^(\d+-)+/, "");
                                 const filePath = f.fullPath || f.path || "";
-                                const url = `https://teihpfddelngadtkdtaz.supabase.co/storage/v1/object/public/developing/${filePath}`;
+                                const url = `https://odrybkhmbqqpetshcupz.supabase.co/storage/v1/object/public/developing/${filePath}`;
 
                                 return (
                                     <li key={idx}>
@@ -626,7 +643,7 @@ export default function TeacherDashboard() {
             const row = parseInt(rowStr);
             const columns = attachedFiles[row];
 
-            // Khởi tạo đầy đủ 3 cấp độ cho mỗi dòng
+            // create 3 rows for each evaluation
             uploadedPaths[row] = {
                 Basic: [],
                 Intermediate: [],
@@ -1209,15 +1226,22 @@ export default function TeacherDashboard() {
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Unit</label>
-                            <select className="w-full border rounded px-3 py-2" onChange={(e) => {
-                                setJsonUnitId(e.target.value)}}>
-                                {units.map((units) => (
-                                    <option key={units.UnitID} value={units.UnitID}>
-                                        {units.UnitName}
+                            <select
+                                className="w-full border rounded px-3 py-2"
+                                value={jsonUnitId}
+                                onChange={(e) => {
+                                    setJsonUnitId(e.target.value)
+                                }}
+                            >
+                                <option value="" disabled>Please select</option>
+                                {units.map((unit) => (
+                                    <option key={unit.UnitID} value={unit.UnitID}>
+                                        {unit.UnitName}
                                     </option>
                                 ))}
                             </select>
                         </div>
+
 
                         <button className="w-full mb-4 bg-blue-600 text-white rounded px-3 py-2 hover:bg-blue-700">
                             Show Map
