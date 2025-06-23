@@ -9,7 +9,7 @@ import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 import { createStudent, createClass, createUnit } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from "@/lib/select";
-import { updateClass, updateUnit, updateAssignment, updateStudent } from "@/lib/update";
+import { updateClass, updateUnit, updateStudent } from "@/lib/update";
 import { deleteClass, deleteStudent, deleteUnit } from "@/lib/delete";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
