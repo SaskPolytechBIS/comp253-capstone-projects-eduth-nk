@@ -101,37 +101,7 @@ export default function TeacherDashboard() {
         if (!classId) return;
 
         let isCurrent = true;
-
-        const fetchStudents = async () => {
-            try {
-                const studentsResult = await getStudentsFromClass(classId);
-                if (!isCurrent) return;
-
-                if (!Array.isArray(studentsResult)) {
-                    alert("Error with populating classes: " + JSON.stringify(studentsResult));
-                    return;
-                }
-
-                if (studentsResult.length === 0) {
-                    alert("No students applicable.");
-                    console.log("No students.");
-                    return;
-                }
-
-                setStudents(studentsResult);
-
-                const [firstStudent] = studentsResult;
-                if (firstStudent?.StudentName && firstStudent?.StudentID) {
-                    setStudentName(firstStudent.StudentName);
-                    setStudentId(firstStudent.StudentID);
-                    await loadEvaluationFromJson();
-                } else {
-                    console.warn("First student record is missing required fields.");
-                }
-            } catch (error) {
-                alert("Unexpected error: " + error);
-            }
-        };
+        if (!isCurrent) return;
 
         fetchStudents();
 
@@ -141,6 +111,39 @@ export default function TeacherDashboard() {
 
     }, [classId]);
 
+    const fetchStudents = async () => {
+        try {
+            const studentsResult = await getStudentsFromClass(classId);
+
+            if (!Array.isArray(studentsResult)) {
+                console.error("Error with populating students: " + JSON.stringify(studentsResult));
+                return;
+            }
+
+            if (studentsResult.length === 0) {
+                console.log("No students applicable.");
+                setStudents(studentsResult);
+                setStudentId("0");
+                setStudentName("null");
+                return;
+            } else {
+
+            setStudents(studentsResult);
+
+            const [firstStudent] = studentsResult;
+            if (firstStudent?.StudentName && firstStudent?.StudentID) {
+                setStudentName(firstStudent.StudentName);
+                setStudentId(firstStudent.StudentID);
+                await loadEvaluationFromJson();
+            } else {
+                console.warn("First student record is missing required fields.");
+            }
+            }
+        } catch (error) {
+            console.error("Unexpected error: " + error);
+        }
+    };
+
     //update teachers. WILL BE STATIC OTHERWISE
     useEffect(() => {
         const loadTeachers = async () => {
@@ -148,7 +151,7 @@ export default function TeacherDashboard() {
                 const teacherResult = await getAllTeachers();
                 setTeachers(teacherResult ?? []);
             } catch (error) {
-                alert("Unexpected error: " + error);
+                console.error("Unexpected error: " + error);
             }
         };
         loadTeachers();
@@ -162,12 +165,12 @@ export default function TeacherDashboard() {
         fetchUnits()
     }, [classId])
 
-    async function fetchUnits() {
+    const fetchUnits = async () => {
         try {
             const unitResult = await getUnits(classId);
             setUnits(unitResult ?? []);
         } catch (error) {
-            alert("Unexpected error: " + error);
+            console.error("Unexpected error: " + error);
         }
     }
 
@@ -237,17 +240,10 @@ export default function TeacherDashboard() {
             const newUnitId = await createUnit(
                 classId,
                 unitName,
-                studentsResult,
-                selectedClass.ClassName,
-                description1 || '',
-                description2 || '',
-                description3 || '',
-                description4 || '',
-                description5 || ''
             );
 
             if (!newUnitId) {
-                alert("Failed to create unit");
+                console.error("Failed to create unit");
                 return;
             }
 
@@ -278,7 +274,6 @@ export default function TeacherDashboard() {
 
             if (contentError) {
                 console.error("Failed to upload unit content JSON:", contentError.message);
-                alert("Unit created but failed to save content.");
                 return;
             }
 
@@ -306,8 +301,7 @@ export default function TeacherDashboard() {
             await loadUnitContent();
 
         } catch (error) {
-            console.error("Error creating unit:", error);
-            alert(`Failed to create unit: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            console.error(`Failed to create unit: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
 
@@ -323,7 +317,7 @@ export default function TeacherDashboard() {
             .download(contentPath);
 
         if (error) {
-            console.error("Failed to load unit content:", error.message);
+            console.warn("Failed to load unit content:", error.message);
             // If file not exits, clear textarea content
             textAreaRefs.current.forEach((ref) => {
                 if (ref) ref.value = "";
@@ -373,7 +367,6 @@ export default function TeacherDashboard() {
         
     };
 
-
     // reset input
     const resetEvaluationUI = () => {
         // Textarea
@@ -420,6 +413,7 @@ export default function TeacherDashboard() {
         setStudentPassword("")
         setShowStudentModal(false);
         await createStudent(studentName, studentClass, studentUsername, studentPassword);
+        await fetchStudents();
     };
 
     // Handle logout
@@ -439,6 +433,7 @@ export default function TeacherDashboard() {
         // update logic here
         await updateStudent(selectedStudentId, studentName, studentClass,studentUsername, studentPassword);
         setIsStudentEditOpen(false);
+        await fetchStudents();
     };
 
     const handleClassEditSubmit = async () => {
@@ -467,6 +462,7 @@ export default function TeacherDashboard() {
         setSelectedStudentId("");
         // Close the modal
         setIsDeleteModalStudentOpen(false);
+        await fetchStudents();
     };
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
@@ -793,15 +789,17 @@ export default function TeacherDashboard() {
 
     const loadEvaluationFromJson = async () => {
 
-        console.log(studentId, jsonUnitId)
+        console.log(studentId, jsonUnitId, studentName)
 
         if (!studentId || Number(studentId) <= 1) {
             console.warn("Invalid or missing student ID. Skipping evaluation load.");
+            resetEvaluationUI();
             return;
         }
 
         if (!jsonUnitId || Number(jsonUnitId) <= 1 ) {
             console.warn("Invalid or missing unit ID. Skipping evaluation load.");
+            resetEvaluationUI();
             return;
         }
 
@@ -815,8 +813,8 @@ export default function TeacherDashboard() {
             .download(filePath);
 
         if (error) {
-            console.error("Supabase download error:", error.message, filePath);
             resetEvaluationUI();
+            console.log(error.message);
             return;
         }
 
@@ -830,18 +828,6 @@ export default function TeacherDashboard() {
             }
 
             const entries = json.entries;
-
-            // if (!Array.isArray(textAreaRefs.current) || textAreaRefs.current.length < entries.length) {
-            //     console.warn("Text area references are missing or insufficient.");
-            //     return;
-            // }
-            //
-            // entries.forEach((entry, i) => {
-            //     const textArea = textAreaRefs.current[i];
-            //     if (textArea) {
-            //         textArea.value = entry.content || "";
-            //     }
-            // });
 
             const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
             const loadedEvaluations: Record<number, RowEvaluation> = {};
@@ -1233,7 +1219,7 @@ export default function TeacherDashboard() {
                                     setJsonUnitId(e.target.value)
                                 }}
                             >
-                                <option value="" disabled>Please select</option>
+                                <option value="" disabled>Please select a unit!</option>
                                 {units.map((unit) => (
                                     <option key={unit.UnitID} value={unit.UnitID}>
                                         {unit.UnitName}
