@@ -49,17 +49,3 @@ export async function updateUnit(unitId, unitName, classId) {
         console.log("Error updating unit: " + error.message)
     }
 }
-
-export async function updateAssignment (assignmentId, JSON) {
-
-    const { data, error } = await supabase
-        .from('Assignment')
-        .update({ JSON: `${JSON}` })
-        .eq('AssignmentID', `${assignmentId}`)
-        .select()
-
-    if (error) {
-        console.log("Error updating assignment: " + error.message)
-    }
-
-}
