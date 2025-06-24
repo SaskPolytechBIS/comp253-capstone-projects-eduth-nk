@@ -264,7 +264,7 @@ export default function TeacherDashboard() {
                 return;
             }
 
-            // do something with studentsResult, e.g. setStudents(studentsResult);
+            setStudents(studentsResult);
         } catch (error) {
             console.error("Error fetching students:", error);
         }
@@ -312,9 +312,10 @@ export default function TeacherDashboard() {
             });
 
             const data = await res.json();
-            if (!res.ok || !data.unitId) throw new Error(data.error || "Failed to create unit");
+            if (!res.ok || !data.data?.UnitID) throw new Error(data.error || "Failed to create unit");
 
-            const newUnitId = data.unitId;
+            const newUnitId = data.data.UnitID;
+            console.log("create-unit response:", res.status, data);
 
             // 2. Upload unit_content.json via API
             const contentData = {
@@ -354,11 +355,7 @@ export default function TeacherDashboard() {
             setDescription5('');
             setIsUnitModalOpen(false);
 
-            // 4. Reload units from API
-            const unitsRes = await fetch(`/api/get-units?classId=${classId}`);
-            if (!unitsRes.ok) throw new Error("Failed to fetch units");
-            const unitsData = await unitsRes.json();
-            setUnits(unitsData.units || []);
+            await fetchUnits();
 
             // 5. Set new unitId and load content
             setJsonUnitId(newUnitId);
@@ -375,7 +372,7 @@ export default function TeacherDashboard() {
 
         try {
             const res = await fetch(`/api/update-unit`, {
-                method: "PUT",
+                method: "PATCH",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
                     unitId: selectedUnitId,
@@ -417,6 +414,7 @@ export default function TeacherDashboard() {
             await fetchUnits();
             setIsDeleteUnitOpen(false);
             setSelectedUnitId('');
+            resetEvaluationUI();
         } catch (err) {
             console.error("Delete Unit Error:", err);
         }
@@ -507,7 +505,7 @@ export default function TeacherDashboard() {
     const handleClassEditSubmit = async () => {
         try {
             const res = await fetch("/api/update-class", {
-                method: "PUT",
+                method: "PATCH",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
                     classId: selectedClassId,
@@ -563,10 +561,10 @@ export default function TeacherDashboard() {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
-                    name: studentName,
-                    username: studentUsername,
-                    password: studentPassword,
-                    classId: studentClass,
+                    studentName: studentName,
+                    studentUsername: studentUsername,
+                    studentPassword: studentPassword,
+                    studentClass: studentClass,
                 }),
             });
 
@@ -589,13 +587,13 @@ export default function TeacherDashboard() {
     const handleStudentEditSubmit = async () => {
         try {
             const res = await fetch("/api/update-student", {
-                method: "PUT",
+                method: "PATCH",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
                     studentId: selectedStudentId,
-                    name: studentName,
-                    username: studentUsername,
-                    password: studentPassword,
+                    studentName,
+                    studentUsername,
+                    studentPassword,
                     classId: studentClass,
                 }),
             });

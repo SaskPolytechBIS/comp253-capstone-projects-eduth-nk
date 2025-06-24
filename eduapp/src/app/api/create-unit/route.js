@@ -12,23 +12,24 @@ export async function POST(request) {
         }
 
         const { data, error } = await supabase
-            .from("Unit")
-            .insert([{ UnitName: unitName, ClassID: classId }])
-            .select("UnitID, UnitName, ClassID")
+            .from("Units")
+            .insert([{ UnitName: unitName, ClassID: Number(classId) }])
+            .select()
             .single();
 
         if (error) {
             return new Response(
-                JSON.stringify({ error: error.message }),
+                JSON.stringify({ error: error.message || "Insert failed", details: error }),
                 { status: 500, headers: { "Content-Type": "application/json" } }
             );
         }
 
-        return new Response(JSON.stringify({ success: true, data }), {
-            status: 201,
-            headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+            JSON.stringify({ success: true, data }),
+            { status: 201, headers: { "Content-Type": "application/json" } }
+        );
     } catch (error) {
+        console.error("Unexpected POST error:", error);
         return new Response(
             JSON.stringify({ error: error.message || "Internal Server Error" }),
             { status: 500, headers: { "Content-Type": "application/json" } }
