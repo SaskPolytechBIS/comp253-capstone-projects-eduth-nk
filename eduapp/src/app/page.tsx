@@ -5,11 +5,12 @@ export default function Home() {
       <div className="bg-[#FFF9F9] text-black min-h-screen flex items-center justify-center p-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
         <main className="flex flex-col gap-8 items-center max-w-3xl text-center">
           <Image
-              className="invert-[.05] brightness-[1.1]"
+              className="brightness-[1.0]"
               src="/logo.png"
+              unoptimized={true}
               alt="Edu logo"
-              width={280}
-              height={68}
+              width={348}
+              height={281}
               priority
           />
 
