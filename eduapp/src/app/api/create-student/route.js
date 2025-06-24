@@ -11,10 +11,24 @@ export async function POST(request) {
             );
         }
 
-        const result = await createStudent(studentName, studentClass, studentUsername, studentPassword);
+        const { data: studentData, error: studentError } = await supabase
+            .from("Student")
+            .insert([{ StudentName: studentName, ClassID: studentClass }])
+            .select("StudentID")
+            .single();
+
+        if (studentError) throw new Error(studentError.message);
+
+        const { data: loginData, error: loginError } = await supabase
+            .from("StudentLogin")
+            .insert([{ StudentID: studentData.StudentID, Username: studentUsername, Password: studentPassword }])
+            .select()
+            .single();
+
+        if (loginError) throw new Error(loginError.message);
 
         return new Response(
-            JSON.stringify({ success: true, data: result }),
+            JSON.stringify({ success: true, student: studentData, login: loginData }),
             { status: 201, headers: { "Content-Type": "application/json" } }
         );
     } catch (error) {
