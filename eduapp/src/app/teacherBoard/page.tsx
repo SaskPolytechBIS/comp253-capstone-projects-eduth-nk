@@ -51,10 +51,7 @@ export default function TeacherDashboard() {
     const legendItems = [
         {code: "✓", description: "Used when knowledge has been demonstrated individually"},
         {code: "S", description: "Used when knowledge has been demonstrated individually, but with a silly mistake"},
-        {
-            code: "H",
-            description: "Used when knowledge has been demonstrated individually, but with help from a teacher or peer"
-        },
+        {code: "H", description: "Used when knowledge has been demonstrated individually, but with help from a teacher or peer"},
         {code: "G", description: "Used when knowledge has been demonstrated within a group"},
         {code: "X", description: "Used when a question has been attempted, but answered incorrectly"},
         {code: "N", description: "Used when a question has not been attempted"},
@@ -82,10 +79,9 @@ export default function TeacherDashboard() {
 
         const loadClasses = async () => {
             try {
-                const res = await fetch("/api/get-teacher-classes", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({teacherId}),
+                const res = await fetch(`/api/get-teacher-classes?teacherId=${teacherId}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
                 });
                 if (!res.ok) {
                     console.error("Failed to load classes:", await res.text());
@@ -111,10 +107,9 @@ export default function TeacherDashboard() {
 
         const fetchStudents = async () => {
             try {
-                const res = await fetch("/api/get-students-from-class", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({classId}),
+                const res = await fetch(`/api/get-students-from-class?classId=${classId}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
                 });
                 if (!res.ok) {
                     console.error("Failed to load students:", await res.text());
@@ -132,8 +127,7 @@ export default function TeacherDashboard() {
                 if (data.length > 0) {
                     setStudentName(data[0].StudentName);
                     setStudentId(data[0].StudentID);
-                    // Load evaluations or other related data here if needed
-                    // await loadEvaluationFromJson();
+                    await loadUnitContent();
                 } else {
                     setStudentName("");
                     setStudentId("");
@@ -177,10 +171,9 @@ export default function TeacherDashboard() {
 
         const fetchUnits = async () => {
             try {
-                const res = await fetch("/api/get-units", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({classId}),
+                const res = await fetch(`/api/get-units?classId=${classId}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
                 });
                 if (!res.ok) {
                     console.error("Failed to load units:", await res.text());
@@ -201,6 +194,12 @@ export default function TeacherDashboard() {
 
         fetchUnits();
     }, [classId]);
+
+    useEffect(() => {
+        if (jsonUnitId) {
+            loadUnitContent();
+        }
+    }, [jsonUnitId])
 
     const fetchUnits = async () => {
         if (!classId) return;
@@ -419,14 +418,12 @@ export default function TeacherDashboard() {
         if (!jsonUnitId || !className) return;
 
         const teacherName = Cookies.get("teacherName");
+        const path = encodeURIComponent(`${teacherName}/${className}/${jsonUnitId}/${studentId}/assignment.json`);
 
         try {
-            const res = await fetch("/api/get-unit-content", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    path: `${teacherName}/${className}/${jsonUnitId}/unit_content.json`,
-                }),
+            const res = await fetch(`/api/load-unit-content?path=${path}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
             });
 
             if (!res.ok) {
@@ -435,7 +432,17 @@ export default function TeacherDashboard() {
             }
 
             const json = await res.json();
-            const descriptions = json.descriptions || [];
+
+            const descriptions = (json.entries || []).flatMap((entry: { evaluations: { Basic: { note: any; }; Intermediate: { note: any; }; Advanced: { note: any; }; }; }) => [
+                entry.evaluations?.Basic?.note || "",
+                entry.evaluations?.Intermediate?.note || "",
+                entry.evaluations?.Advanced?.note || "",
+            ]);
+
+            descriptions.forEach((desc: string, i: number) => {
+                const ref = textAreaRefs.current[i];
+                if (ref) ref.value = desc;
+            });
 
             descriptions.forEach((desc: string, i: number) => {
                 const ref = textAreaRefs.current[i];
@@ -964,95 +971,6 @@ export default function TeacherDashboard() {
         setIsUploadSuccessDialogOpen(true);
     };
 
-    const loadEvaluationFromJson = async () => {
-
-        console.log(studentId, jsonUnitId, studentName)
-
-        if (!studentId || Number(studentId) <= 1) {
-            console.warn("Invalid or missing student ID. Skipping evaluation load.");
-            resetEvaluationUI();
-            return;
-        }
-
-        if (!jsonUnitId || Number(jsonUnitId) <= 1) {
-            console.warn("Invalid or missing unit ID. Skipping evaluation load.");
-            resetEvaluationUI();
-            return;
-        }
-
-        const teacherName = Cookies.get("teacherName");
-
-        const filePath = `${teacherName}/${className}/${jsonUnitId}/${studentId}/assignment.json`;
-        console.log("Fetching evaluation from:", filePath);
-
-        const {data, error} = await supabase.storage
-            .from("assignment")
-            .download(filePath);
-
-        if (error) {
-            resetEvaluationUI();
-            console.log("Supabase download error:", error.message, filePath);
-            return;
-        }
-
-        try {
-            const text = await data.text();
-            const json = safeJsonParse<{ entries: any[] }>(text);
-
-            if (!json || !Array.isArray(json.entries)) {
-                console.warn("Invalid or missing entries in JSON.");
-                return;
-            }
-
-            const entries = json.entries;
-
-            const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
-            const loadedEvaluations: Record<number, RowEvaluation> = {};
-            const loadedFiles: Record<number, Record<ColumnType, File[]>> = {};
-
-            entries.forEach((entry, index) => {
-                const evals = entry.evaluations ?? {};
-                loadedEvaluations[index] = {} as RowEvaluation;
-                loadedFiles[index] = {} as Record<ColumnType, File[]>;
-
-                levels.forEach((level) => {
-                    const levelData = evals[level] || {};
-                    loadedEvaluations[index][level] = {
-                        code: levelData.code || "",
-                        note: levelData.note || ""
-                    };
-
-                    loadedFiles[index][level] = (levelData.files || []).map((path: string) => {
-                        // Extract file name for display
-                        const parts = path.split("/");
-                        const fileName = parts[parts.length - 1];
-
-                        return {
-                            name: fileName,
-                            fullPath: path
-                        } as any;
-                    });
-                });
-            });
-
-            setEvaluations(loadedEvaluations);
-            setAttachedFiles(loadedFiles);
-
-        } catch (parseError) {
-            console.error("Error parsing assignment JSON:", parseError);
-        }
-    };
-
-// Utility function for safer JSON parsing
-    function safeJsonParse<T>(text: string): T | null {
-        try {
-            return JSON.parse(text);
-        } catch (err) {
-            console.error("JSON parse error:", err);
-            return null;
-        }
-    }
-
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     return (
@@ -1404,7 +1322,7 @@ export default function TeacherDashboard() {
                                     setJsonUnitId(e.target.value)
                                 }}
                             >
-                                <option value="" disabled>Please select a unit!</option>
+                                <option value="">Please select a unit!</option>
                                 {units.map((unit) => (
                                     <option key={unit.UnitID} value={unit.UnitID}>
                                         {unit.UnitName}

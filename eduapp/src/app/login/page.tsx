@@ -2,7 +2,7 @@
 
 import { FormEvent, useState, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 
 export default function LoginPage() {

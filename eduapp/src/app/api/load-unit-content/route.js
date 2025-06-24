@@ -4,20 +4,20 @@ import { supabase } from "@/lib/supabase";
 
 export async function GET(req) {
     const { searchParams } = new URL(req.url);
-    const className = searchParams.get("className");
-    const unitId = searchParams.get("unitId");
+    const path = searchParams.get("path");
 
-    if (!className || !unitId) {
-        return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+    if (!path) {
+        return NextResponse.json({ error: "Missing path parameter" }, { status: 400 });
     }
 
-    // Get teacherName from cookies
-    const teacherName = cookies().get("teacherName")?.value;
+    // Optionally get teacherName from cookies and validate it if needed
+    const teacherName = (await cookies()).get("teacherName")?.value;
     if (!teacherName) {
         return NextResponse.json({ error: "Missing teacherName in cookies" }, { status: 401 });
     }
 
-    const contentPath = `${teacherName}/${className}/${unitId}/unit_content.json`;
+    // Use the provided path directly
+    const contentPath = decodeURIComponent(path);
 
     const { data, error } = await supabase.storage
         .from("assignment")
