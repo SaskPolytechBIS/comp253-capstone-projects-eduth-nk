@@ -80,7 +80,7 @@ export default function StudentDashboard() {
                 .download(filePath);
 
             if (error) {
-                console.error("Failed to load assignment:", error.message);
+                console.warn("Failed to load assignment:", error.message);
                 setAssignmentData([]);
                 return;
             }
