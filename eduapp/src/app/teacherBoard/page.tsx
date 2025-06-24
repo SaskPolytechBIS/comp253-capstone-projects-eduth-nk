@@ -413,6 +413,36 @@ export default function TeacherDashboard() {
         }
     };
 
+    const loadUnitInfo = async () => {
+        if (!jsonUnitId || !className) return;
+
+        const teacherName = Cookies.get("teacherName");
+        const path = encodeURIComponent(`${teacherName}/${className}/${jsonUnitId}/unit_info.json`);
+
+        try {
+            const res = await fetch(`/api/load-unit-content?path=${path}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Failed to fetch unit info");
+            }
+
+            const json = await res.json();
+            // Now you can populate your UI with json.descriptions, json.unitName, etc.
+            // For example, setting state:
+            setUnitDescriptions(json.descriptions || []);
+            setUnitName(json.unitName || "");
+
+        } catch (error) {
+            console.warn("Failed to load unit info:", error);
+            setUnitDescriptions([]);
+            setUnitName("");
+        }
+    };
+
 // Load Unit Content
     const loadUnitContent = async () => {
         if (!jsonUnitId || !className) return;
