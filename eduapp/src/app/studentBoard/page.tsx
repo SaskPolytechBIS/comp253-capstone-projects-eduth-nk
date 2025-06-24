@@ -4,11 +4,10 @@ import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { VscAccount } from "react-icons/vsc";
 import { useRouter } from "next/navigation";
-import { getUnits, getClassFromStudent, getTeacherName } from "@/lib/select";
 import Cookies from "js-cookie";
+import Table from "react-bootstrap/Table";
 import { LegendModal } from "@/lib/Modals";
 import { supabase } from "@/lib/supabase";
-import Table from "react-bootstrap/Table";
 
 export default function StudentDashboard() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -36,42 +35,100 @@ export default function StudentDashboard() {
         }
     }, [studentId]);
 
+    // Fetch student's class via API route
     useEffect(() => {
-        const fetchClass = async () => {
-            const classResult = await getClassFromStudent(studentId);
-            if (!Array.isArray(classResult)) {
-                console.error("Error getting class: " + JSON.stringify(classResult));
-                return;
-            }
-            setStudentClass(classResult);
-        };
-        fetchClass();
-    }, []);
+        if (!studentId) return;
 
-    useEffect(() => {
-        if (!studentClass[0].ClassID) return;
-        const fetchUnits = async () => {
-            const unitsResult = await getUnits(studentClass[0].ClassID);
-            if (!Array.isArray(unitsResult)) {
-                console.error("Error getting units: " + JSON.stringify(unitsResult));
-                return;
+        const fetchClass = async () => {
+            try {
+                const res = await fetch("/api/get-class-from-student", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ studentId }),
+                });
+
+                if (!res.ok) {
+                    console.error("Failed to fetch class:", await res.text());
+                    return;
+                }
+
+                const data = await res.json();
+
+                // Assuming data is array of classes
+                setStudentClass(data);
+            } catch (error) {
+                console.error("Error fetching class:", error);
             }
-            setUnits(unitsResult);
         };
+
+        fetchClass();
+    }, [studentId]);
+
+    // Fetch units for class via API route
+    useEffect(() => {
+        if (!studentClass[0]?.ClassID || studentClass[0].ClassID === "0") return;
+
+        const fetchUnits = async () => {
+            try {
+                const res = await fetch("/api/get-units", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ classId: studentClass[0].ClassID }),
+                });
+
+                if (!res.ok) {
+                    console.error("Failed to fetch units:", await res.text());
+                    return;
+                }
+
+                const data = await res.json();
+                setUnits(data);
+            } catch (error) {
+                console.error("Error fetching units:", error);
+            }
+        };
+
         fetchUnits();
     }, [studentClass]);
 
+    // Handle unit select change
     const handleUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const unitId = e.target.value;
-        setSelectedUnit(unitId);
+        setSelectedUnit(e.target.value);
     };
 
+    // Fetch teacher name via API route
+    const fetchTeacherName = async (teacherId: string) => {
+        try {
+            const res = await fetch("/api/get-teacher-name", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ teacherId }),
+            });
+
+            if (!res.ok) {
+                console.error("Failed to fetch teacher name:", await res.text());
+                return null;
+            }
+
+            const data = await res.json();
+            return data?.[0]?.TeacherName || null;
+        } catch (error) {
+            console.error("Error fetching teacher name:", error);
+            return null;
+        }
+    };
+
+    // Load assignment JSON from Supabase Storage
     useEffect(() => {
         const loadStudentAssignment = async () => {
-            if (!selectedUnit || studentClass.length === 0) return;
+            if (!selectedUnit || !studentClass.length) return;
 
-            const result = await getTeacherName(studentClass[0].TeacherID);
-            const teacherName = result?.[0]?.TeacherName;
+            const teacherName = await fetchTeacherName(studentClass[0].TeacherID);
+            if (!teacherName) {
+                console.warn("Teacher name not found");
+                setAssignmentData([]);
+                return;
+            }
 
             const filePath = `${teacherName}/${studentClass[0].ClassName}/${selectedUnit}/${studentId}/assignment.json`;
 
@@ -96,14 +153,19 @@ export default function StudentDashboard() {
         };
 
         loadStudentAssignment();
-    }, [selectedUnit, studentClass]);
+    }, [selectedUnit, studentClass, studentId]);
 
+    // Load unit content JSON from Supabase Storage
     useEffect(() => {
         const loadUnitContent = async () => {
-            if (!selectedUnit || studentClass.length === 0) return;
+            if (!selectedUnit || !studentClass.length) return;
 
-            const result = await getTeacherName(studentClass[0].TeacherID);
-            const teacherName = result?.[0]?.TeacherName;
+            const teacherName = await fetchTeacherName(studentClass[0].TeacherID);
+            if (!teacherName) {
+                console.warn("Teacher name not found");
+                setUnitDescriptions([]);
+                return;
+            }
 
             const filePath = `${teacherName}/${studentClass[0].ClassName}/${selectedUnit}/unit_content.json`;
 
@@ -132,6 +194,7 @@ export default function StudentDashboard() {
 
     const handleLogout = () => {
         Cookies.remove("studentId");
+        Cookies.remove("studentName");
         router.push("/login");
     };
 
@@ -167,9 +230,9 @@ export default function StudentDashboard() {
                 </div>
             </header>
 
-            <div className="min-h-screen bg-gray-50 p-6 text-black">
+            <main className="min-h-screen bg-gray-50 p-6 text-black">
                 <div className="flex flex-col md:flex-row max-w-7xl mx-auto gap-6">
-                    <div className="w-full md:w-1/4 bg-white p-6 rounded-xl shadow">
+                    <section className="w-full md:w-1/4 bg-white p-6 rounded-xl shadow">
                         <h2 className="text-2xl font-semibold mb-6">Hello {studentName}</h2>
                         <div className="mb-4">
                             <label className="block mb-1 font-medium">Unit</label>
@@ -186,9 +249,9 @@ export default function StudentDashboard() {
                                 ))}
                             </select>
                         </div>
-                    </div>
+                    </section>
 
-                    <div className="w-full md:w-3/4 bg-white p-6 rounded-xl shadow">
+                    <section className="w-full md:w-3/4 bg-white p-6 rounded-xl shadow">
                         <div className="flex justify-end gap-2 mb-4">
                             <button
                                 onClick={() => setShowPopup(true)}
@@ -223,12 +286,12 @@ export default function StudentDashboard() {
                                     return (
                                         <tr key={index} className="hover:bg-gray-50">
                                             <td className="border p-2 align-top">
-                                                <textarea
-                                                    readOnly
-                                                    value={contentText}
-                                                    rows={4}
-                                                    className="w-full border rounded p-2 bg-gray-100 text-sm"
-                                                />
+                          <textarea
+                              readOnly
+                              value={contentText}
+                              rows={4}
+                              className="w-full border rounded p-2 bg-gray-100 text-sm"
+                          />
                                             </td>
                                             {["Basic", "Intermediate", "Advanced"].map((level) => (
                                                 <td key={level} className="border p-2 text-center align-top text-xs">
@@ -256,13 +319,13 @@ export default function StudentDashboard() {
 
                                                                 return (
                                                                     <li key={idx}>
-                                                                        <span
-                                                                            onClick={() => setPreviewUrl(fileUrl)}
-                                                                            className="text-blue-700 underline break-all cursor-pointer hover:text-blue-800"
-                                                                            title="Click to preview"
-                                                                        >
-                                                                            {fileName}
-                                                                        </span>
+                                      <span
+                                          onClick={() => setPreviewUrl(fileUrl)}
+                                          className="text-blue-700 underline break-all cursor-pointer hover:text-blue-800"
+                                          title="Click to preview"
+                                      >
+                                        {fileName}
+                                      </span>
                                                                     </li>
                                                                 );
                                                             })}
@@ -276,9 +339,10 @@ export default function StudentDashboard() {
                                 </tbody>
                             </Table>
                         </div>
-                    </div>
+                    </section>
                 </div>
-            </div>
+            </main>
+
             {previewUrl && (
                 <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
                     <div className="bg-white w-[80%] h-[80%] relative rounded-lg overflow-hidden shadow-lg">
@@ -294,11 +358,10 @@ export default function StudentDashboard() {
                             height="100%"
                             className="border-none"
                             allow="autoplay; encrypted-media"
-                        ></iframe>
+                        />
                     </div>
                 </div>
             )}
         </div>
-
     );
 }

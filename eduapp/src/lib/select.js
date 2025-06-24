@@ -85,17 +85,3 @@ export async function getTeacherName(teacherId){
         return TeacherName
     }
 }
-
-export async function getAssignment(assignmentId) {
-    let { data: Assignment, error } = await supabase
-        .from('Assignment')
-        .select('StudentID,AssignmentFolder,UnitId, JSON')
-        .eq('AssignmentID', `${assignmentId}`)
-
-    if (error) {
-        console.error("Error retrieving assignments: " + error.message)
-    } else {
-        return Assignment
-    }
-
-}

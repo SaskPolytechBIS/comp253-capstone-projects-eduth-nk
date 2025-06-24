@@ -1,12 +1,9 @@
 "use client";
 
-import {FormEvent, useState} from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import icons from react-icons/fa
-import { checkTeacherLogin, checkStudentLogin} from "./api/route"
-import {redirect, useRouter} from "next/navigation";
+import { FormEvent, useState, useEffect } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { redirect, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import { PostgrestError } from "@supabase/supabase-js";
-
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
@@ -14,37 +11,58 @@ export default function LoginPage() {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const router = useRouter();
 
-    if (Cookies.get('teacherId') != undefined) {
-        redirect('/teacherBoard');
-    } else if (Cookies.get('studentId') != undefined ) {
-        redirect('/studentBoard');
-    }
+    // Redirect if already logged in
+    useEffect(() => {
+        if (Cookies.get("teacherId")) {
+            router.replace("/teacherBoard");
+        } else if (Cookies.get("studentId")) {
+            router.replace("/studentBoard");
+        }
+    }, [router]);
 
-    async function handleSubmit (e: FormEvent<HTMLFormElement>) {
+    async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        checkStudentLogin(username, password).then(studentId => {
-            if (studentId == null || studentId instanceof PostgrestError || studentId.length == 0) {
-                checkTeacherLogin(username, password).then(teacherId => {
-                    if (teacherId == null || teacherId instanceof PostgrestError || teacherId.length == 0) {
-                        alert("Login invalid.");
-                        if (teacherId instanceof PostgrestError) {
-                            console.log(teacherId);
-                        }
-                    } else {
-                        Cookies.set("teacherId", teacherId[0].TeacherID)
-                        Cookies.set("teacherName", username)
-                        router.push('/teacherBoard');
+        // Try student login first
+        let res = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username,
+                password,
+                role: "student",
+            }),
+        });
+        let result = await res.json();
 
-                    }
-                })
-            } else {
-                Cookies.set("studentId", studentId[0].StudentID)
-                Cookies.set("studentName", username)
-                router.push('/studentBoard');
-            }
-        })
-    };
+        if (res.ok && result?.StudentID) {
+            Cookies.set("studentId", result.StudentID);
+            Cookies.set("studentName", username);
+            router.push("/studentBoard");
+            return;
+        }
+
+        // If student login failed, try teacher login
+        res = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username,
+                password,
+                role: "teacher",
+            }),
+        });
+        result = await res.json();
+
+        if (res.ok && result?.TeacherID) {
+            Cookies.set("teacherId", result.TeacherID);
+            Cookies.set("teacherName", username);
+            router.push("/teacherBoard");
+        } else {
+            alert("Login invalid.");
+            if (result?.error) console.error(result.error);
+        }
+    }
 
     const togglePasswordVisibility = () => {
         setIsPasswordVisible((prev) => !prev);
@@ -57,10 +75,13 @@ export default function LoginPage() {
                 className="bg-white p-8 rounded-xl shadow-md w-full max-w-sm"
             >
                 <h1 className="text-2xl font-bold mb-6 text-center text-black">Login</h1>
+
                 <div className="mb-4">
-                    <label className="block mb-1 text-sm font-medium text-black">Username</label>
+                    <label className="block mb-1 text-sm font-medium text-black">
+                        Username
+                    </label>
                     <input
-                        type="username"
+                        type="text"
                         className="w-full px-3 py-2 border-2 border-blue-400 rounded-md text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="your username"
                         value={username}
@@ -68,8 +89,11 @@ export default function LoginPage() {
                         required
                     />
                 </div>
+
                 <div className="mb-6 relative">
-                    <label className="block mb-1 text-sm font-medium text-black">Password</label>
+                    <label className="block mb-1 text-sm font-medium text-black">
+                        Password
+                    </label>
                     <input
                         type={isPasswordVisible ? "text" : "password"}
                         className="w-full px-3 py-2 border-2 border-blue-400 rounded-md pr-10 text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -80,8 +104,9 @@ export default function LoginPage() {
                     />
                     <button
                         type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-0.1"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
                         onClick={togglePasswordVisibility}
+                        aria-label={isPasswordVisible ? "Hide password" : "Show password"}
                     >
                         {isPasswordVisible ? (
                             <FaEye size={20} className="text-gray-600" />
@@ -90,10 +115,11 @@ export default function LoginPage() {
                         )}
                     </button>
                 </div>
+
                 <button
                     type="submit"
                     className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-                    >
+                >
                     Log In
                 </button>
             </form>

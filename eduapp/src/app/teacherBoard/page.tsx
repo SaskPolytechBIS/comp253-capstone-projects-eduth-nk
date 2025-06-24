@@ -2,22 +2,17 @@
 
 
 import React, {useRef, useEffect, useState} from "react";
-import { Bell } from "lucide-react"; // icon library or image
-import { VscAccount } from "react-icons/vsc";
+import {Bell} from "lucide-react"; // icon library or image
+import {VscAccount} from "react-icons/vsc";
 import ClientEditorModal from "@/components/ClientEditorModal";
 import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
-import { createStudent, createClass, createUnit } from '@/lib/create';
-import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from "@/lib/select";
-import { updateClass, updateUnit, updateStudent } from "@/lib/update";
-import { deleteClass, deleteStudent, deleteUnit } from "@/lib/delete";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
 import {
     LegendModal, ClassModal, StudentModal, UnitModal,
     EditStudentModal, ClassModalEdit, ClassModalDelete, DeleteStudentModal, UnitModalEdit, UnitModalDelete
 } from '@/lib/Modals';
-
 
 
 export default function TeacherDashboard() {
@@ -54,158 +49,220 @@ export default function TeacherDashboard() {
 
     // Show legendItems
     const legendItems = [
-        { code: "✓", description: "Used when knowledge has been demonstrated individually" },
-        { code: "S", description: "Used when knowledge has been demonstrated individually, but with a silly mistake" },
-        { code: "H", description: "Used when knowledge has been demonstrated individually, but with help from a teacher or peer" },
-        { code: "G", description: "Used when knowledge has been demonstrated within a group" },
-        { code: "X", description: "Used when a question has been attempted, but answered incorrectly" },
-        { code: "N", description: "Used when a question has not been attempted" },
-        { code: "O", description: "Used when knowledge has been demonstrated individually, seen through observation" },
-        { code: "C", description: "Used when knowledge has been demonstrated individually, seen through a conversation" },
+        {code: "✓", description: "Used when knowledge has been demonstrated individually"},
+        {code: "S", description: "Used when knowledge has been demonstrated individually, but with a silly mistake"},
+        {
+            code: "H",
+            description: "Used when knowledge has been demonstrated individually, but with help from a teacher or peer"
+        },
+        {code: "G", description: "Used when knowledge has been demonstrated within a group"},
+        {code: "X", description: "Used when a question has been attempted, but answered incorrectly"},
+        {code: "N", description: "Used when a question has not been attempted"},
+        {code: "O", description: "Used when knowledge has been demonstrated individually, seen through observation"},
+        {code: "C", description: "Used when knowledge has been demonstrated individually, seen through a conversation"},
     ];
 
-    //populations
+    // Populations and dropdown data
     const [classId, setClassId] = useState("");
     const [classes, setClasses] = useState([{ClassID: "0", ClassName: "Error"}]);
     const [students, setStudents] = useState([{StudentID: "0", StudentName: ""}]);
     const [teachers, setTeachers] = useState([{TeacherID: "0", TeacherName: "Error"}]);
-    const [units, setUnits] = useState([{UnitID: "0", UnitName: "Empty"}])
+    const [units, setUnits] = useState([{UnitID: "0", UnitName: "Empty"}]);
 
-    //redirects to login if no teacher cookie
-    if (teacherId == undefined) {
-        router.push('/login')
-    }
-
-    //populates the classes dropdown. WITHOUT THIS IT WILL BE STATIC.
+    // Redirect to login if no teacherId cookie
     useEffect(() => {
-        if (teacherId) {
-            loadClasses();
+        if (!teacherId) {
+            router.push("/login");
         }
+    }, [teacherId, router]);
+
+    // Load classes for teacher via API route
+    useEffect(() => {
+        if (!teacherId) return;
+
+        const loadClasses = async () => {
+            try {
+                const res = await fetch("/api/get-teacher-classes", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({teacherId}),
+                });
+                if (!res.ok) {
+                    console.error("Failed to load classes:", await res.text());
+                    return;
+                }
+                const data = await res.json();
+                if (!Array.isArray(data)) {
+                    console.error("Invalid class data:", data);
+                    return;
+                }
+                setClasses(data);
+            } catch (error) {
+                console.error("Unexpected error loading classes:", error);
+            }
+        };
+
+        loadClasses();
     }, [teacherId]);
 
-    const loadClasses = async () => {
-        try {
-            const classResult = await getTeacherClasses(teacherId!);
-            if (!Array.isArray(classResult)) {
-                console.log("Error with populating classes: " + JSON.stringify(classResult));
-                return;
-            }
-            setClasses(classResult);
-        } catch (error) {
-            console.log("Unexpected error: " + error);
-        }
-    };
-
-    //update students useEffect. WILL BE STATIC WITHOUT
+    // Load students for selected class via API route
     useEffect(() => {
         if (!classId) return;
 
-        let isCurrent = true;
-        if (!isCurrent) return;
+        const fetchStudents = async () => {
+            try {
+                const res = await fetch("/api/get-students-from-class", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({classId}),
+                });
+                if (!res.ok) {
+                    console.error("Failed to load students:", await res.text());
+                    return;
+                }
+                const data = await res.json();
+
+                if (!Array.isArray(data)) {
+                    console.error("Invalid students data:", data);
+                    return;
+                }
+
+                setStudents(data);
+
+                if (data.length > 0) {
+                    setStudentName(data[0].StudentName);
+                    setStudentId(data[0].StudentID);
+                    // Load evaluations or other related data here if needed
+                    // await loadEvaluationFromJson();
+                } else {
+                    setStudentName("");
+                    setStudentId("");
+                }
+            } catch (error) {
+                console.error("Unexpected error loading students:", error);
+            }
+        };
 
         fetchStudents();
-
-        return () => {
-            isCurrent = false;
-        }
-
     }, [classId]);
 
-    const fetchStudents = async () => {
-        try {
-            const studentsResult = await getStudentsFromClass(classId);
-
-            if (!Array.isArray(studentsResult)) {
-                console.error("Error with populating students: " + JSON.stringify(studentsResult));
-                return;
-            }
-
-            if (studentsResult.length === 0) {
-                console.log("No students applicable.");
-                setStudents(studentsResult);
-                setStudentId("0");
-                setStudentName("null");
-                return;
-            } else {
-
-            setStudents(studentsResult);
-
-            const [firstStudent] = studentsResult;
-            if (firstStudent?.StudentName && firstStudent?.StudentID) {
-                setStudentName(firstStudent.StudentName);
-                setStudentId(firstStudent.StudentID);
-                await loadEvaluationFromJson();
-            } else {
-                console.warn("First student record is missing required fields.");
-            }
-            }
-        } catch (error) {
-            console.error("Unexpected error: " + error);
-        }
-    };
-
-    //update teachers. WILL BE STATIC OTHERWISE
+    // Load all teachers via API route
     useEffect(() => {
         const loadTeachers = async () => {
             try {
-                const teacherResult = await getAllTeachers();
-                setTeachers(teacherResult ?? []);
+                const res = await fetch("/api/get-all-teachers", {
+                    method: "GET",
+                    headers: {"Content-Type": "application/json"},
+                });
+                if (!res.ok) {
+                    console.error("Failed to load teachers:", await res.text());
+                    return;
+                }
+                const data = await res.json();
+                if (!Array.isArray(data)) {
+                    console.error("Invalid teachers data:", data);
+                    return;
+                }
+                setTeachers(data);
             } catch (error) {
-                console.error("Unexpected error: " + error);
+                console.error("Unexpected error loading teachers:", error);
             }
         };
         loadTeachers();
     }, []);
 
-    //get units
+    // Load units for selected class via API route
     useEffect(() => {
-        if (!classId) {
-            return;
-        }
-        fetchUnits()
-    }, [classId])
+        if (!classId) return;
 
-    const fetchUnits = async () => {
-        try {
-            const unitResult = await getUnits(classId);
-            setUnits(unitResult ?? []);
-        } catch (error) {
-            console.error("Unexpected error: " + error);
-        }
-    }
+        const fetchUnits = async () => {
+            try {
+                const res = await fetch("/api/get-units", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({classId}),
+                });
+                if (!res.ok) {
+                    console.error("Failed to load units:", await res.text());
+                    return;
+                }
+                const data = await res.json();
 
-    useEffect(() => {
-        // Initialize 5 row
-        const initialEvaluations: Record<number, RowEvaluation> = {};
-        for (let i = 0; i < 5; i++) {
-            initialEvaluations[i] = {
-                Basic: { code: "", note: "" },
-                Intermediate: { code: "", note: "" },
-                Advanced: { code: "", note: "" }
-            };
-        }
-        setEvaluations(initialEvaluations);
-    }, []);
+                if (!Array.isArray(data)) {
+                    console.error("Invalid units data:", data);
+                    return;
+                }
 
-    useEffect(() => {
-        if (studentId && jsonUnitId) {
-            loadEvaluationFromJson();
-            loadUnitContent();
-        }
-    }, [studentId, jsonUnitId]);
+                setUnits(data);
+            } catch (error) {
+                console.error("Unexpected error loading units:", error);
+            }
+        };
 
-    useEffect(() => {
-        // when change classId → reset content (clear textarea)
-        textAreaRefs.current.forEach(ref => {
-            if (ref) ref.value = "";
-        });
-
-        setJsonUnitId("");
-        setEvaluations({});
-        setAttachedFiles({});
+        fetchUnits();
     }, [classId]);
 
-    //handle create UNITs
+    const fetchUnits = async () => {
+        if (!classId) return;
+
+        try {
+            const res = await fetch(`/api/get-units?classId=${classId}`);
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to fetch units");
+            }
+
+            const units = await res.json();
+            setUnits(units); // or handle as needed
+        } catch (error) {
+            console.error("Error fetching units:", error);
+        }
+    };
+
+    const loadClasses = async () => {
+        try {
+            const teacherId = Cookies.get("teacherId");
+
+            const res = await fetch(`/api/get-teacher-classes?teacherId=${teacherId}`);
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to load classes");
+            }
+
+            const classList = await res.json();
+            setClasses(classList); // or handle as needed
+        } catch (error) {
+            console.error("Error loading classes:", error);
+        }
+    };
+
+    const fetchStudents = async () => {
+        if (!classId) return;
+
+        try {
+            const res = await fetch(`/api/get-students-from-class?classId=${classId}`);
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to fetch students");
+            }
+
+            const studentsResult = await res.json();
+
+            if (!Array.isArray(studentsResult)) {
+                console.error("Invalid response format:", studentsResult);
+                return;
+            }
+
+            // do something with studentsResult, e.g. setStudents(studentsResult);
+        } catch (error) {
+            console.error("Error fetching students:", error);
+        }
+    };
+
+    // UNIT STATE
     const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
     const [unitName, setUnitName] = useState('');
     const [isEditUnitOpen, setIsEditUnitOpen] = useState(false);
@@ -217,7 +274,7 @@ export default function TeacherDashboard() {
     const [description4, setDescription4] = useState('');
     const [description5, setDescription5] = useState('');
 
-
+// Handle Create Unit
     const handleCreateUnit = async () => {
         if (!unitName.trim()) {
             alert("Please enter a unit name");
@@ -230,24 +287,28 @@ export default function TeacherDashboard() {
         }
 
         try {
-            // Get students for the selected class
-            const studentsResult = await getStudentsFromClass(classId);
-            const selectedClass = classes.find(c => String(c.ClassID) === String(classId))
+            const selectedClass = classes.find(c => String(c.ClassID) === String(classId));
             if (!selectedClass) throw new Error("Selected class not found");
+
             setClassName(selectedClass.ClassName);
+            const teacherName = Cookies.get("teacherName");
 
-            // 1. Create Unit in DB
-            const newUnitId = await createUnit(
-                classId,
-                unitName,
-            );
+            // 1. Create Unit via API
+            const res = await fetch("/api/create-unit", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    classId,
+                    unitName
+                }),
+            });
 
-            if (!newUnitId) {
-                console.error("Failed to create unit");
-                return;
-            }
+            const data = await res.json();
+            if (!res.ok || !data.unitId) throw new Error(data.error || "Failed to create unit");
 
-            // 2. Save content to Supabase Storage
+            const newUnitId = data.unitId;
+
+            // 2. Upload unit_content.json via API
             const contentData = {
                 unitId: newUnitId,
                 unitName,
@@ -260,213 +321,329 @@ export default function TeacherDashboard() {
                 ]
             };
 
-            const contentBlob = new Blob(
-                [JSON.stringify(contentData, null, 2)],
-                { type: "application/json" }
-            );
-
-            const teacherName = Cookies.get("teacherName");
             const contentPath = `${teacherName}/${selectedClass.ClassName}/${newUnitId}/unit_content.json`;
 
-            const { error: contentError } = await supabase.storage
-                .from('assignment')
-                .upload(contentPath, contentBlob, { upsert: true });
+            const uploadRes = await fetch("/api/upload-unit-content", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    path: contentPath,
+                    content: contentData,
+                }),
+            });
 
-            if (contentError) {
-                console.error("Failed to upload unit content JSON:", contentError.message);
-                return;
+            if (!uploadRes.ok) {
+                const errorData = await uploadRes.json();
+                throw new Error(errorData.error || "Failed to upload content");
             }
 
-            console.log("✅ Uploaded unit_content.json");
-
-            // 3. Reset form
+            // 3. Cleanup form & modal
             setUnitName('');
             setDescription1('');
             setDescription2('');
             setDescription3('');
             setDescription4('');
             setDescription5('');
-
-            // 4. Close modal
             setIsUnitModalOpen(false);
 
-            // 5. Refresh units and select the new unit
-            const unitResult = await getUnits(classId);
-            setUnits(unitResult ?? []);
+            // 4. Reload units from API
+            const unitsRes = await fetch(`/api/get-units?classId=${classId}`);
+            if (!unitsRes.ok) throw new Error("Failed to fetch units");
+            const unitsData = await unitsRes.json();
+            setUnits(unitsData.units || []);
 
-            // 6. Set new unit ID to display content - moved this after units refresh
+            // 5. Set new unitId and load content
             setJsonUnitId(newUnitId);
-
-            // 7. Load the unit content immediately
             await loadUnitContent();
 
         } catch (error) {
-            console.error(`Failed to create unit: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            console.error("Failed to create unit:", error);
         }
     };
 
+// Handle Edit Unit
+    const handleEditUnitSubmit = async () => {
+        if (!selectedUnitId || !unitName.trim()) return;
 
+        try {
+            const res = await fetch(`/api/update-unit`, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    unitId: selectedUnitId,
+                    unitName,
+                    classId,
+                }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to update unit");
+            }
+
+            setIsEditUnitOpen(false);
+            setSelectedUnitId('');
+            setUnitName('');
+            await fetchUnits();
+        } catch (err) {
+            console.error("Update Unit Error:", err);
+        }
+    };
+
+// Handle Delete Unit
+    const handleDeleteUnit = async () => {
+        if (!selectedUnitId) return;
+
+        try {
+            const res = await fetch(`/api/delete-unit`, {
+                method: "DELETE",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({unitId: selectedUnitId}),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to delete unit");
+            }
+
+            await fetchUnits();
+            setIsDeleteUnitOpen(false);
+            setSelectedUnitId('');
+        } catch (err) {
+            console.error("Delete Unit Error:", err);
+        }
+    };
+
+// Load Unit Content
     const loadUnitContent = async () => {
         if (!jsonUnitId || !className) return;
 
         const teacherName = Cookies.get("teacherName");
-        const contentPath = `${teacherName}/${className}/${jsonUnitId}/unit_content.json`;
 
-        const { data, error } = await supabase.storage
-            .from("assignment")
-            .download(contentPath);
+        try {
+            const res = await fetch("/api/get-unit-content", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    path: `${teacherName}/${className}/${jsonUnitId}/unit_content.json`,
+                }),
+            });
 
-        if (error) {
-            console.warn("Failed to load unit content:", error.message);
-            // If file not exits, clear textarea content
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Failed to fetch unit content");
+            }
+
+            const json = await res.json();
+            const descriptions = json.descriptions || [];
+
+            descriptions.forEach((desc: string, i: number) => {
+                const ref = textAreaRefs.current[i];
+                if (ref) ref.value = desc;
+            });
+
+        } catch (error) {
+            console.warn("Failed to load unit content:", error);
             textAreaRefs.current.forEach((ref) => {
                 if (ref) ref.value = "";
             });
-            return;
-        }
-
-        try {
-            const text = await data.text();
-            const json = JSON.parse(text);
-
-            const descriptions = json.descriptions || [];
-
-            // textAreaRefs.current.forEach(ref => {
-            //     if (ref) ref.value = "";
-            // });
-
-            descriptions.forEach((desc: string, i: number) => {
-                const textArea = textAreaRefs.current[i];
-                if (textArea) {
-                    textArea.value = desc;
-                }
-            });
-        } catch (err) {
-            console.error("Failed to parse unit content JSON:", err);
         }
     };
 
-
-
-    const handleEditUnitSubmit = async () => {
-        console.log("Editing unit:", selectedUnitId, unitName);
-        // call API
-        await updateUnit(selectedUnitId, unitName, classId)
-        setIsEditUnitOpen(false);
-        setSelectedUnitId('');
-        setUnitName('');
-    };
-
-    const handleDeleteUnit = async () => {
-        console.log("Deleting unit:", selectedUnitId);
-        // call API
-        await deleteUnit(selectedUnitId)
-        await fetchUnits();  // refresh the units
-        setIsDeleteUnitOpen(false);
-        setSelectedUnitId('');
-        
-    };
-
-    // reset input
+// Reset evaluation state
     const resetEvaluationUI = () => {
-
-        // Reset evaluations
         setEvaluations({});
-
-        // Reset attached files
         setAttachedFiles({});
     };
 
-    // when change dropdown list class
-    const handleSelectClassChange = (event: { target: { value: any; }; }) => {
+// Change class from dropdown
+    const handleSelectClassChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedClassId = event.target.value;
-        console.log("Selected class ID:", selectedClassId);
-        console.log("Available classes:", classes);
-        console.log("Matching class:", classes.find(c => String(c.ClassID) === String(selectedClassId)));
-
         setClassId(selectedClassId);
 
-        const selectedClass = classes.find(c => String(c.ClassID) === String(selectedClassId));
+        const selectedClass = classes.find(
+            (c) => String(c.ClassID) === String(selectedClassId)
+        );
+
         if (selectedClass) {
             setClassName(selectedClass.ClassName);
         }
-    }
+
+        resetEvaluationUI();
+    };
 
 
+    // Create Class
     const handleClassSubmit = async () => {
-        console.log("Class:", className, "TeacherId:", classTeacherId);
-        setClassName("");
-        setShowClassModal(false);
-        await createClass(className, classTeacherId)
-        await loadClasses();
+        try {
+            console.log("Class:", className, "TeacherId:", classTeacherId);
 
+            const res = await fetch("/api/create-class", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({className, teacherId: classTeacherId}),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to create class");
+            }
+
+            setClassName("");
+            setShowClassModal(false);
+            await loadClasses();
+        } catch (error) {
+            console.error("Error creating class:", error);
+        }
     };
 
+// Edit Class
+    const handleClassEditSubmit = async () => {
+        try {
+            const res = await fetch("/api/update-class", {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    classId: selectedClassId,
+                    className,
+                    teacherId: classTeacherId,
+                }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to update class");
+            }
+
+            setSelectedClassId("");
+            setClassName("");
+            setClassTeacherId("");
+            await loadClasses();
+            setIsClassMenuOpen(false);
+        } catch (error) {
+            console.error("Error updating class:", error);
+        }
+    };
+
+// Delete Class
+    const handleDeleteClass = async () => {
+        if (!selectedClassId) return;
+
+        try {
+            const res = await fetch("/api/delete-class", {
+                method: "DELETE",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({classId: selectedClassId}),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to delete class");
+            }
+
+            setIsDeleteModalClassOpen(false);
+            await loadClasses();
+        } catch (error) {
+            console.error("Error deleting class:", error);
+        }
+    };
+
+// Create Student
     const handleStudentSubmit = async () => {
-        console.log("Student:", studentName, "Username:", studentUsername, "Password:", studentPassword, "Class", studentClass);
-        setStudentName("");
-        setStudentUsername("");
-        setStudentPassword("")
-        setShowStudentModal(false);
-        await createStudent(studentName, studentClass, studentUsername, studentPassword);
-        await fetchStudents();
+        try {
+            console.log("Student:", studentName, "Username:", studentUsername, "Password:", studentPassword, "Class:", studentClass);
+
+            const res = await fetch("/api/create-student", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    name: studentName,
+                    username: studentUsername,
+                    password: studentPassword,
+                    classId: studentClass,
+                }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to create student");
+            }
+
+            setStudentName("");
+            setStudentUsername("");
+            setStudentPassword("");
+            setShowStudentModal(false);
+            await fetchStudents();
+        } catch (error) {
+            console.error("Error creating student:", error);
+        }
     };
 
-    // Handle logout
-    const handleLogout = () => {
-        Cookies.remove("teacherId");
-        redirect("/login");// Redirect to login
+// Edit Student
+    const handleStudentEditSubmit = async () => {
+        try {
+            const res = await fetch("/api/update-student", {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    studentId: selectedStudentId,
+                    name: studentName,
+                    username: studentUsername,
+                    password: studentPassword,
+                    classId: studentClass,
+                }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to update student");
+            }
+
+            setIsStudentEditOpen(false);
+            await fetchStudents();
+        } catch (error) {
+            console.error("Error updating student:", error);
+        }
     };
 
+// Delete Student
+    const handleDeleteStudent = async () => {
+        if (!selectedStudentId) return;
+
+        try {
+            const res = await fetch("/api/delete-student", {
+                method: "DELETE",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({studentId: selectedStudentId}),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to delete student");
+            }
+
+            setSelectedStudentId("");
+            setIsDeleteModalStudentOpen(false);
+            await fetchStudents();
+        } catch (error) {
+            console.error("Error deleting student:", error);
+        }
+    };
+
+// Save assignment content from modal
     const handleModalSave = (content: string) => {
         console.log("Assignment Content:", content);
         setAssignmentContent(content);
         setIsModalOpen(false);
-
     };
 
-    const handleStudentEditSubmit = async () => {
-        // update logic here
-        await updateStudent(selectedStudentId, studentName, studentClass,studentUsername, studentPassword);
-        setIsStudentEditOpen(false);
-        await fetchStudents();
-    };
-
-    const handleClassEditSubmit = async () => {
-        // handle update logic here
-        await updateClass(selectedClassId, className, classTeacherId);
-        // Reset all states
-        setSelectedClassId("");
-        setClassName("");
-        setClassTeacherId("");
-        await loadClasses();
-
-        setIsClassMenuOpen(false);
-    };
-
-    const handleDeleteClass = async () => {
-        if (!selectedClassId) return;
-        await deleteClass(selectedClassId);
-        setIsDeleteModalClassOpen(false);
-        await loadClasses();
-    };
-
-    const handleDeleteStudent = async () => {
-        if (!selectedStudentId) return;
-        await deleteStudent(selectedStudentId);
-        // Reset the selection
-        setSelectedStudentId("");
-        // Close the modal
-        setIsDeleteModalStudentOpen(false);
-        await fetchStudents();
+// Logout
+    const handleLogout = () => {
+        Cookies.remove("teacherId");
+        redirect("/login");
     };
 
     type ColumnType = "Basic" | "Intermediate" | "Advanced";
-    // Attach files
-    const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, File[]>>>({});
-
-    // show Dialog update successful
-    const [isUploadSuccessDialogOpen, setIsUploadSuccessDialogOpen] = useState(false);
 
     type EvaluationData = {
         code: string;
@@ -477,7 +654,11 @@ export default function TeacherDashboard() {
         [key in ColumnType]: EvaluationData;
     };
 
+    type AttachedFile = File | { name: string; fullPath: string };
+
+    const [attachedFiles, setAttachedFiles] = useState<Record<number, Record<ColumnType, AttachedFile[]>>>({});
     const [evaluations, setEvaluations] = useState<Record<number, RowEvaluation>>({});
+    const [isUploadSuccessDialogOpen, setIsUploadSuccessDialogOpen] = useState(false);
 
     // Evaluation Cell Component
     const EvaluationCell = React.memo(({
@@ -490,8 +671,8 @@ export default function TeacherDashboard() {
                                        }: {
         row: number;
         column: ColumnType;
-        attachedFiles: Record<number, Record<ColumnType, File[]>>;
-        setAttachedFiles: React.Dispatch<React.SetStateAction<Record<number, Record<ColumnType, File[]>>>>;
+        attachedFiles: Record<number, Record<ColumnType, AttachedFile[]>>;
+        setAttachedFiles: React.Dispatch<React.SetStateAction<Record<number, Record<ColumnType, AttachedFile[]>>>>;
         evaluations: Record<number, RowEvaluation>;
         setEvaluations: React.Dispatch<React.SetStateAction<Record<number, RowEvaluation>>>;
     }) => {
@@ -529,7 +710,7 @@ export default function TeacherDashboard() {
                 [row]: {
                     ...prev[row],
                     [column]: {
-                        ...(prev[row]?.[column] || { code: "", note: "" }),
+                        ...(prev[row]?.[column] || {code: "", note: ""}),
                         code
                     }
                 }
@@ -546,7 +727,7 @@ export default function TeacherDashboard() {
                 [row]: {
                     ...prev[row],
                     [column]: {
-                        ...(prev[row]?.[column] || { code: "", note: "" }),
+                        ...(prev[row]?.[column] || {code: "", note: ""}),
                         note
                     }
                 }
@@ -583,7 +764,7 @@ export default function TeacherDashboard() {
                     >
                         Attach
                     </button>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} hidden />
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} hidden/>
                     {attachedFiles[row]?.[column]?.length > 0 && (
                         <ul className="text-xs mt-1 list-disc list-inside">
                             {attachedFiles[row]?.[column]?.map((f: any, idx: number) => {
@@ -609,7 +790,8 @@ export default function TeacherDashboard() {
 
                 {/* Upload Success Dialog */}
                 {isDialogOpen && (
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white border border-gray-300 p-4 rounded shadow-lg text-center">
+                    <div
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white border border-gray-300 p-4 rounded shadow-lg text-center">
                         <h2 className="text-sm font-semibold mb-2">Attach Successful</h2>
                         <button
                             onClick={() => setIsDialogOpen(false)}
@@ -623,7 +805,6 @@ export default function TeacherDashboard() {
         );
     });
 
-    type AttachedFile = File | { name: string; fullPath: string };
     // Save image to DB
     const uploadFiles = async (
         attachedFiles: Record<number, Record<ColumnType, AttachedFile[]>>
@@ -651,9 +832,9 @@ export default function TeacherDashboard() {
                         // if new attach file
                         const filePath = `teacher/${Date.now()}-${file.name}`;
 
-                        const { error } = await supabase.storage
+                        const {error} = await supabase.storage
                             .from("developing")
-                            .upload(filePath, file, { upsert: true });
+                            .upload(filePath, file, {upsert: true});
 
                         if (error) {
                             console.error(` Upload failed: ${file.name}`, error.message);
@@ -700,12 +881,12 @@ export default function TeacherDashboard() {
     const gatherEvaluationData = (uploadedPaths: Record<number, Record<ColumnType, string[]>>): any => {
         const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
 
-        const entries: AssignmentEntry[] = Array.from({ length: 5 }, (_, index) => {
+        const entries: AssignmentEntry[] = Array.from({length: 5}, (_, index) => {
             //const content = textAreaRefs.current[index]?.value || "";
             const rowEval = evaluations[index] || {};
 
             const evaluationsByLevel = levels.reduce((acc, level) => {
-                const evalData = rowEval[level] || { code: "", note: "" };
+                const evalData = rowEval[level] || {code: "", note: ""};
                 const files = uploadedPaths?.[index]?.[level] || [];
 
                 acc[level] = {
@@ -743,11 +924,11 @@ export default function TeacherDashboard() {
         const contentPath = `${Cookies.get("teacherName")}/${className}/${jsonUnitId}/unit_content.json`;
 
         console.log(filePath);
-        const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: "application/json" });
+        const blob = new Blob([JSON.stringify(mapData, null, 2)], {type: "application/json"});
 
-        const { error } = await supabase.storage
+        const {error} = await supabase.storage
             .from('assignment')
-            .upload(filePath, blob, { upsert: true });
+            .upload(filePath, blob, {upsert: true});
 
         if (error) {
             console.error("Failed to upload JSON:", error.message);
@@ -770,9 +951,9 @@ export default function TeacherDashboard() {
             type: "application/json",
         });
 
-        const { error: contentError } = await supabase.storage
+        const {error: contentError} = await supabase.storage
             .from("assignment")
-            .upload(contentPath, contentBlob, { upsert: true });
+            .upload(contentPath, contentBlob, {upsert: true});
 
         if (contentError) {
             console.error("Failed to update unit_content.json:", contentError.message);
@@ -793,7 +974,7 @@ export default function TeacherDashboard() {
             return;
         }
 
-        if (!jsonUnitId || Number(jsonUnitId) <= 1 ) {
+        if (!jsonUnitId || Number(jsonUnitId) <= 1) {
             console.warn("Invalid or missing unit ID. Skipping evaluation load.");
             resetEvaluationUI();
             return;
@@ -804,7 +985,7 @@ export default function TeacherDashboard() {
         const filePath = `${teacherName}/${className}/${jsonUnitId}/${studentId}/assignment.json`;
         console.log("Fetching evaluation from:", filePath);
 
-        const { data, error } = await supabase.storage
+        const {data, error} = await supabase.storage
             .from("assignment")
             .download(filePath);
 
@@ -878,306 +1059,313 @@ export default function TeacherDashboard() {
         <div className="flex flex-col min-h-screen ">
             {/* Top Banner */}
             <header className="w-full bg-violet-700 px-6 py-4 flex justify-between items-center ">
-               <div className="flex space-x-4">
+                <div className="flex space-x-4">
 
-                   <div className="relative inline-block text-left">
-                       <button
-                           onClick={() => {
-                               setIsDropdownClassOpen((prev) => !prev);
-                               setIsDropdownStudentOpen(false);
-                           }}
-                           className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
-                       >
-                           Class
-                       </button>
+                    <div className="relative inline-block text-left">
+                        <button
+                            onClick={() => {
+                                setIsDropdownClassOpen((prev) => !prev);
+                                setIsDropdownStudentOpen(false);
+                            }}
+                            className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
+                            Class
+                        </button>
 
-                       {isDropdownClassOpen && (
-                           <div className="absolute z-10 mt-2 w-40 bg-white rounded shadow-md border border-gray-200 text-black">
-                               <button
-                                   onClick={() => {
-                                       setShowClassModal(true);
-                                       setIsDropdownClassOpen(false);
-                                   }}
-                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                               >
-                                   Create Class
-                               </button>
-                               <button
-                                   onClick={() => {
-                                       setIsClassMenuOpen(true);
-                                       setIsDropdownClassOpen(false);
-                                   }}
-                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                               >
-                                   Edit Class
-                               </button>
-                               <button
-                                   onClick={() => {
-                                       setIsDeleteModalClassOpen(true);
-                                       setIsDropdownClassOpen(false);
-                                   }}
-                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                               >
-                                   Delete Class
-                               </button>
-                           </div>
-                       )}
+                        {isDropdownClassOpen && (
+                            <div
+                                className="absolute z-10 mt-2 w-40 bg-white rounded shadow-md border border-gray-200 text-black">
+                                <button
+                                    onClick={() => {
+                                        setShowClassModal(true);
+                                        setIsDropdownClassOpen(false);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Create Class
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsClassMenuOpen(true);
+                                        setIsDropdownClassOpen(false);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Edit Class
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsDeleteModalClassOpen(true);
+                                        setIsDropdownClassOpen(false);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Delete Class
+                                </button>
+                            </div>
+                        )}
 
-                       {/* Modals */}
-                       <ClassModal
-                           isOpen={showClassModal}
-                           onClose={() => setShowClassModal(false)}
-                           onSubmit={handleClassSubmit}
-                           className={className}
-                           setClassName={setClassName}
-                           teachers={teachers}
-                           teacherId={classTeacherId}
-                           setTeacherId={setClassTeacherId}
-                       />
+                        {/* Modals */}
+                        <ClassModal
+                            isOpen={showClassModal}
+                            onClose={() => setShowClassModal(false)}
+                            onSubmit={handleClassSubmit}
+                            className={className}
+                            setClassName={setClassName}
+                            teachers={teachers}
+                            teacherId={classTeacherId}
+                            setTeacherId={setClassTeacherId}
+                        />
 
-                       <ClassModalEdit
-                           isOpen={isClassMenuOpen}
-                           onClose={() => setIsClassMenuOpen(false)}
-                           onSubmit={handleClassEditSubmit}
-                           className={className}
-                           setClassName={setClassName}
-                           teacherId={classTeacherId}
-                           setTeacherId={setClassTeacherId}
-                           selectedClassId={selectedClassId}
-                           setSelectedClassId={setSelectedClassId}
-                           classes={classes}
-                           teachers={teachers}
-                       />
+                        <ClassModalEdit
+                            isOpen={isClassMenuOpen}
+                            onClose={() => setIsClassMenuOpen(false)}
+                            onSubmit={handleClassEditSubmit}
+                            className={className}
+                            setClassName={setClassName}
+                            teacherId={classTeacherId}
+                            setTeacherId={setClassTeacherId}
+                            selectedClassId={selectedClassId}
+                            setSelectedClassId={setSelectedClassId}
+                            classes={classes}
+                            teachers={teachers}
+                        />
 
-                       <ClassModalDelete
-                           isOpen={isDeleteModalClassOpen}
-                           onClose={() => setIsDeleteModalClassOpen(false)}
-                           onDelete={handleDeleteClass}
-                           selectedClassId={selectedClassId}
-                           setSelectedClassId={setSelectedClassId}
-                           classes={classes}
-                       />
+                        <ClassModalDelete
+                            isOpen={isDeleteModalClassOpen}
+                            onClose={() => setIsDeleteModalClassOpen(false)}
+                            onDelete={handleDeleteClass}
+                            selectedClassId={selectedClassId}
+                            setSelectedClassId={setSelectedClassId}
+                            classes={classes}
+                        />
 
-                   </div>
-                   <div className="relative inline-block text-left">
-                       <button
-                           onClick={() => {
-                               setIsDropdownStudentOpen((prev) => !prev);
-                               setIsDropdownClassOpen(false);
-                           }}
-                           className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
-                       >
-                           Student
-                       </button>
+                    </div>
+                    <div className="relative inline-block text-left">
+                        <button
+                            onClick={() => {
+                                setIsDropdownStudentOpen((prev) => !prev);
+                                setIsDropdownClassOpen(false);
+                            }}
+                            className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
+                            Student
+                        </button>
 
-                       {isDropdownStudentOpen && (
-                           <div className="absolute z-10 mt-2 w-44 bg-white rounded shadow-md border border-gray-200 text-black">
-                               <button
-                                   onClick={() => {
-                                       setIsStudentMenuOpen(true);
-                                       setIsDropdownStudentOpen(false);
-                                   }}
-                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                               >
-                                   Create Student
-                               </button>
-                               <button
-                                   onClick={() => {
-                                       setIsStudentEditOpen(true); // open EditStudentModal
-                                       setIsDropdownStudentOpen(false);
-                                   }}
-                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                               >
-                                   Edit Student
-                               </button>
-                               <button
-                                   onClick={() => {
-                                       setIsDeleteModalStudentOpen(true);
-                                       setIsDropdownStudentOpen(false);
-                                   }}
-                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                               >
-                                   Delete Student
-                               </button>
+                        {isDropdownStudentOpen && (
+                            <div
+                                className="absolute z-10 mt-2 w-44 bg-white rounded shadow-md border border-gray-200 text-black">
+                                <button
+                                    onClick={() => {
+                                        setIsStudentMenuOpen(true);
+                                        setIsDropdownStudentOpen(false);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Create Student
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsStudentEditOpen(true); // open EditStudentModal
+                                        setIsDropdownStudentOpen(false);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Edit Student
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsDeleteModalStudentOpen(true);
+                                        setIsDropdownStudentOpen(false);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Delete Student
+                                </button>
 
-                           </div>
-                       )}
+                            </div>
+                        )}
 
-                       {/* Modal create student */}
-                       <StudentModal
-                           isOpen={isStudentMenuOpen}
-                           onClose={() => setIsStudentMenuOpen(false)}
-                           onSubmit={handleStudentSubmit}
-                           studentName={studentName}
-                           setStudentName={setStudentName}
-                           studentUsername={studentUsername}
-                           setStudentUsername={setStudentUsername}
-                           studentPassword={studentPassword}
-                           setStudentPassword={setStudentPassword}
-                           classes={classes}
-                           setStudentClass={setStudentClass}
-                           studentClass={studentClass}
-                       />
+                        {/* Modal create student */}
+                        <StudentModal
+                            isOpen={isStudentMenuOpen}
+                            onClose={() => setIsStudentMenuOpen(false)}
+                            onSubmit={handleStudentSubmit}
+                            studentName={studentName}
+                            setStudentName={setStudentName}
+                            studentUsername={studentUsername}
+                            setStudentUsername={setStudentUsername}
+                            studentPassword={studentPassword}
+                            setStudentPassword={setStudentPassword}
+                            classes={classes}
+                            setStudentClass={setStudentClass}
+                            studentClass={studentClass}
+                        />
 
-                       {/* Modal edit student */}
-                       <EditStudentModal
-                           isOpen={isStudentEditOpen}
-                           onClose={() => setIsStudentEditOpen(false)}
-                           onSubmit={handleStudentEditSubmit}
-                           students={students.map((s) => ({
-                               id: s.StudentID,
-                               name: s.StudentName,
-                               username: s.StudentName,
-                               password: "",
-                               classId: "",
-                           }))}
-                           selectedStudentId={selectedStudentId}
-                           setSelectedStudentId={setSelectedStudentId}
-                           studentName={studentName}
-                           setStudentName={setStudentName}
-                           studentUsername={studentUsername}
-                           setStudentUsername={setStudentUsername}
-                           studentPassword={studentPassword}
-                           setStudentPassword={setStudentPassword}
-                           studentClass={studentClass}
-                           setStudentClass={setStudentClass}
-                           classes={classes}
-                       />
+                        {/* Modal edit student */}
+                        <EditStudentModal
+                            isOpen={isStudentEditOpen}
+                            onClose={() => setIsStudentEditOpen(false)}
+                            onSubmit={handleStudentEditSubmit}
+                            students={students.map((s) => ({
+                                id: s.StudentID,
+                                name: s.StudentName,
+                                username: s.StudentName,
+                                password: "",
+                                classId: "",
+                            }))}
+                            selectedStudentId={selectedStudentId}
+                            setSelectedStudentId={setSelectedStudentId}
+                            studentName={studentName}
+                            setStudentName={setStudentName}
+                            studentUsername={studentUsername}
+                            setStudentUsername={setStudentUsername}
+                            studentPassword={studentPassword}
+                            setStudentPassword={setStudentPassword}
+                            studentClass={studentClass}
+                            setStudentClass={setStudentClass}
+                            classes={classes}
+                        />
 
-                       {/* Modal Delete student */}
-                       <DeleteStudentModal
-                           isOpen={isDeleteModalStudentOpen}
-                           onClose={() => setIsDeleteModalStudentOpen(false)}
-                           onDelete={handleDeleteStudent}
-                           selectedStudentId={selectedStudentId}
-                           setSelectedStudentId={setSelectedStudentId}
-                           students={students.map((s) => ({
-                               id: s.StudentID,
-                               name: s.StudentName,
-                               username: s.StudentName,
-                               password: "",
-                               classId: "",
-                           }))}
-                       />
-                   </div>
+                        {/* Modal Delete student */}
+                        <DeleteStudentModal
+                            isOpen={isDeleteModalStudentOpen}
+                            onClose={() => setIsDeleteModalStudentOpen(false)}
+                            onDelete={handleDeleteStudent}
+                            selectedStudentId={selectedStudentId}
+                            setSelectedStudentId={setSelectedStudentId}
+                            students={students.map((s) => ({
+                                id: s.StudentID,
+                                name: s.StudentName,
+                                username: s.StudentName,
+                                password: "",
+                                classId: "",
+                            }))}
+                        />
+                    </div>
 
 
-                   <div className="relative inline-block text-left">
-                       <button
-                           onClick={() => {
-                               setIsDropdownUnitOpen((prev) => !prev);
-                               setIsDropdownClassOpen(false);
-                               setIsDropdownStudentOpen(false);
-                           }}
-                           className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
-                       >
-                           Unit
-                       </button>
+                    <div className="relative inline-block text-left">
+                        <button
+                            onClick={() => {
+                                setIsDropdownUnitOpen((prev) => !prev);
+                                setIsDropdownClassOpen(false);
+                                setIsDropdownStudentOpen(false);
+                            }}
+                            className="bg-violet-800 border-1 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
+                            Unit
+                        </button>
 
-                       {isDropdownUnitOpen && (
-                           <div className="absolute z-10 mt-2 w-44 bg-white rounded shadow-md border border-gray-200 text-black">
-                               <button
-                                   onClick={() => {
-                                       setIsUnitModalOpen(true);
-                                       setIsDropdownUnitOpen(false);
-                                   }}
-                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                               >
-                                   Create Unit
-                               </button>
-                               <button
-                                   onClick={() => {
-                                       setIsEditUnitOpen(true);
-                                       setIsDropdownUnitOpen(false);
-                                   }}
-                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                               >
-                                   Edit Unit
-                               </button>
-                               <button
-                                   onClick={() => {
-                                       setIsDeleteUnitOpen(true);
-                                       setIsDropdownUnitOpen(false);
-                                   }}
-                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                               >
-                                   Delete Unit
-                               </button>
-                           </div>
-                       )}
+                        {isDropdownUnitOpen && (
+                            <div
+                                className="absolute z-10 mt-2 w-44 bg-white rounded shadow-md border border-gray-200 text-black">
+                                <button
+                                    onClick={() => {
+                                        setIsUnitModalOpen(true);
+                                        setIsDropdownUnitOpen(false);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Create Unit
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsEditUnitOpen(true);
+                                        setIsDropdownUnitOpen(false);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Edit Unit
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsDeleteUnitOpen(true);
+                                        setIsDropdownUnitOpen(false);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                    Delete Unit
+                                </button>
+                            </div>
+                        )}
 
-                       {/* Modal Create */}
-                       <UnitModal
-                           isOpen={isUnitModalOpen}
-                           onClose={() => setIsUnitModalOpen(false)}
-                           onSubmit={handleCreateUnit}
-                           unitName={unitName}
-                           setUnitName={setUnitName}
-                           classId={classId}
-                           setClassId={setClassId}
-                           classes={classes}
-                           content1={description1}
-                           setDescription1={setDescription1}
-                           content2={description2}
-                           setDescription2={setDescription2}
-                           content3={description3}
-                           setDescription3={setDescription3}
-                           content4={description4}
-                           setDescription4={setDescription4}
-                           content5={description5}
-                           setDescription5={setDescription5}
-                       />
+                        {/* Modal Create */}
+                        <UnitModal
+                            isOpen={isUnitModalOpen}
+                            onClose={() => setIsUnitModalOpen(false)}
+                            onSubmit={handleCreateUnit}
+                            unitName={unitName}
+                            setUnitName={setUnitName}
+                            classId={classId}
+                            setClassId={setClassId}
+                            classes={classes}
+                            content1={description1}
+                            setDescription1={setDescription1}
+                            content2={description2}
+                            setDescription2={setDescription2}
+                            content3={description3}
+                            setDescription3={setDescription3}
+                            content4={description4}
+                            setDescription4={setDescription4}
+                            content5={description5}
+                            setDescription5={setDescription5}
+                        />
 
-                       <UnitModalEdit
-                           isOpen={isEditUnitOpen}
-                           onClose={() => {
-                               setIsEditUnitOpen(false);
-                               setSelectedUnitId('');
-                               setUnitName('');
-                               setClassId('');
-                           }}
-                           onSubmit={handleEditUnitSubmit}
-                           selectedUnitId={selectedUnitId}
-                           setSelectedUnitId={setSelectedUnitId}
-                           unitName={unitName}
-                           setUnitName={setUnitName}
-                           classId={classId}
-                           setClassId={setClassId}
-                           units={units}
-                           classes={classes}
-                       />
+                        <UnitModalEdit
+                            isOpen={isEditUnitOpen}
+                            onClose={() => {
+                                setIsEditUnitOpen(false);
+                                setSelectedUnitId('');
+                                setUnitName('');
+                                setClassId('');
+                            }}
+                            onSubmit={handleEditUnitSubmit}
+                            selectedUnitId={selectedUnitId}
+                            setSelectedUnitId={setSelectedUnitId}
+                            unitName={unitName}
+                            setUnitName={setUnitName}
+                            classId={classId}
+                            setClassId={setClassId}
+                            units={units}
+                            classes={classes}
+                        />
 
-                       {/* Modal Delete */}
-                       <UnitModalDelete
-                           isOpen={isDeleteUnitOpen}
-                           onClose={() => {
-                               setIsDeleteUnitOpen(false);
-                               setSelectedUnitId('');
-                           }}
-                           onDelete={handleDeleteUnit}
-                           selectedUnitId={selectedUnitId}
-                           setSelectedUnitId={setSelectedUnitId}
-                           units={units}
+                        {/* Modal Delete */}
+                        <UnitModalDelete
+                            isOpen={isDeleteUnitOpen}
+                            onClose={() => {
+                                setIsDeleteUnitOpen(false);
+                                setSelectedUnitId('');
+                            }}
+                            onDelete={handleDeleteUnit}
+                            selectedUnitId={selectedUnitId}
+                            setSelectedUnitId={setSelectedUnitId}
+                            units={units}
 
-                       />
-                   </div>
-               </div>
+                        />
+                    </div>
+                </div>
 
                 <div className="flex items-center gap-4">
                     <Bell className="w-6 h-6 text-gray-700 text-white cursor-pointer"/>
                     {/* Account Icon with dropdown */}
-                    <div >
+                    <div>
                         <VscAccount
                             className="w-6 h-6 text-white cursor-pointer"
                             onClick={() => setMenuOpen(!menuOpen)}
                         />
 
                         {menuOpen && (
-                            <div className="absolute right-0 mt-2 w-40 bg-white text-black shadow-lg rounded-md z-50">
-                                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-default" disabled>
+                            <div
+                                className="absolute right-0 mt-2 w-40 bg-white text-black shadow-lg rounded-md z-50">
+                                <button
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-default"
+                                    disabled>
                                     Welcome, {Cookies.get("teacherName")}
                                 </button>
-                                <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                                <button onClick={handleLogout}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100">
                                     Logout
                                 </button>
                             </div>
@@ -1196,7 +1384,8 @@ export default function TeacherDashboard() {
                             {/*
                             Populates class list with classes
                             */}
-                            <select className="w-full border rounded px-3 py-2" onChange={handleSelectClassChange} >
+                            <select className="w-full border rounded px-3 py-2"
+                                    onChange={handleSelectClassChange}>
                                 <option value={0}>Choose a class!</option>
                                 {classes.map((classes) => (
                                     <option key={classes.ClassID} value={classes.ClassID}>
@@ -1225,13 +1414,12 @@ export default function TeacherDashboard() {
                         </div>
 
 
-
-
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Student</label>
                             <select className="w-full border rounded px-3 py-2"
                                     onChange={(e) => {
-                                        setStudentId(e.target.value);}}
+                                        setStudentId(e.target.value);
+                                    }}
                             >
                                 {students.map((students) => (
                                     <option key={students.StudentID} value={students.StudentID}>
@@ -1268,9 +1456,9 @@ export default function TeacherDashboard() {
                             </tr>
                             </thead>
                             <tbody>
-                                {Array.from({ length: 5 }).map((_, index) => (
-                                    <tr key={index} className="hover:bg-gray-50">
-                                        <td className="border p-3 whitespace-pre-line text-sm align-top">
+                            {Array.from({length: 5}).map((_, index) => (
+                                <tr key={index} className="hover:bg-gray-50">
+                                    <td className="border p-3 whitespace-pre-line text-sm align-top">
                                               <textarea
                                                   ref={el => {
                                                       textAreaRefs.current[index] = el;
@@ -1279,33 +1467,33 @@ export default function TeacherDashboard() {
                                                   rows={4}
                                                   placeholder={`Click to create assignment #${index + 1}`}
                                               />
-                                        </td>
-                                        <EvaluationCell
-                                            row={index}
-                                            column="Basic"
-                                            attachedFiles={attachedFiles}
-                                            setAttachedFiles={setAttachedFiles}
-                                            evaluations={evaluations}
-                                            setEvaluations={setEvaluations}
-                                        />
-                                        <EvaluationCell
-                                            row={index}
-                                            column="Intermediate"
-                                            attachedFiles={attachedFiles}
-                                            setAttachedFiles={setAttachedFiles}
-                                            evaluations={evaluations}
-                                            setEvaluations={setEvaluations}
-                                        />
-                                        <EvaluationCell
-                                            row={index}
-                                            column="Advanced"
-                                            attachedFiles={attachedFiles}
-                                            setAttachedFiles={setAttachedFiles}
-                                            evaluations={evaluations}
-                                            setEvaluations={setEvaluations}
-                                        />
-                                    </tr>
-                                ))}
+                                    </td>
+                                    <EvaluationCell
+                                        row={index}
+                                        column="Basic"
+                                        attachedFiles={attachedFiles}
+                                        setAttachedFiles={setAttachedFiles}
+                                        evaluations={evaluations}
+                                        setEvaluations={setEvaluations}
+                                    />
+                                    <EvaluationCell
+                                        row={index}
+                                        column="Intermediate"
+                                        attachedFiles={attachedFiles}
+                                        setAttachedFiles={setAttachedFiles}
+                                        evaluations={evaluations}
+                                        setEvaluations={setEvaluations}
+                                    />
+                                    <EvaluationCell
+                                        row={index}
+                                        column="Advanced"
+                                        attachedFiles={attachedFiles}
+                                        setAttachedFiles={setAttachedFiles}
+                                        evaluations={evaluations}
+                                        setEvaluations={setEvaluations}
+                                    />
+                                </tr>
+                            ))}
                             </tbody>
                         </Table>
 
@@ -1330,7 +1518,8 @@ export default function TeacherDashboard() {
                 <div className="fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm">
                     <div className="bg-white p-6 rounded shadow-lg max-w-sm text-centern text-black">
                         <h2 className="text-base font-semibold mb-2 text-black">Update Successful</h2>
-                        <p className="mb-4 text-sm text-black">Your evaluation data has been saved successfully.</p>
+                        <p className="mb-4 text-sm text-black">Your evaluation data has been saved
+                            successfully.</p>
                         <button
                             onClick={() => setIsUploadSuccessDialogOpen(false)}
                             className="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
@@ -1369,3 +1558,4 @@ export default function TeacherDashboard() {
 
     );
 }
+
