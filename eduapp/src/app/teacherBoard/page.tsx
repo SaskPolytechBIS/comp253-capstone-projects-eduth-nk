@@ -51,7 +51,10 @@ export default function TeacherDashboard() {
     const legendItems = [
         {code: "✓", description: "Used when knowledge has been demonstrated individually"},
         {code: "S", description: "Used when knowledge has been demonstrated individually, but with a silly mistake"},
-        {code: "H", description: "Used when knowledge has been demonstrated individually, but with help from a teacher or peer"},
+        {
+            code: "H",
+            description: "Used when knowledge has been demonstrated individually, but with help from a teacher or peer"
+        },
         {code: "G", description: "Used when knowledge has been demonstrated within a group"},
         {code: "X", description: "Used when a question has been attempted, but answered incorrectly"},
         {code: "N", description: "Used when a question has not been attempted"},
@@ -81,7 +84,7 @@ export default function TeacherDashboard() {
             try {
                 const res = await fetch(`/api/get-teacher-classes?teacherId=${teacherId}`, {
                     method: "GET",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {"Content-Type": "application/json"},
                 });
                 if (!res.ok) {
                     console.error("Failed to load classes:", await res.text());
@@ -109,7 +112,7 @@ export default function TeacherDashboard() {
             try {
                 const res = await fetch(`/api/get-students-from-class?classId=${classId}`, {
                     method: "GET",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {"Content-Type": "application/json"},
                 });
                 if (!res.ok) {
                     console.error("Failed to load students:", await res.text());
@@ -127,7 +130,7 @@ export default function TeacherDashboard() {
                 if (data.length > 0) {
                     setStudentName(data[0].StudentName);
                     setStudentId(data[0].StudentID);
-                    await loadUnitContent();
+                    await loadEvaluationFromJson();
                 } else {
                     setStudentName("");
                     setStudentId("");
@@ -173,7 +176,7 @@ export default function TeacherDashboard() {
             try {
                 const res = await fetch(`/api/get-units?classId=${classId}`, {
                     method: "GET",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {"Content-Type": "application/json"},
                 });
                 if (!res.ok) {
                     console.error("Failed to load units:", await res.text());
@@ -197,9 +200,15 @@ export default function TeacherDashboard() {
 
     useEffect(() => {
         if (jsonUnitId) {
-            loadUnitContent();
+            loadUnitContent()
         }
     }, [jsonUnitId])
+
+    useEffect(() => {
+        if (studentId) {
+            loadEvaluationFromJson()
+        }
+    }, [studentId, jsonUnitId]);
 
     const fetchUnits = async () => {
         if (!classId) return;
@@ -413,47 +422,17 @@ export default function TeacherDashboard() {
         }
     };
 
-    const loadUnitInfo = async () => {
-        if (!jsonUnitId || !className) return;
-
-        const teacherName = Cookies.get("teacherName");
-        const path = encodeURIComponent(`${teacherName}/${className}/${jsonUnitId}/unit_info.json`);
-
-        try {
-            const res = await fetch(`/api/load-unit-content?path=${path}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || "Failed to fetch unit info");
-            }
-
-            const json = await res.json();
-            // Now you can populate your UI with json.descriptions, json.unitName, etc.
-            // For example, setting state:
-            setUnitDescriptions(json.descriptions || []);
-            setUnitName(json.unitName || "");
-
-        } catch (error) {
-            console.warn("Failed to load unit info:", error);
-            setUnitDescriptions([]);
-            setUnitName("");
-        }
-    };
-
 // Load Unit Content
     const loadUnitContent = async () => {
         if (!jsonUnitId || !className) return;
 
         const teacherName = Cookies.get("teacherName");
-        const path = encodeURIComponent(`${teacherName}/${className}/${jsonUnitId}/${studentId}/assignment.json`);
+        const path = encodeURIComponent(`${teacherName}/${className}/${jsonUnitId}/unit_content.json`);
 
         try {
             const res = await fetch(`/api/load-unit-content?path=${path}`, {
                 method: "GET",
-                headers: { "Content-Type": "application/json" },
+                headers: {"Content-Type": "application/json"},
             });
 
             if (!res.ok) {
@@ -462,17 +441,7 @@ export default function TeacherDashboard() {
             }
 
             const json = await res.json();
-
-            const descriptions = (json.entries || []).flatMap((entry: { evaluations: { Basic: { note: any; }; Intermediate: { note: any; }; Advanced: { note: any; }; }; }) => [
-                entry.evaluations?.Basic?.note || "",
-                entry.evaluations?.Intermediate?.note || "",
-                entry.evaluations?.Advanced?.note || "",
-            ]);
-
-            descriptions.forEach((desc: string, i: number) => {
-                const ref = textAreaRefs.current[i];
-                if (ref) ref.value = desc;
-            });
+            const descriptions = json.descriptions || [];
 
             descriptions.forEach((desc: string, i: number) => {
                 const ref = textAreaRefs.current[i];
@@ -1001,6 +970,75 @@ export default function TeacherDashboard() {
         setIsUploadSuccessDialogOpen(true);
     };
 
+    const loadEvaluationFromJson = async () => {
+        if (!jsonUnitId || !className || !studentId) {
+            resetEvaluationUI();
+            return;
+        }
+
+        const teacherName = Cookies.get("teacherName");
+        if (!teacherName) {
+            console.warn("Missing teacherName cookie");
+            resetEvaluationUI();
+            return;
+        }
+
+        const path = encodeURIComponent(`${teacherName}/${className}/${jsonUnitId}/${studentId}/assignment.json`);
+        console.log("Fetching evaluation from path:", path);
+
+        try {
+            const res = await fetch(`/api/load-unit-evaluation?path=${path}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                console.warn("Failed to fetch evaluation:", errorData.error);
+                resetEvaluationUI();
+                return;
+            }
+
+            const json = await res.json();
+            console.log("Loaded evaluation JSON:", json);
+
+            if (!Array.isArray(json.entries)) {
+                console.warn("Invalid evaluation data (entries not an array)");
+                resetEvaluationUI();
+                return;
+            }
+
+            const levels: ColumnType[] = ["Basic", "Intermediate", "Advanced"];
+            const loadedEvaluations: Record<number, RowEvaluation> = {};
+            const loadedFiles: Record<number, Record<ColumnType, AttachedFile[]>> = {};
+
+            json.entries.forEach((entry: { evaluations: Record<ColumnType, { code: string; note: string; files: string[] }> }, index: number) => {
+                const evals = entry.evaluations ?? {};
+                loadedEvaluations[index] = {} as RowEvaluation;
+                loadedFiles[index] = {} as Record<ColumnType, File[]>;
+
+                levels.forEach((level) => {
+                    const levelData = evals[level] || {};
+                    loadedEvaluations[index][level] = {
+                        code: levelData.code || "",
+                        note: levelData.note || "",
+                    };
+
+                    loadedFiles[index][level] = (levelData.files || []).map((path: string) => {
+                        const fileName = path.split("/").pop() || "unknown";
+                        return { name: fileName, fullPath: path };
+                    });
+                });
+            });
+
+            setEvaluations(loadedEvaluations);
+            setAttachedFiles(loadedFiles);
+        } catch (error) {
+            console.error("Error fetching evaluation:", error);
+            resetEvaluationUI();
+        }
+    };
+
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     return (
@@ -1451,7 +1489,6 @@ export default function TeacherDashboard() {
                                         await uploadJsonFile();
                                         // show dialog
                                         setIsUploadSuccessDialogOpen(true);
-                                        location.reload();
                                     }}
                             >
                                 Update Map

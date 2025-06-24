@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Bell } from "lucide-react";
-import { VscAccount } from "react-icons/vsc";
-import { useRouter } from "next/navigation";
+import React, {useEffect, useState} from "react";
+import {Bell} from "lucide-react";
+import {VscAccount} from "react-icons/vsc";
+import {useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 import Table from "react-bootstrap/Table";
-import { LegendModal } from "@/lib/Modals";
-import { supabase } from "@/lib/supabase";
+import {LegendModal} from "@/lib/Modals";
+import {supabase} from "@/lib/supabase";
 
 export default function StudentDashboard() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -15,12 +15,13 @@ export default function StudentDashboard() {
     const router = useRouter();
 
     const studentId = Cookies.get("studentId");
-    const [studentClass, setStudentClass] = useState([{ ClassID: "0", ClassName: "Error", TeacherID: "0" }]);
-    const [units, setUnits] = useState([{ UnitID: "0", UnitName: "Error" }]);
+    const [studentClass, setStudentClass] = useState({ClassID: "0", ClassName: "Error", TeacherID: "0"});
+    const [units, setUnits] = useState([{UnitID: "0", UnitName: "Error"}]);
     const [selectedUnit, setSelectedUnit] = useState("");
     const [assignmentData, setAssignmentData] = useState<any[]>([]);
     const [unitDescriptions, setUnitDescriptions] = useState<string[]>([]);
     const [studentName, setStudentName] = useState("");
+    const [teacherName, setTeacherName] = useState("")
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -35,16 +36,14 @@ export default function StudentDashboard() {
         }
     }, [studentId]);
 
-    // Fetch student's class via API route
     useEffect(() => {
         if (!studentId) return;
 
         const fetchClass = async () => {
             try {
-                const res = await fetch("/api/get-class-from-student", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ studentId }),
+                const res = await fetch(`/api/get-class-from-student?studentId=${studentId}`, {
+                    method: "GET",
+                    headers: {"Content-Type": "application/json"}
                 });
 
                 if (!res.ok) {
@@ -53,8 +52,6 @@ export default function StudentDashboard() {
                 }
 
                 const data = await res.json();
-
-                // Assuming data is array of classes
                 setStudentClass(data);
             } catch (error) {
                 console.error("Error fetching class:", error);
@@ -66,14 +63,15 @@ export default function StudentDashboard() {
 
     // Fetch units for class via API route
     useEffect(() => {
-        if (!studentClass[0]?.ClassID || studentClass[0].ClassID === "0") return;
+        const classId = studentClass.ClassID;
+        console.log(classId);
+        if (!classId || classId === "0") return;
 
         const fetchUnits = async () => {
             try {
-                const res = await fetch("/api/get-units", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ classId: studentClass[0].ClassID }),
+                const res = await fetch(`/api/get-units?classId=${classId}`, {
+                    method: "GET",
+                    headers: {"Content-Type": "application/json"},
                 });
 
                 if (!res.ok) {
@@ -97,94 +95,105 @@ export default function StudentDashboard() {
     };
 
     // Fetch teacher name via API route
-    const fetchTeacherName = async (teacherId: string) => {
-        try {
-            const res = await fetch("/api/get-teacher-name", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ teacherId }),
-            });
+    useEffect(() => {
+        if (!studentClass || studentClass.TeacherID === "0") return;
 
-            if (!res.ok) {
-                console.error("Failed to fetch teacher name:", await res.text());
-                return null;
+        const fetchAndSetTeacherName = async () => {
+            try {
+                const res = await fetch(`/api/get-teacher-name?teacherId=${encodeURIComponent(studentClass.TeacherID)}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
+
+                if (!res.ok) {
+                    console.error("Failed to fetch teacher name:", await res.text());
+                    setTeacherName("");
+                    return;
+                }
+
+                const data = await res.json();
+                if (data && data.TeacherName) {
+                    setTeacherName(data.TeacherName);
+                } else {
+                    setTeacherName("");
+                }
+            } catch (error) {
+                console.error("Error fetching teacher name:", error);
+                setTeacherName("");
             }
+        };
 
-            const data = await res.json();
-            return data?.[0]?.TeacherName || null;
-        } catch (error) {
-            console.error("Error fetching teacher name:", error);
-            return null;
-        }
-    };
+        fetchAndSetTeacherName();
+    }, [studentClass]);
 
     // Load assignment JSON from Supabase Storage
     useEffect(() => {
         const loadStudentAssignment = async () => {
-            if (!selectedUnit || !studentClass.length) return;
-
-            const teacherName = await fetchTeacherName(studentClass[0].TeacherID);
-            if (!teacherName) {
-                console.warn("Teacher name not found");
+            if (!selectedUnit || !studentClass || !teacherName) {
                 setAssignmentData([]);
                 return;
             }
 
-            const filePath = `${teacherName}/${studentClass[0].ClassName}/${selectedUnit}/${studentId}/assignment.json`;
-
-            const { data, error } = await supabase.storage
-                .from("public/assignment")
-                .download(filePath);
-
-            if (error) {
-                console.warn("Failed to load assignment:", error.message);
-                setAssignmentData([]);
-                return;
-            }
+            const filePath = encodeURIComponent(
+                `${teacherName}/${studentClass.ClassName}/${selectedUnit}/${studentId}/assignment.json`
+            );
 
             try {
-                const text = await data.text();
-                const json = JSON.parse(text);
+                const res = await fetch(`/api/load-unit-evaluation?path=${filePath}`, {
+                    method: "GET",
+                    headers: {"Content-Type": "application/json"},
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    console.warn("Failed to load assignment:", errorData.error);
+                    setAssignmentData([]);
+                    return;
+                }
+
+                const json = await res.json();
                 setAssignmentData(json.entries || []);
-            } catch (e) {
-                console.error("Error parsing JSON:", e);
+            } catch (error) {
+                console.error("Error fetching assignment data:", error);
                 setAssignmentData([]);
             }
         };
 
         loadStudentAssignment();
-    }, [selectedUnit, studentClass, studentId]);
+    }, [selectedUnit, studentClass, teacherName]);
 
     // Load unit content JSON from Supabase Storage
     useEffect(() => {
         const loadUnitContent = async () => {
-            if (!selectedUnit || !studentClass.length) return;
+            if (!selectedUnit || !studentClass) return;
 
-            const teacherName = await fetchTeacherName(studentClass[0].TeacherID);
             if (!teacherName) {
                 console.warn("Teacher name not found");
                 setUnitDescriptions([]);
                 return;
             }
 
-            const filePath = `${teacherName}/${studentClass[0].ClassName}/${selectedUnit}/unit_content.json`;
-
-            const { data, error } = await supabase.storage
-                .from("public/assignment")
-                .download(filePath);
-
-            if (error) {
-                console.error("Failed to load unit content:", error.message);
-                setUnitDescriptions([]);
-                return;
-            }
+            const filePath = encodeURIComponent(
+                `${teacherName}/${studentClass.ClassName}/${selectedUnit}/unit_content.json`
+            );
 
             try {
-                const text = await data.text();
-                const json = JSON.parse(text);
+                const res = await fetch(`/api/load-unit-content?path=${filePath}`, {
+                    method: "GET",
+                    headers: {"Content-Type": "application/json"},
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    console.error("Failed to load unit content:", errorData.error);
+                    setUnitDescriptions([]);
+                    return;
+                }
+
+                const json = await res.json();
                 setUnitDescriptions(json.descriptions || []);
-            } catch (e) {
-                console.error("Error parsing unit_content.json:", e);
+            } catch (error) {
+                console.error("Error fetching unit content:", error);
                 setUnitDescriptions([]);
             }
         };
@@ -199,14 +208,14 @@ export default function StudentDashboard() {
     };
 
     const legendItems = [
-        { code: "✓", description: "Used when knowledge has been demonstrated individually" },
-        { code: "S", description: "Silly mistake but demonstrated individually" },
-        { code: "H", description: "Help from teacher or peer" },
-        { code: "G", description: "Demonstrated within a group" },
-        { code: "X", description: "Attempted, but incorrect" },
-        { code: "N", description: "Not attempted" },
-        { code: "O", description: "Observed demonstration" },
-        { code: "C", description: "Demonstrated via conversation" },
+        {code: "✓", description: "Used when knowledge has been demonstrated individually"},
+        {code: "S", description: "Silly mistake but demonstrated individually"},
+        {code: "H", description: "Help from teacher or peer"},
+        {code: "G", description: "Demonstrated within a group"},
+        {code: "X", description: "Attempted, but incorrect"},
+        {code: "N", description: "Not attempted"},
+        {code: "O", description: "Observed demonstration"},
+        {code: "C", description: "Demonstrated via conversation"},
     ];
 
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -216,7 +225,7 @@ export default function StudentDashboard() {
             <header className="w-full bg-violet-700 px-6 py-4 flex justify-between items-center relative">
                 <div className="text-white text-lg font-semibold">Student Dashboard</div>
                 <div className="flex items-center gap-4 relative">
-                    <Bell className="w-6 h-6 text-white cursor-pointer" />
+                    <Bell className="w-6 h-6 text-white cursor-pointer"/>
                     <VscAccount
                         className="w-6 h-6 text-white cursor-pointer"
                         onClick={() => setMenuOpen(!menuOpen)}
@@ -224,7 +233,9 @@ export default function StudentDashboard() {
                     {menuOpen && (
                         <div className="absolute right-0 mt-2 w-40 bg-white text-black shadow-lg rounded-md z-50">
                             <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Profile</button>
-                            <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-100">Logout</button>
+                            <button onClick={handleLogout}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100">Logout
+                            </button>
                         </div>
                     )}
                 </div>
@@ -259,7 +270,7 @@ export default function StudentDashboard() {
                             >
                                 Show Legend
                             </button>
-                            <LegendModal isOpen={showPopup} onClose={() => setShowPopup(false)} items={legendItems} />
+                            <LegendModal isOpen={showPopup} onClose={() => setShowPopup(false)} items={legendItems}/>
                         </div>
 
                         <div className="overflow-x-auto">
@@ -273,12 +284,12 @@ export default function StudentDashboard() {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {Array.from({ length: 5 }).map((_, index) => {
+                                {Array.from({length: 5}).map((_, index) => {
                                     const entry = assignmentData[index] || {
                                         evaluations: {
-                                            Basic: { code: "", note: "", files: [] },
-                                            Intermediate: { code: "", note: "", files: [] },
-                                            Advanced: { code: "", note: "", files: [] },
+                                            Basic: {code: "", note: "", files: []},
+                                            Intermediate: {code: "", note: "", files: []},
+                                            Advanced: {code: "", note: "", files: []},
                                         },
                                     };
                                     const contentText = unitDescriptions[index] || "";
