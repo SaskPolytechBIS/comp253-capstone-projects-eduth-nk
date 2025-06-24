@@ -9,7 +9,7 @@ import {redirect, useRouter} from "next/navigation";
 import Cookies from "js-cookie";
 import { createStudent, createClass, createUnit } from '@/lib/create';
 import { getStudentsFromClass, getTeacherClasses, getAllTeachers, getUnits} from "@/lib/select";
-import { updateClass, updateUnit, updateAssignment, updateStudent } from "@/lib/update";
+import { updateClass, updateUnit, updateStudent } from "@/lib/update";
 import { deleteClass, deleteStudent, deleteUnit } from "@/lib/delete";
 import Table from 'react-bootstrap/Table';
 import {supabase} from "@/lib/supabase";
@@ -67,7 +67,7 @@ export default function TeacherDashboard() {
     //populations
     const [classId, setClassId] = useState("");
     const [classes, setClasses] = useState([{ClassID: "0", ClassName: "Error"}]);
-    const [students, setStudents] = useState([{StudentID: "0", StudentName: "Empty"}]);
+    const [students, setStudents] = useState([{StudentID: "0", StudentName: ""}]);
     const [teachers, setTeachers] = useState([{TeacherID: "0", TeacherName: "Error"}]);
     const [units, setUnits] = useState([{UnitID: "0", UnitName: "Empty"}])
 
@@ -1225,9 +1225,7 @@ export default function TeacherDashboard() {
                         </div>
 
 
-                        <button className="w-full mb-4 bg-blue-600 text-white rounded px-3 py-2 hover:bg-blue-700">
-                            Show Map
-                        </button>
+
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-1">Student</label>
@@ -1242,10 +1240,6 @@ export default function TeacherDashboard() {
                                 ))}
                             </select>
                         </div>
-
-                        <button className="w-full bg-purple-600 text-white rounded px-3 py-2 hover:bg-purple-700">
-                            Show Map
-                        </button>
                     </div>
 
                     {/* Main Content */}
